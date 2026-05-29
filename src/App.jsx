@@ -3,26 +3,37 @@ import Sidebar from './components/ui/Sidebar'
 import TOC from './components/ui/TOC'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
-import { TocProvider, useToc } from './context/TocContext'
+import { TocProvider } from './context/TocContext'
 
 function Layout() {
-  const { scrollRef } = useToc()
-
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--canvas-default)' }}>
+    <div style={{ display: 'flex', flexDirection: 'row', minHeight: '100vh' }}>
       <Sidebar />
-      <main
-        ref={scrollRef}
-        style={{ flex: 1, overflowY: 'auto', backgroundColor: 'var(--canvas-default)', minWidth: 0 }}
-      >
-        <Routes>
-          <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
-          <Route path="/explorer/:nodeId" element={<Explorer />} />
-          <Route path="/tokens" element={<Tokens />} />
-          <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
-        </Routes>
-      </main>
-      <TOC />
+      {/* Page wrapper: offset for fixed sidebar */}
+      <div style={{
+        marginLeft: 220,
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        minHeight: '100vh',
+      }}>
+        <main style={{
+          flex: 1,
+          minWidth: 0,
+          padding: '48px 64px',
+          backgroundColor: '#F7F8F9',
+          maxWidth: 860,
+          margin: '0 auto',
+        }}>
+          <Routes>
+            <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
+            <Route path="/explorer/:nodeId" element={<Explorer />} />
+            <Route path="/tokens" element={<Tokens />} />
+            <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
+          </Routes>
+        </main>
+        <TOC />
+      </div>
     </div>
   )
 }

@@ -93,7 +93,7 @@ export default function Tokens() {
   const borderTokens = Object.entries(semantic.border)
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1000, fontFamily: 'var(--font-family)' }}>
+    <div style={{ fontFamily: 'var(--font-family)' }}>
 
       {/* Breadcrumb */}
       <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8 }}>

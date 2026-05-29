@@ -438,7 +438,7 @@ export default function Explorer() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 740, fontFamily: 'var(--font-family)' }}>
+    <div style={{ fontFamily: 'var(--font-family)' }}>
 
       {/* Breadcrumb */}
       <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>

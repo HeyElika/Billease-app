@@ -2,20 +2,16 @@ import { useState, useEffect } from 'react'
 import { useToc } from '../../context/TocContext'
 
 export default function TOC() {
-  const { sections, scrollRef } = useToc()
+  const { sections } = useToc()
   const [activeId, setActiveId] = useState(null)
 
   useEffect(() => {
-    if (!scrollRef.current || sections.length === 0) return
-
-    const container = scrollRef.current
+    if (sections.length === 0) return
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Pick the topmost intersecting entry
         const visible = entries.filter(e => e.isIntersecting)
         if (visible.length > 0) {
-          // Use the one with the smallest offsetTop (highest on page)
           const top = visible.reduce((a, b) =>
             a.target.offsetTop < b.target.offsetTop ? a : b
           )
@@ -23,7 +19,7 @@ export default function TOC() {
         }
       },
       {
-        root: container,
+        root: null,
         rootMargin: '-80px 0px -55% 0px',
         threshold: 0,
       }
@@ -35,31 +31,26 @@ export default function TOC() {
     })
 
     return () => observer.disconnect()
-  }, [sections, scrollRef])
+  }, [sections])
 
   function scrollTo(id) {
     const el = document.getElementById(id)
-    const container = scrollRef.current
-    if (!el || !container) return
-    const containerRect = container.getBoundingClientRect()
-    const elRect = el.getBoundingClientRect()
-    container.scrollTo({
-      top: container.scrollTop + elRect.top - containerRect.top - 88,
-      behavior: 'smooth',
-    })
+    if (!el) return
+    const y = el.getBoundingClientRect().top + window.scrollY - 48
+    window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
   return (
     <aside style={{
-      width: 200,
-      minWidth: 200,
-      height: '100vh',
       position: 'sticky',
       top: 0,
-      padding: '40px 16px 40px 20px',
-      overflowY: 'auto',
+      width: 200,
       flexShrink: 0,
-      backgroundColor: 'var(--canvas-default)',
+      height: '100vh',
+      overflowY: 'auto',
+      padding: '48px 24px',
+      borderLeft: '1px solid #EAEDF0',
+      backgroundColor: '#ffffff',
     }}>
       {sections.length > 0 && (
         <>
