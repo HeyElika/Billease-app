@@ -1,110 +1,264 @@
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useParams, useLocation } from 'react-router-dom'
+import { componentIndex } from '../../data/components'
 
-const navItems = [
-  { to: '/explorer', label: 'Component Explorer', icon: '◻' },
-  { to: '/tokens', label: 'Design Tokens', icon: '◈' },
+// Categories shown in sidebar (user-specified order)
+const SHOWN_CATEGORIES = [
+  'Accordion', 'Alert', 'Badge', 'Banners', 'Buttons', 'Cards',
+  'Checkbox', 'Dropdown', 'Empty state', 'Hero', 'Input', 'List',
+  'Loans', 'Modal', 'Navigation', 'Pay now', 'Payment', 'Radio button',
+  'Search', 'Slider', 'Tabs',
 ]
 
-export default function Sidebar() {
+export function toSlug(id) {
+  return id.replace(/:/g, '_')
+}
+
+function ChevronIcon({ open }) {
   return (
-    <aside
+    <svg
+      width="12" height="12" viewBox="0 0 12 12" fill="none"
       style={{
-        width: 220,
-        minHeight: '100vh',
-        backgroundColor: 'var(--bg-base)',
-        borderRight: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
+        transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+        transition: 'transform 0.18s ease',
         flexShrink: 0,
       }}
     >
-      <div
+      <path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function CategoryItem({ category, components, activeNodeId, defaultOpen }) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  // Auto-open when an item in this category becomes active
+  useEffect(() => {
+    if (defaultOpen) setOpen(true)
+  }, [defaultOpen])
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(o => !o)}
         style={{
-          padding: '24px 20px 20px',
-          borderBottom: '1px solid var(--border-subtle)',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '7px 16px',
+          border: 'none',
+          background: 'none',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-family)',
+          fontSize: 13,
+          fontWeight: open ? 600 : 400,
+          color: open ? 'var(--text-base)' : 'var(--text-subtle)',
+          textAlign: 'left',
+          borderRadius: 0,
+          transition: 'color 0.12s',
         }}
       >
-        <div
-          style={{
+        <span>{category}</span>
+        <ChevronIcon open={open} />
+      </button>
+
+      {open && (
+        <div>
+          {components.map(comp => {
+            const slug = toSlug(comp.id)
+            const isActive = comp.id === activeNodeId
+            return (
+              <NavLink
+                key={comp.id}
+                to={`/explorer/${slug}`}
+                style={{
+                  display: 'block',
+                  padding: '5px 16px 5px 28px',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--font-family)',
+                  fontSize: 13,
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-subtle)',
+                  fontWeight: isActive ? 600 : 400,
+                  borderLeft: isActive ? '2px solid var(--bg-primary)' : '2px solid transparent',
+                  backgroundColor: isActive ? 'var(--bg-error-subtle)' : 'transparent',
+                  transition: 'background-color 0.1s, color 0.1s',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
+                    e.currentTarget.style.color = 'var(--text-base)'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.color = 'var(--text-subtle)'
+                  }
+                }}
+              >
+                {comp.name}
+              </NavLink>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function Sidebar() {
+  const { nodeId: nodeIdParam } = useParams()
+  const location = useLocation()
+  const activeNodeId = nodeIdParam ? nodeIdParam.replace(/_/g, ':') : null
+
+  // Build category→components map
+  const categoryMap = {}
+  SHOWN_CATEGORIES.forEach(cat => {
+    categoryMap[cat] = componentIndex.filter(
+      c => c.category.toLowerCase() === cat.toLowerCase()
+    )
+  })
+
+  // Which category is active?
+  const activeCategoryForComp = componentIndex.find(c => c.id === activeNodeId)?.category ?? null
+
+  const isTokensActive = location.pathname === '/tokens'
+
+  return (
+    <aside style={{
+      width: 240,
+      minWidth: 240,
+      height: '100vh',
+      position: 'sticky',
+      top: 0,
+      backgroundColor: '#FFFFFF',
+      borderRight: '1px solid var(--border-subtle)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      flexShrink: 0,
+    }}>
+
+      {/* Logo */}
+      <div style={{
+        padding: '20px 16px 16px',
+        borderBottom: '1px solid var(--border-subtle)',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: 6,
+            backgroundColor: 'var(--bg-primary)',
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--bg-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>B</span>
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-family)' }}>B</span>
           </div>
           <div>
-            <div
-              style={{
-                fontSize: 'var(--text-md)',
-                fontWeight: 700,
-                color: 'var(--text-base)',
-                fontFamily: 'var(--font-family)',
-                lineHeight: 1.2,
-              }}
-            >
+            <div style={{
+              fontFamily: 'var(--font-family)',
+              fontSize: 14,
+              fontWeight: 700,
+              color: 'var(--text-base)',
+              lineHeight: 1.2,
+            }}>
               Billease DS
             </div>
-            <div
-              style={{
-                fontSize: 'var(--text-xxs)',
-                color: 'var(--text-subtle)',
-                fontFamily: 'var(--font-family)',
-              }}
-            >
-              Design Portal
+            <div style={{
+              fontFamily: 'var(--font-family)',
+              fontSize: 11,
+              color: 'var(--text-subtle)',
+            }}>
+              Native App Library
             </div>
           </div>
         </div>
       </div>
 
-      <nav style={{ padding: '12px 8px', flex: 1 }}>
-        {navItems.map(({ to, label, icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: 2,
-              textDecoration: 'none',
-              fontSize: 'var(--text-md)',
-              fontFamily: 'var(--font-family)',
-              fontWeight: isActive ? 600 : 400,
-              color: isActive ? 'var(--text-primary)' : 'var(--text-subtle)',
-              backgroundColor: isActive ? 'var(--bg-error-subtle)' : 'transparent',
-              transition: 'background-color 0.15s, color 0.15s',
-            })}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>{icon}</span>
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* Scrollable nav body */}
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
 
-      <div
-        style={{
-          padding: '16px 20px',
-          borderTop: '1px solid var(--border-subtle)',
-          fontSize: 'var(--text-xxs)',
-          color: 'var(--text-disabled)',
+        {/* Components section */}
+        <div style={{
+          padding: '16px 16px 6px',
           fontFamily: 'var(--font-family)',
-        }}
-      >
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--text-disabled)',
+          letterSpacing: '0.6px',
+          textTransform: 'uppercase',
+        }}>
+          Components
+        </div>
+
+        {SHOWN_CATEGORIES.map(cat => {
+          const comps = categoryMap[cat] || []
+          if (comps.length === 0) return null
+          const isDefaultOpen = activeCategoryForComp?.toLowerCase() === cat.toLowerCase()
+          return (
+            <CategoryItem
+              key={cat}
+              category={cat}
+              components={comps}
+              activeNodeId={activeNodeId}
+              defaultOpen={isDefaultOpen || cat === 'Buttons'}
+            />
+          )
+        })}
+
+        {/* Divider */}
+        <div style={{
+          margin: '12px 16px',
+          borderTop: '1px solid var(--border-subtle)',
+        }} />
+
+        {/* Foundations section */}
+        <div style={{
+          padding: '4px 16px 6px',
+          fontFamily: 'var(--font-family)',
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--text-disabled)',
+          letterSpacing: '0.6px',
+          textTransform: 'uppercase',
+        }}>
+          Foundations
+        </div>
+
+        <NavLink
+          to="/tokens"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '7px 16px',
+            textDecoration: 'none',
+            fontFamily: 'var(--font-family)',
+            fontSize: 13,
+            color: isTokensActive ? 'var(--text-primary)' : 'var(--text-subtle)',
+            fontWeight: isTokensActive ? 600 : 400,
+            borderLeft: isTokensActive ? '2px solid var(--bg-primary)' : '2px solid transparent',
+            backgroundColor: isTokensActive ? 'var(--bg-error-subtle)' : 'transparent',
+            transition: 'background-color 0.1s, color 0.1s',
+          }}
+        >
+          Design Tokens
+        </NavLink>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        padding: '10px 16px',
+        borderTop: '1px solid var(--border-subtle)',
+        fontFamily: 'var(--font-family)',
+        fontSize: 11,
+        color: 'var(--text-disabled)',
+        flexShrink: 0,
+      }}>
         138 components · 857 variants
       </div>
     </aside>

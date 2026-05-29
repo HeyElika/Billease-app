@@ -1,29 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/ui/Sidebar'
-import Header from './components/ui/Header'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
 
 function Layout() {
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--canvas-default)' }}>
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Header />
-        <main
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            backgroundColor: 'var(--canvas-default)',
-          }}
-        >
-          <Routes>
-            <Route path="/explorer" element={<Explorer />} />
-            <Route path="/tokens" element={<Tokens />} />
-            <Route path="*" element={<Navigate to="/explorer" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <main style={{ flex: 1, overflowY: 'auto', backgroundColor: 'var(--canvas-default)' }}>
+        <Routes>
+          <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
+          <Route path="/explorer/:nodeId" element={<Explorer />} />
+          <Route path="/tokens" element={<Tokens />} />
+          <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
+        </Routes>
+      </main>
     </div>
   )
 }
