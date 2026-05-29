@@ -3,12 +3,16 @@ import { useParams } from 'react-router-dom'
 import { componentIndex } from '../data/components'
 import { useToc } from '../context/TocContext'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
+import InputField, { getTokensForInput } from '../components/ds/InputField'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
 const VARIANTS = ['primary', 'secondary', 'ghost', 'gradient', 'ghost-destructive']
 const STATES   = ['default', 'active', 'pressed', 'disabled', 'loading']
 const SIZES    = ['lg', 'md', 'sm']
+
+const INPUT_STATES = ['default', 'focused', 'typing', 'filled', 'error', 'error-filled', 'disabled']
+const INPUT_SIZES  = ['lg', 'md']
 
 const REGISTRY = {
   '16:182': {
@@ -25,6 +29,20 @@ const REGISTRY = {
     isMissing: (variant, size, state) =>
       (variant === 'ghost-destructive' && size === 'md') ||
       ((variant === 'ghost' || variant === 'ghost-destructive') && state === 'loading'),
+  },
+
+  '109:1161': {
+    variants: ['(none)'],
+    sizes: INPUT_SIZES,
+    states: INPUT_STATES,
+    defaultVariant: '(none)',
+    defaultSize: 'lg',
+    defaultState: 'default',
+    renderComponent: ({ size, state }) => (
+      <InputField size={size} state={state} />
+    ),
+    getTokens: (variant, size, state) => getTokensForInput(size, state),
+    isMissing: () => false,
   },
 }
 
@@ -174,10 +192,20 @@ const ANATOMY_PARTS = {
     { name: 'Trailing icon',      desc: 'Optional 16 × 16 icon to the right of label' },
     { name: 'State overlay',      desc: 'Semi-transparent layer for active / pressed / disabled states' },
   ],
+  '109:1161': [
+    { name: 'Label row',          desc: '16px/400 text-base label + 14px/400 text-subtle "(Optional)" tag · gap 4px' },
+    { name: 'Input box',          desc: 'bg-sunken (#EAEDF0) fill, radius 12px · height 48px (lg) / 40px (md) · padding 12px H' },
+    { name: 'Placeholder text',   desc: '16px/400 text-subtle (#606C79) — shown in default, focused, error, disabled states' },
+    { name: 'Value text',         desc: '16px/400 text-base (#1D2D40) — shown in typing, filled, error-filled states' },
+    { name: 'Right icon',         desc: '20 × 20 icon slot (icon-placeholder instance) · text-subtle color' },
+    { name: 'Focus / error ring', desc: '1px border · #265CE5 (bg-secondary) on focus/typing · #DD0C0C (text-error) on error states' },
+    { name: 'Error message row',  desc: '14px/400 text-primary (#F84040) · shown below box on error / error-filled only' },
+  ],
 }
 
 function AnatomySection({ nodeId, spec }) {
   const parts = ANATOMY_PARTS[nodeId]
+  const defaultVariant = spec.defaultVariant
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{
@@ -187,12 +215,13 @@ function AnatomySection({ nodeId, spec }) {
         border: '1px solid var(--border-subtle)',
         display: 'flex',
         justifyContent: 'center',
-        gap: 16,
+        gap: 32,
         flexWrap: 'wrap',
+        alignItems: 'flex-start',
       }}>
         {spec.sizes.map(sz => (
           <div key={sz} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            {spec.renderComponent({ variant: 'primary', size: sz, state: 'default', label: 'Pay Now' })}
+            {spec.renderComponent({ variant: defaultVariant, size: sz, state: 'default', label: 'Pay Now' })}
             <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{sz}</span>
           </div>
         ))}
@@ -237,14 +266,14 @@ function StatesSection({ spec, variant, size }) {
         backgroundColor: 'var(--bg-subtle)',
       }}>
         <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-          All States — {variant} / {size}
+          All States — {variant === '(none)' ? '' : `${variant} / `}{size}
         </span>
       </div>
       <div style={{
         padding: '28px 32px',
         display: 'flex',
         gap: 32,
-        alignItems: 'flex-end',
+        alignItems: 'flex-start',
         flexWrap: 'wrap',
         backgroundColor: isGhost ? 'var(--bg-subtle)' : '#fff',
       }}>
@@ -329,6 +358,20 @@ const USAGE = {
       'Don\'t mix Gradient and Primary buttons in the same section.',
       'Avoid vague labels like "Click here" or "Submit".',
       'Don\'t use disabled state without a clear reason visible to users.',
+    ],
+  },
+  '109:1161': {
+    dos: [
+      'Always pair the input with a visible label above the field.',
+      'Show error messages immediately below the field in error / error-filled states.',
+      'Use the focused border (#265CE5) to confirm the field is active.',
+      'Use lg size for primary forms; md size for compact or secondary flows.',
+    ],
+    donts: [
+      'Don\'t use placeholder text as a substitute for a label.',
+      'Don\'t suppress the error message — always tell the user what went wrong.',
+      'Don\'t disable a field without making the reason obvious in context.',
+      'Don\'t mix lg and md inputs within the same form.',
     ],
   },
 }
@@ -491,9 +534,11 @@ export default function Explorer() {
             <SectionHeading>Variants</SectionHeading>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <PillSelector label="Variant" options={spec.variants} value={effectiveVariant} onChange={setVariant} />
-                <PillSelector label="Size"    options={spec.sizes}    value={effectiveSize}    onChange={setSize}    />
-                <PillSelector label="State"   options={spec.states}   value={effectiveState}   onChange={setState}   />
+                {effectiveVariant !== '(none)' && (
+                  <PillSelector label="Variant" options={spec.variants} value={effectiveVariant} onChange={setVariant} />
+                )}
+                <PillSelector label="Size"  options={spec.sizes}  value={effectiveSize}  onChange={setSize}  />
+                <PillSelector label="State" options={spec.states} value={effectiveState} onChange={setState} />
               </div>
               <PreviewArea dark={darkBg} onToggleDark={() => setDarkBg(d => !d)}>
                 {missing
