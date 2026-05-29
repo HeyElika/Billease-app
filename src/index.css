@@ -160,7 +160,7 @@ html, body {
 
 body {
   font-family: var(--font-family);
-  background-color: var(--canvas-default);
+  background-color: #ffffff;
   color: var(--text-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -36,6 +36,8 @@ const SECTION_DEFS = [
   { id: 'usage',    label: 'Usage'    },
 ]
 
+const BASIC_SECTIONS = [{ id: 'overview', label: 'Overview' }]
+
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
 function SectionHeading({ children }) {
@@ -412,13 +414,9 @@ export default function Explorer() {
   const [darkBg,  setDarkBg]  = useState(false)
 
   useEffect(() => {
-    if (spec) {
-      setSections(SECTION_DEFS)
-    } else {
-      setSections([])
-    }
+    setSections(spec ? SECTION_DEFS : BASIC_SECTIONS)
     return () => setSections([])
-  }, [nodeId, spec])
+  }, [nodeId])
 
   const effectiveVariant = spec?.variants.includes(variant) ? variant : spec?.defaultVariant ?? 'primary'
   const effectiveSize    = spec?.sizes.includes(size)        ? size    : spec?.defaultSize    ?? 'lg'
@@ -438,7 +436,7 @@ export default function Explorer() {
   }
 
   return (
-    <div style={{ fontFamily: 'var(--font-family)' }}>
+    <div id="overview" style={{ fontFamily: 'var(--font-family)' }}>
 
       {/* Breadcrumb */}
       <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>

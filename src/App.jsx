@@ -21,9 +21,7 @@ function Layout() {
           flex: 1,
           minWidth: 0,
           padding: '48px 64px',
-          backgroundColor: '#F7F8F9',
-          maxWidth: 860,
-          margin: '0 auto',
+          backgroundColor: '#ffffff',
         }}>
           <Routes>
             <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
