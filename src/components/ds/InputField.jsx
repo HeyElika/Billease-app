@@ -1,3 +1,5 @@
+import BilleaseIcon from '../../assets/icons/BilleaseIcon'
+
 /**
  * InputField — Billease Design System
  * Source: Figma node 109:1161 (input/fields), file qESeTFW1GEEosrYnm4Hu3b
@@ -22,9 +24,6 @@ const INNER_GAP = 8
 
 // Gap between outer stack children (label → input box → bottom row) (itemSpacing on variant)
 const OUTER_GAP = 8
-
-// Right icon size (absoluteBoundingBox of icon-placeholder instance)
-const ICON_SIZE = 20
 
 // Label row gap between label text and "(Optional)" (itemSpacing on label frame)
 const LABEL_GAP = 4
@@ -58,22 +57,6 @@ const ERROR_STATES = new Set(['error', 'error-filled'])
 // States that show the value color (not placeholder color) for the input text
 const VALUE_STATES = new Set(['typing', 'filled', 'error-filled'])
 
-// ─── Icon placeholder ──────────────────────────────────────────────────────────
-
-function IconPlaceholder({ color }) {
-  return (
-    <svg
-      width={ICON_SIZE}
-      height={ICON_SIZE}
-      viewBox="0 0 20 20"
-      fill="none"
-      style={{ flexShrink: 0 }}
-    >
-      <rect x="1" y="1" width="18" height="18" rx="4" stroke={color} strokeWidth="1.5" />
-      <path d="M6 10H14M10 6V14" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 // ─── InputField ───────────────────────────────────────────────────────────────
 
@@ -168,7 +151,11 @@ export default function InputField({
           }}
         />
         {showIcon && (
-          <IconPlaceholder color={isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)'} />
+          <BilleaseIcon
+            name="edit-outline"
+            size="sm"
+            color={isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)'}
+          />
         )}
       </div>
 
