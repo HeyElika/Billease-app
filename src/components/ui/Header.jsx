@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom'
 const pageMeta = {
   '/explorer': { title: 'Component Explorer', description: 'Browse all 138 Billease design system components' },
   '/tokens': { title: 'Design Tokens', description: 'Colors, typography, spacing, and effects from variables.json' },
-  '/prototype': { title: 'Prototype Builder', description: 'Compose components into mobile screen previews' },
 }
 
 export default function Header() {

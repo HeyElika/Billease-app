@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom'
 const navItems = [
   { to: '/explorer', label: 'Component Explorer', icon: '◻' },
   { to: '/tokens', label: 'Design Tokens', icon: '◈' },
-  { to: '/prototype', label: 'Prototype Builder', icon: '◧' },
 ]
 
 export default function Sidebar() {

@@ -3,7 +3,6 @@ import Sidebar from './components/ui/Sidebar'
 import Header from './components/ui/Header'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
-import Prototype from './pages/Prototype'
 
 function Layout() {
   return (
@@ -21,7 +20,6 @@ function Layout() {
           <Routes>
             <Route path="/explorer" element={<Explorer />} />
             <Route path="/tokens" element={<Tokens />} />
-            <Route path="/prototype" element={<Prototype />} />
             <Route path="*" element={<Navigate to="/explorer" replace />} />
           </Routes>
         </main>
