@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { componentIndex } from '../data/components'
+import { useToc } from '../context/TocContext'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
 
-// ─── Component registry ───────────────────────────────────────────────────────
-// Only components with implementations live here. Everything else shows a placeholder.
+// ─── Registry ─────────────────────────────────────────────────────────────────
 
 const VARIANTS = ['primary', 'secondary', 'ghost', 'gradient', 'ghost-destructive']
 const STATES   = ['default', 'active', 'pressed', 'disabled', 'loading']
@@ -18,7 +18,6 @@ const REGISTRY = {
     defaultVariant: 'primary',
     defaultSize: 'lg',
     defaultState: 'default',
-    defaultLabel: 'Pay Now',
     renderComponent: ({ variant, size, state, label }) => (
       <Button type={variant} size={size} state={state} label={label} />
     ),
@@ -29,11 +28,35 @@ const REGISTRY = {
   },
 }
 
-// ─── Pill selector ────────────────────────────────────────────────────────────
+const SECTION_DEFS = [
+  { id: 'anatomy',  label: 'Anatomy'  },
+  { id: 'variants', label: 'Variants' },
+  { id: 'states',   label: 'States'   },
+  { id: 'specs',    label: 'Specs'    },
+  { id: 'usage',    label: 'Usage'    },
+]
+
+// ─── Shared UI helpers ────────────────────────────────────────────────────────
+
+function SectionHeading({ children }) {
+  return (
+    <h2 style={{
+      fontFamily: 'var(--font-family)',
+      fontSize: 20,
+      fontWeight: 700,
+      color: 'var(--text-base)',
+      margin: '0 0 20px',
+      paddingBottom: 12,
+      borderBottom: '1px solid var(--border-subtle)',
+    }}>
+      {children}
+    </h2>
+  )
+}
 
 function PillSelector({ label, options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       <span style={{
         fontFamily: 'var(--font-family)',
         fontSize: 11,
@@ -41,7 +64,7 @@ function PillSelector({ label, options, value, onChange }) {
         color: 'var(--text-disabled)',
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
-        minWidth: 44,
+        minWidth: 52,
         flexShrink: 0,
       }}>
         {label}
@@ -75,8 +98,6 @@ function PillSelector({ label, options, value, onChange }) {
     </div>
   )
 }
-
-// ─── Checkerboard preview bg ──────────────────────────────────────────────────
 
 function PreviewArea({ children, dark, onToggleDark }) {
   return (
@@ -141,10 +162,66 @@ function PreviewArea({ children, dark, onToggleDark }) {
   )
 }
 
-// ─── Token table ──────────────────────────────────────────────────────────────
+// ─── Anatomy section ──────────────────────────────────────────────────────────
 
-function TokenTable({ tokens }) {
-  if (!tokens || tokens.length === 0) return null
+const ANATOMY_PARTS = {
+  '16:182': [
+    { name: 'Background fill',    desc: 'Solid color, gradient, or transparent depending on variant' },
+    { name: 'Label',              desc: 'Short action text · 600 weight · size-responsive font' },
+    { name: 'Leading icon',       desc: 'Optional 16 × 16 icon to the left of label' },
+    { name: 'Trailing icon',      desc: 'Optional 16 × 16 icon to the right of label' },
+    { name: 'State overlay',      desc: 'Semi-transparent layer for active / pressed / disabled states' },
+  ],
+}
+
+function AnatomySection({ nodeId, spec }) {
+  const parts = ANATOMY_PARTS[nodeId]
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{
+        padding: '32px',
+        backgroundColor: 'var(--bg-subtle)',
+        borderRadius: 8,
+        border: '1px solid var(--border-subtle)',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 16,
+        flexWrap: 'wrap',
+      }}>
+        {spec.sizes.map(sz => (
+          <div key={sz} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            {spec.renderComponent({ variant: 'primary', size: sz, state: 'default', label: 'Pay Now' })}
+            <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{sz}</span>
+          </div>
+        ))}
+      </div>
+      {parts && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
+          {parts.map((p, i) => (
+            <div
+              key={p.name}
+              style={{
+                display: 'flex',
+                gap: 16,
+                padding: '10px 16px',
+                borderBottom: i < parts.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                alignItems: 'baseline',
+              }}
+            >
+              <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--text-primary)', minWidth: 140, flexShrink: 0 }}>{p.name}</span>
+              <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)' }}>{p.desc}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── States section ───────────────────────────────────────────────────────────
+
+function StatesSection({ spec, variant, size }) {
+  const isGhost = variant === 'ghost' || variant === 'ghost-destructive'
   return (
     <div style={{
       borderRadius: 8,
@@ -155,24 +232,51 @@ function TokenTable({ tokens }) {
       <div style={{
         padding: '10px 16px',
         borderBottom: '1px solid var(--border-subtle)',
+        backgroundColor: 'var(--bg-subtle)',
       }}>
-        <span style={{
-          fontFamily: 'var(--font-family)',
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--text-subtle)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.4px',
-        }}>
-          Token References
+        <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+          All States — {variant} / {size}
         </span>
       </div>
+      <div style={{
+        padding: '28px 32px',
+        display: 'flex',
+        gap: 32,
+        alignItems: 'flex-end',
+        flexWrap: 'wrap',
+        backgroundColor: isGhost ? 'var(--bg-subtle)' : '#fff',
+      }}>
+        {spec.states.map(s => {
+          const missing = spec.isMissing(variant, size, s)
+          return (
+            <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              {missing
+                ? <MissingSpec label="—" />
+                : spec.renderComponent({ variant, size, state: s, label: 'Button' })
+              }
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                {s}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Specs section ────────────────────────────────────────────────────────────
+
+function SpecsTable({ tokens }) {
+  if (!tokens || tokens.length === 0) return null
+  return (
+    <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
-            {['Property', 'Value', 'Token'].map(h => (
+            {['Property', 'Value', 'Token', 'Resolves'].map(h => (
               <th key={h} style={{
-                padding: '6px 12px',
+                padding: '7px 12px',
                 textAlign: 'left',
                 fontSize: 11,
                 fontWeight: 700,
@@ -194,8 +298,11 @@ function TokenTable({ tokens }) {
               <td style={{ padding: '7px 12px', fontSize: 11, fontFamily: 'monospace', color: 'var(--text-base)', maxWidth: 160, wordBreak: 'break-all' }}>
                 {t.value}
               </td>
-              <td style={{ padding: '7px 12px', fontSize: 11, fontFamily: 'var(--font-family)', color: 'var(--text-secondary)' }}>
-                {t.token}
+              <td style={{ padding: '7px 12px', fontSize: 11, fontFamily: 'monospace', color: 'var(--text-primary)' }}>
+                {t.tokenPath}
+              </td>
+              <td style={{ padding: '7px 12px', fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+                {t.resolves}
               </td>
             </tr>
           ))}
@@ -205,122 +312,78 @@ function TokenTable({ tokens }) {
   )
 }
 
-// ─── All-states strip ─────────────────────────────────────────────────────────
+// ─── Usage section ────────────────────────────────────────────────────────────
 
-function AllStatesStrip({ spec, variant, size }) {
+const USAGE = {
+  '16:182': {
+    dos: [
+      'Use Primary for the single most important action on screen.',
+      'Use Gradient for high-emphasis CTAs in promotional contexts.',
+      'Use Ghost for low-priority or tertiary actions.',
+      'Keep labels short and action-oriented (2–3 words max).',
+    ],
+    donts: [
+      'Don\'t place more than one Primary button in the same view.',
+      'Don\'t mix Gradient and Primary buttons in the same section.',
+      'Avoid vague labels like "Click here" or "Submit".',
+      'Don\'t use disabled state without a clear reason visible to users.',
+    ],
+  },
+}
+
+function UsageSection({ nodeId }) {
+  const rules = USAGE[nodeId]
+  if (!rules) return <p style={{ fontFamily: 'var(--font-family)', fontSize: 14, color: 'var(--text-subtle)' }}>Usage guidelines not yet documented.</p>
   return (
-    <div style={{
-      borderRadius: 8,
-      border: '1px solid var(--border-subtle)',
-      overflow: 'hidden',
-      backgroundColor: '#fff',
-    }}>
-      <div style={{
-        padding: '10px 16px',
-        borderBottom: '1px solid var(--border-subtle)',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-family)',
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--text-subtle)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.4px',
-        }}>
-          All States — {variant} / {size}
-        </span>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: '#F0FAF0', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14 }}>✓</span>
+          <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: '#1A7A34' }}>Do</span>
+        </div>
+        <ul style={{ margin: 0, padding: '12px 16px 12px 32px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rules.dos.map((d, i) => (
+            <li key={i} style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-base)', lineHeight: 1.5 }}>{d}</li>
+          ))}
+        </ul>
       </div>
-      <div style={{
-        padding: '24px 32px',
-        display: 'flex',
-        gap: 32,
-        alignItems: 'flex-end',
-        flexWrap: 'wrap',
-        backgroundColor: (variant === 'ghost' || variant === 'ghost-destructive')
-          ? 'var(--bg-subtle)' : '#fff',
-      }}>
-        {spec.states.map(s => {
-          const missing = spec.isMissing(variant, size, s)
-          return (
-            <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              {missing
-                ? <MissingSpec label="—" />
-                : spec.renderComponent({ variant, size, state: s, label: 'Button' })
-              }
-              <span style={{
-                fontSize: 11,
-                fontFamily: 'var(--font-family)',
-                color: 'var(--text-subtle)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.3px',
-              }}>
-                {s}
-              </span>
-            </div>
-          )
-        })}
+      <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-error-subtle)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14 }}>✕</span>
+          <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: 'var(--text-error)' }}>Don't</span>
+        </div>
+        <ul style={{ margin: 0, padding: '12px 16px 12px 32px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rules.donts.map((d, i) => (
+            <li key={i} style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-base)', lineHeight: 1.5 }}>{d}</li>
+          ))}
+        </ul>
       </div>
     </div>
   )
 }
 
-// ─── Placeholder for unbuilt components ──────────────────────────────────────
+// ─── Coming soon placeholder ──────────────────────────────────────────────────
 
 function ComingSoon({ comp }) {
   const variantCount = Math.max(comp.variants, 1)
   const propEntries = Object.entries(comp.variantProps || {})
   return (
-    <div style={{
-      padding: '48px 40px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 12,
-      textAlign: 'center',
-    }}>
+    <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
       <div style={{
-        width: 48,
-        height: 48,
-        borderRadius: 8,
-        backgroundColor: 'var(--bg-subtle)',
-        border: '1px dashed var(--border-default)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 20,
-        color: 'var(--text-disabled)',
-      }}>
-        ◻
-      </div>
+        width: 48, height: 48, borderRadius: 8, backgroundColor: 'var(--bg-subtle)',
+        border: '1px dashed var(--border-default)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: 20, color: 'var(--text-disabled)',
+      }}>◻</div>
       <div>
-        <div style={{
-          fontFamily: 'var(--font-family)',
-          fontSize: 14,
-          fontWeight: 600,
-          color: 'var(--text-base)',
-          marginBottom: 4,
-        }}>
+        <div style={{ fontFamily: 'var(--font-family)', fontSize: 14, fontWeight: 600, color: 'var(--text-base)', marginBottom: 4 }}>
           Not yet implemented
         </div>
-        <div style={{
-          fontFamily: 'var(--font-family)',
-          fontSize: 13,
-          color: 'var(--text-subtle)',
-        }}>
+        <div style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)' }}>
           {variantCount} variant{variantCount !== 1 ? 's' : ''} · Node {comp.id}
         </div>
       </div>
       {propEntries.length > 0 && (
-        <div style={{
-          marginTop: 8,
-          padding: '12px 16px',
-          backgroundColor: 'var(--bg-subtle)',
-          borderRadius: 8,
-          border: '1px solid var(--border-subtle)',
-          textAlign: 'left',
-          maxWidth: 360,
-          width: '100%',
-        }}>
+        <div style={{ marginTop: 8, padding: '12px 16px', backgroundColor: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border-subtle)', textAlign: 'left', maxWidth: 360, width: '100%' }}>
           {propEntries.map(([prop, values]) => (
             <div key={prop} style={{ marginBottom: 6, fontSize: 12, fontFamily: 'var(--font-family)' }}>
               <span style={{ fontWeight: 600, color: 'var(--text-base)' }}>{prop}:</span>{' '}
@@ -338,19 +401,28 @@ function ComingSoon({ comp }) {
 export default function Explorer() {
   const { nodeId: nodeIdParam } = useParams()
   const nodeId = nodeIdParam ? nodeIdParam.replace(/_/g, ':') : '16:182'
+  const { setSections } = useToc()
 
   const comp = componentIndex.find(c => c.id === nodeId)
-  const spec  = REGISTRY[nodeId]
+  const spec = REGISTRY[nodeId]
 
   const [variant, setVariant] = useState(spec?.defaultVariant ?? 'primary')
   const [size,    setSize]    = useState(spec?.defaultSize    ?? 'lg')
   const [state,   setState]   = useState(spec?.defaultState   ?? 'default')
   const [darkBg,  setDarkBg]  = useState(false)
 
-  // Reset selectors when navigating to a new component
+  useEffect(() => {
+    if (spec) {
+      setSections(SECTION_DEFS)
+    } else {
+      setSections([])
+    }
+    return () => setSections([])
+  }, [nodeId, spec])
+
   const effectiveVariant = spec?.variants.includes(variant) ? variant : spec?.defaultVariant ?? 'primary'
-  const effectiveState   = spec?.states.includes(state)     ? state   : spec?.defaultState   ?? 'default'
   const effectiveSize    = spec?.sizes.includes(size)        ? size    : spec?.defaultSize    ?? 'lg'
+  const effectiveState   = spec?.states.includes(state)      ? state   : spec?.defaultState   ?? 'default'
 
   const missing = spec?.isMissing(effectiveVariant, effectiveSize, effectiveState) ?? false
   const tokens  = spec && !missing
@@ -366,18 +438,10 @@ export default function Explorer() {
   }
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: 1200, minWidth: 0 }}>
+    <div style={{ padding: '32px 40px', maxWidth: 740, fontFamily: 'var(--font-family)' }}>
 
       {/* Breadcrumb */}
-      <div style={{
-        fontFamily: 'var(--font-family)',
-        fontSize: 13,
-        color: 'var(--text-subtle)',
-        marginBottom: 8,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      }}>
+      <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
         <span>Components</span>
         <span style={{ color: 'var(--text-disabled)' }}>›</span>
         <span>{comp.category}</span>
@@ -385,28 +449,11 @@ export default function Explorer() {
         <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>{comp.name}</span>
       </div>
 
-      {/* Heading */}
-      <h1 style={{
-        margin: '0 0 4px',
-        fontFamily: 'var(--font-family)',
-        fontSize: 32,
-        fontWeight: 700,
-        color: 'var(--text-base)',
-        lineHeight: 1.2,
-      }}>
+      <h1 style={{ margin: '0 0 8px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
         {comp.name}
       </h1>
 
-      {/* Meta row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        marginBottom: 28,
-        fontFamily: 'var(--font-family)',
-        fontSize: 13,
-        color: 'var(--text-subtle)',
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, fontSize: 13, color: 'var(--text-subtle)', flexWrap: 'wrap' }}>
         {comp.variants > 0 && <span>{comp.variants} variants</span>}
         <span style={{ color: 'var(--border-default)' }}>·</span>
         <span>Node {comp.id}</span>
@@ -415,86 +462,76 @@ export default function Explorer() {
           href={`https://www.figma.com/design/qESeTFW1GEEosrYnm4Hu3b?node-id=${encodeURIComponent(comp.id)}`}
           target="_blank"
           rel="noreferrer"
-          style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 13 }}
+          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
         >
           Open in Figma ↗
         </a>
         {!spec && (
-          <span style={{
-            padding: '1px 8px',
-            borderRadius: 4,
-            backgroundColor: 'var(--bg-warning-subtle)',
-            border: '1px solid var(--yellow-300)',
-            color: 'var(--text-warning)',
-            fontSize: 11,
-            fontWeight: 600,
-          }}>
+          <span style={{ padding: '1px 8px', borderRadius: 4, backgroundColor: 'var(--bg-warning-subtle)', border: '1px solid var(--yellow-300)', color: 'var(--text-warning)', fontSize: 11, fontWeight: 600 }}>
             Coming soon
           </span>
         )}
       </div>
 
-      {/* Divider */}
-      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 28 }} />
+      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
-      {/* Unbuilt: show placeholder */}
+      {/* Unbuilt: placeholder only */}
       {!spec ? (
-        <div style={{
-          backgroundColor: '#fff',
-          borderRadius: 8,
-          border: '1px solid var(--border-subtle)',
-        }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
       ) : (
         <>
-          {/* Selectors */}
-          <div style={{
-            backgroundColor: '#fff',
-            borderRadius: 8,
-            border: '1px solid var(--border-subtle)',
-            padding: '16px 20px',
-            marginBottom: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}>
-            <PillSelector label="Variant" options={spec.variants} value={effectiveVariant} onChange={setVariant} />
-            <PillSelector label="Size"    options={spec.sizes}    value={effectiveSize}    onChange={setSize}    />
-            <PillSelector label="State"   options={spec.states}   value={effectiveState}   onChange={setState}   />
-          </div>
+          {/* ── Anatomy ── */}
+          <section id="anatomy" style={{ marginBottom: 56 }}>
+            <SectionHeading>Anatomy</SectionHeading>
+            <AnatomySection nodeId={nodeId} spec={spec} />
+          </section>
 
-          {/* Preview + Tokens side by side */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 340px',
-            gap: 16,
-            alignItems: 'start',
-            marginBottom: 16,
-          }}>
-            <PreviewArea dark={darkBg} onToggleDark={() => setDarkBg(d => !d)}>
-              {missing
-                ? <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
-                : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay Now' })
-              }
-            </PreviewArea>
-
-            <div style={{ position: 'sticky', top: 24 }}>
-              <TokenTable tokens={missing ? [] : tokens} />
-              {missing && (
-                <div style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
-                  <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
-                </div>
-              )}
+          {/* ── Variants ── */}
+          <section id="variants" style={{ marginBottom: 56 }}>
+            <SectionHeading>Variants</SectionHeading>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <PillSelector label="Variant" options={spec.variants} value={effectiveVariant} onChange={setVariant} />
+                <PillSelector label="Size"    options={spec.sizes}    value={effectiveSize}    onChange={setSize}    />
+                <PillSelector label="State"   options={spec.states}   value={effectiveState}   onChange={setState}   />
+              </div>
+              <PreviewArea dark={darkBg} onToggleDark={() => setDarkBg(d => !d)}>
+                {missing
+                  ? <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
+                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay Now' })
+                }
+              </PreviewArea>
             </div>
-          </div>
+          </section>
 
-          {/* All states */}
-          <AllStatesStrip spec={spec} variant={effectiveVariant} size={effectiveSize} />
+          {/* ── States ── */}
+          <section id="states" style={{ marginBottom: 56 }}>
+            <SectionHeading>States</SectionHeading>
+            <StatesSection spec={spec} variant={effectiveVariant} size={effectiveSize} />
+          </section>
+
+          {/* ── Specs ── */}
+          <section id="specs" style={{ marginBottom: 56 }}>
+            <SectionHeading>Specs</SectionHeading>
+            {missing ? (
+              <div style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+                <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
+              </div>
+            ) : (
+              <SpecsTable tokens={tokens} />
+            )}
+          </section>
+
+          {/* ── Usage ── */}
+          <section id="usage" style={{ marginBottom: 56 }}>
+            <SectionHeading>Usage</SectionHeading>
+            <UsageSection nodeId={nodeId} />
+          </section>
         </>
       )}
 
-      {/* Bottom padding */}
       <div style={{ height: 48 }} />
     </div>
   )

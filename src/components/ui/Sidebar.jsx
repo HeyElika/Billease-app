@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { NavLink, useParams, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
 
@@ -111,13 +111,17 @@ export default function Sidebar() {
   const { nodeId: nodeIdParam } = useParams()
   const location = useLocation()
   const activeNodeId = nodeIdParam ? nodeIdParam.replace(/_/g, ':') : null
+  const [search, setSearch] = useState('')
+  const query = search.trim().toLowerCase()
 
-  // Build category→components map
+  // Build category→components map (filtered by search)
   const categoryMap = {}
   SHOWN_CATEGORIES.forEach(cat => {
-    categoryMap[cat] = componentIndex.filter(
-      c => c.category.toLowerCase() === cat.toLowerCase()
-    )
+    categoryMap[cat] = componentIndex.filter(c => {
+      if (c.category.toLowerCase() !== cat.toLowerCase()) return false
+      if (!query) return true
+      return c.name.toLowerCase().includes(query)
+    })
   })
 
   // Which category is active?
@@ -127,8 +131,8 @@ export default function Sidebar() {
 
   return (
     <aside style={{
-      width: 240,
-      minWidth: 240,
+      width: 220,
+      minWidth: 220,
       height: '100vh',
       position: 'sticky',
       top: 0,
@@ -183,9 +187,40 @@ export default function Sidebar() {
       {/* Scrollable nav body */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
 
+        {/* Search */}
+        <div style={{ padding: '12px 12px 4px' }}>
+          <div style={{ position: 'relative' }}>
+            <svg
+              width="14" height="14" viewBox="0 0 14 14" fill="none"
+              style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-disabled)', pointerEvents: 'none' }}
+            >
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search components…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '6px 8px 6px 28px',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 6,
+                fontFamily: 'var(--font-family)',
+                fontSize: 12,
+                color: 'var(--text-base)',
+                backgroundColor: 'var(--bg-subtle)',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+        </div>
+
         {/* Components section */}
         <div style={{
-          padding: '16px 16px 6px',
+          padding: '12px 16px 6px',
           fontFamily: 'var(--font-family)',
           fontSize: 11,
           fontWeight: 700,
@@ -199,7 +234,7 @@ export default function Sidebar() {
         {SHOWN_CATEGORIES.map(cat => {
           const comps = categoryMap[cat] || []
           if (comps.length === 0) return null
-          const isDefaultOpen = activeCategoryForComp?.toLowerCase() === cat.toLowerCase()
+          const isDefaultOpen = !!query || activeCategoryForComp?.toLowerCase() === cat.toLowerCase()
           return (
             <CategoryItem
               key={cat}

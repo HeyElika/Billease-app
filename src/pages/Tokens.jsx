@@ -1,4 +1,14 @@
+import { useEffect } from 'react'
 import { primitives, semantic } from '../tokens'
+import { useToc } from '../context/TocContext'
+
+const TOKEN_SECTIONS = [
+  { id: 'brand-palette',  label: 'Brand Palette'  },
+  { id: 'semantic-bg',    label: 'Background'      },
+  { id: 'semantic-text',  label: 'Text'            },
+  { id: 'spacing',        label: 'Spacing'         },
+  { id: 'border-radius',  label: 'Border Radius'   },
+]
 
 function ColorSwatch({ name, hex }) {
   return (
@@ -23,9 +33,9 @@ function ColorSwatch({ name, hex }) {
   )
 }
 
-function Section({ title, children }) {
+function Section({ id, title, children }) {
   return (
-    <div style={{ marginBottom: 32 }}>
+    <div id={id} style={{ marginBottom: 32 }}>
       <h2 style={{
         fontFamily: 'var(--font-family)',
         fontSize: 16,
@@ -71,6 +81,13 @@ function TokenRow({ name, value, resolved }) {
 }
 
 export default function Tokens() {
+  const { setSections } = useToc()
+
+  useEffect(() => {
+    setSections(TOKEN_SECTIONS)
+    return () => setSections([])
+  }, [])
+
   const bgTokens   = Object.entries(semantic.bg)
   const textTokens = Object.entries(semantic.text)
   const borderTokens = Object.entries(semantic.border)
@@ -107,7 +124,7 @@ export default function Tokens() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 28 }} />
 
       {/* Brand colors */}
-      <Section title="Brand Palette">
+      <Section id="brand-palette" title="Brand Palette">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
           {Object.entries(primitives.color.red).map(([k, v]) => (
             <ColorSwatch key={k} name={`red/${k}`} hex={v} />
@@ -116,7 +133,7 @@ export default function Tokens() {
       </Section>
 
       {/* Semantic backgrounds */}
-      <Section title="Semantic — Background">
+      <Section id="semantic-bg" title="Semantic — Background">
         <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
           <thead>
             <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
@@ -134,7 +151,7 @@ export default function Tokens() {
       </Section>
 
       {/* Semantic text */}
-      <Section title="Semantic — Text">
+      <Section id="semantic-text" title="Semantic — Text">
         <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
           <thead>
             <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
@@ -152,7 +169,7 @@ export default function Tokens() {
       </Section>
 
       {/* Spacing */}
-      <Section title="Spacing">
+      <Section id="spacing" title="Spacing">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {Object.entries(primitives.spacing).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -171,7 +188,7 @@ export default function Tokens() {
       </Section>
 
       {/* Border radius */}
-      <Section title="Border Radius">
+      <Section id="border-radius" title="Border Radius">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {Object.entries(primitives.radius).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>

@@ -234,42 +234,44 @@ export function getTokensForVariant(type, size, state) {
   if (!spec) return []
 
   const isGhost = type === 'ghost' || type === 'ghost-destructive'
+  const paddingVal = PADDING_H[size]
 
   const tokens = [
-    { property: 'height',          value: `${HEIGHT[size]}px`,              token: `spacing — matches size/${size}` },
-    { property: 'font-size',       value: `${FONT_SIZE[size]}px`,           token: `typography/size/${size === 'sm' ? 'md' : 'lg'}` },
-    { property: 'font-weight',     value: '600',                            token: 'typography/weight/semibold' },
-    { property: 'gap',             value: `${isGhost ? GAP.ghost : GAP.filled}px`, token: isGhost ? 'spacing/100 (4px)' : 'spacing/200 (8px)' },
-    { property: 'border-radius',   value: isGhost ? 'none' : '9999px',      token: isGhost ? '—' : 'border/radius/radius-full' },
+    { property: 'height',        value: `${HEIGHT[size]}px`,                       tokenPath: '—',                      resolves: `${HEIGHT[size]}px` },
+    { property: 'font-size',     value: `${FONT_SIZE[size]}px`,                    tokenPath: `typography/size/${size === 'sm' ? 'md' : 'lg'}`, resolves: `${FONT_SIZE[size]}px` },
+    { property: 'font-weight',   value: '600',                                     tokenPath: 'typography/weight/semibold', resolves: '600' },
+    { property: 'gap',           value: `${isGhost ? GAP.ghost : GAP.filled}px`,  tokenPath: isGhost ? 'spacing/100' : 'spacing/200', resolves: isGhost ? '4px' : '8px' },
+    { property: 'border-radius', value: isGhost ? 'none' : '9999px',              tokenPath: isGhost ? '—' : 'border/radius/full', resolves: isGhost ? 'none' : '9999px' },
   ]
 
   if (!isGhost) {
-    tokens.push({ property: 'padding-left/right', value: `${PADDING_H[size]}px`, token: `spacing/${PADDING_H[size] === 20 ? '500' : PADDING_H[size] === 16 ? '400' : '300'}` })
+    const paddingToken = paddingVal === 20 ? 'spacing/500' : paddingVal === 16 ? 'spacing/400' : 'spacing/300'
+    tokens.push({ property: 'padding-left/right', value: `${paddingVal}px`, tokenPath: paddingToken, resolves: `${paddingVal}px` })
   }
 
-  // Background token mapping
   const bgTokenMap = {
-    'var(--bg-primary)': 'bg/primary → color/red/red 500 (#F84040)',
-    'var(--bg-sunken)': 'bg/sunken → color/neutral/neutral 200 (#EAEDF0)',
-    'transparent': '— (no fill)',
-    'linear-gradient(to bottom, var(--red-400) 0%, var(--red-500) 70%)': 'color/red/red 400 → color/red/red 500 (gradient)',
+    'var(--bg-primary)': { tokenPath: 'bg/primary',             resolves: '#F84040' },
+    'var(--bg-sunken)':  { tokenPath: 'bg/sunken',              resolves: '#EAEDF0' },
+    'transparent':       { tokenPath: '—',                      resolves: 'transparent' },
+    'linear-gradient(to bottom, var(--red-400) 0%, var(--red-500) 70%)': { tokenPath: 'color/red/400 → 500', resolves: '#FA7B6F → #F84040' },
   }
-  tokens.push({ property: 'background', value: spec.bg, token: bgTokenMap[spec.bg] || spec.bg })
+  const bgInfo = bgTokenMap[spec.bg] || { tokenPath: spec.bg, resolves: spec.bg }
+  tokens.push({ property: 'background', value: spec.bg, tokenPath: bgInfo.tokenPath, resolves: bgInfo.resolves })
 
   if (spec.overlay) {
-    tokens.push({ property: 'overlay (state)', value: spec.overlay, token: `color/alphas/alpha-black — ${state} state layer` })
+    tokens.push({ property: 'overlay (state)', value: spec.overlay, tokenPath: 'color/alphas/alpha-black', resolves: spec.overlay })
   }
 
-  // Text color token mapping
   const textTokenMap = {
-    'var(--text-on-dark)': 'text/on-dark → color/neutral/white (#FFFFFF)',
-    'var(--text-base)': 'text/base → color/neutral/neutral 800 (#1D2D40)',
-    'var(--text-subtle)': 'text/subtle → color/neutral/neutral 600 (#606C79)',
-    'var(--text-disabled)': 'text/disabled → color/neutral/neutral 400 (#B4BDC5)',
-    'var(--text-primary)': 'text/primary → color/red/red 500 (#F84040)',
-    'rgba(255,255,255,0.5)': 'text/on-dark @ 50% opacity (disabled state)',
+    'var(--text-on-dark)':   { tokenPath: 'text/on-dark',  resolves: '#FFFFFF' },
+    'var(--text-base)':      { tokenPath: 'text/base',     resolves: '#1D2D40' },
+    'var(--text-subtle)':    { tokenPath: 'text/subtle',   resolves: '#606C79' },
+    'var(--text-disabled)':  { tokenPath: 'text/disabled', resolves: '#B4BDC5' },
+    'var(--text-primary)':   { tokenPath: 'text/primary',  resolves: '#F84040' },
+    'rgba(255,255,255,0.5)': { tokenPath: 'text/on-dark',  resolves: 'rgba(255,255,255,0.5)' },
   }
-  tokens.push({ property: 'color', value: spec.text, token: textTokenMap[spec.text] || spec.text })
+  const textInfo = textTokenMap[spec.text] || { tokenPath: spec.text, resolves: spec.text }
+  tokens.push({ property: 'color', value: spec.text, tokenPath: textInfo.tokenPath, resolves: textInfo.resolves })
 
   return tokens
 }
