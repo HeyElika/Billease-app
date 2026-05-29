@@ -3,6 +3,7 @@ import Sidebar from './components/ui/Sidebar'
 import TOC from './components/ui/TOC'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
+import Iconography from './pages/Iconography'
 import { TocProvider } from './context/TocContext'
 
 function Layout() {
@@ -27,6 +28,7 @@ function Layout() {
             <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
             <Route path="/explorer/:nodeId" element={<Explorer />} />
             <Route path="/tokens" element={<Tokens />} />
+            <Route path="/icons" element={<Iconography />} />
             <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
           </Routes>
         </main>

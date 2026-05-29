@@ -128,6 +128,7 @@ export default function Sidebar() {
   const activeCategoryForComp = componentIndex.find(c => c.id === activeNodeId)?.category ?? null
 
   const isTokensActive = location.pathname === '/tokens'
+  const isIconsActive = location.pathname === '/icons'
 
   return (
     <aside style={{
@@ -266,24 +267,42 @@ export default function Sidebar() {
           Foundations
         </div>
 
-        <NavLink
-          to="/tokens"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '7px 16px',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-family)',
-            fontSize: 13,
-            color: isTokensActive ? 'var(--text-primary)' : 'var(--text-subtle)',
-            fontWeight: isTokensActive ? 600 : 400,
-            borderLeft: isTokensActive ? '2px solid var(--bg-primary)' : '2px solid transparent',
-            backgroundColor: isTokensActive ? 'var(--bg-error-subtle)' : 'transparent',
-            transition: 'background-color 0.1s, color 0.1s',
-          }}
-        >
-          Design Tokens
-        </NavLink>
+        {[
+          { to: '/tokens', label: 'Design Tokens', active: isTokensActive },
+          { to: '/icons',  label: 'Iconography',   active: isIconsActive  },
+        ].map(({ to, label, active }) => (
+          <NavLink
+            key={to}
+            to={to}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '7px 16px',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-family)',
+              fontSize: 13,
+              color: active ? 'var(--text-primary)' : 'var(--text-subtle)',
+              fontWeight: active ? 600 : 400,
+              borderLeft: active ? '2px solid var(--bg-primary)' : '2px solid transparent',
+              backgroundColor: active ? 'var(--bg-error-subtle)' : 'transparent',
+              transition: 'background-color 0.1s, color 0.1s',
+            }}
+            onMouseEnter={e => {
+              if (!active) {
+                e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
+                e.currentTarget.style.color = 'var(--text-base)'
+              }
+            }}
+            onMouseLeave={e => {
+              if (!active) {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'var(--text-subtle)'
+              }
+            }}
+          >
+            {label}
+          </NavLink>
+        ))}
       </div>
 
       {/* Footer */}
