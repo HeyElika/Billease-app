@@ -78,14 +78,20 @@ export default function InputField({
   phoneValue = '917 555 0123',
   errorMessage = 'Error message alongside the input',
   showOptional = true,
+  // Interactive mode — when onChange is provided the input becomes live
+  onChange,
+  onFocus,
+  onBlur,
+  onClear,
 }) {
+  const interactive = typeof onChange === 'function'
   const boxStyle = STATE_STYLES[state]
   const isDisabled = state === 'disabled'
   const hasError = ERROR_STATES.has(state)
   const isValueState = VALUE_STATES.has(state)
   const isPhone = variant === 'phone'
 
-  const inputTextColor = isValueState ? 'var(--text-base)' : 'var(--text-subtle)'
+  const inputTextColor = (interactive || isValueState) ? 'var(--text-base)' : 'var(--text-subtle)'
   const boxHeight = BOX_HEIGHT[size]
   const paddingV = PADDING_V[size]
 
@@ -188,9 +194,12 @@ export default function InputField({
             <input
               type="text"
               placeholder={phonePlaceholder}
-              value={isValueState ? phoneValue : ''}
-              readOnly
+              value={interactive ? value : (isValueState ? phoneValue : '')}
+              readOnly={!interactive}
               disabled={isDisabled}
+              onChange={interactive ? (e) => onChange(e.target.value) : undefined}
+              onFocus={interactive ? onFocus : undefined}
+              onBlur={interactive ? onBlur : undefined}
               style={inputStyle}
             />
           </div>
@@ -199,15 +208,21 @@ export default function InputField({
           <input
             type="text"
             placeholder={placeholder}
-            value={isValueState ? value : ''}
-            readOnly
+            value={interactive ? value : (isValueState ? value : '')}
+            readOnly={!interactive}
             disabled={isDisabled}
+            onChange={interactive ? (e) => onChange(e.target.value) : undefined}
+            onFocus={interactive ? onFocus : undefined}
+            onBlur={interactive ? onBlur : undefined}
             style={inputStyle}
           />
         )}
 
         {/* icon slot — always present (icon right#193:56 = true by default) */}
-        <span style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span
+          style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: state === 'typing' && interactive ? 'pointer' : 'default' }}
+          onClick={state === 'typing' && interactive ? onClear : undefined}
+        >
           {state === 'typing'
             ? <CloseIcon />
             : null /* 'hide' component — slot occupies space, shows nothing */

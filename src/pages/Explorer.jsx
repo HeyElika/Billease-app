@@ -25,6 +25,9 @@ const REGISTRY = {
     renderComponent: ({ variant, size, state, label, platform }) => (
       <Button type={variant} size={size} state={state} label={label} platform={platform ?? 'android'} />
     ),
+    interactive: ({ variant, size, platform }) => (
+      <InteractiveButton variant={variant} size={size} platform={platform ?? 'android'} />
+    ),
     getTokens: getTokensForVariant,
     isMissing: (variant, size, state) =>
       (variant === 'ghost-destructive' && size === 'md') ||
@@ -41,17 +44,20 @@ const REGISTRY = {
     renderComponent: ({ variant, size, state }) => (
       <InputField variant={variant} size={size} state={state} />
     ),
+    interactive: ({ variant, size }) => (
+      <InteractiveInput variant={variant} size={size} />
+    ),
     getTokens: (variant, size, state) => getTokensForInput(size, state),
     isMissing: () => false,
   },
 }
 
 const SECTION_DEFS = [
-  { id: 'anatomy',  label: 'Anatomy'  },
-  { id: 'variants', label: 'Variants' },
-  { id: 'states',   label: 'States'   },
-  { id: 'specs',    label: 'Specs'    },
-  { id: 'usage',    label: 'Usage'    },
+  { id: 'anatomy',    label: 'Anatomy'    },
+  { id: 'variants',   label: 'Variants'   },
+  { id: 'states',     label: 'States'     },
+  { id: 'icon-slots', label: 'Icon slots' },
+  { id: 'specs',      label: 'Specs'      },
 ]
 
 const BASIC_SECTIONS = [{ id: 'overview', label: 'Overview' }]
@@ -374,67 +380,117 @@ function SpecsTable({ tokens }) {
   )
 }
 
-// ─── Usage section ────────────────────────────────────────────────────────────
+// ─── Icon slots section ───────────────────────────────────────────────────────
 
-const USAGE = {
-  '16:182': {
-    dos: [
-      'Use Primary for the single most important action on screen.',
-      'Use Gradient for high-emphasis CTAs in promotional contexts.',
-      'Use Ghost for low-priority or tertiary actions.',
-      'Keep labels short and action-oriented (2–3 words max).',
-    ],
-    donts: [
-      'Don\'t place more than one Primary button in the same view.',
-      'Don\'t mix Gradient and Primary buttons in the same section.',
-      'Avoid vague labels like "Click here" or "Submit".',
-      'Don\'t use disabled state without a clear reason visible to users.',
-    ],
-  },
-  '109:1161': {
-    dos: [
-      'Always pair the input with a visible label above the field.',
-      'Show error messages immediately below the field in error / error-filled states.',
-      'Use the focused border (#265CE5) to confirm the field is active.',
-      'Use lg size for primary forms; md size for compact or secondary flows.',
-    ],
-    donts: [
-      'Don\'t use placeholder text as a substitute for a label.',
-      'Don\'t suppress the error message — always tell the user what went wrong.',
-      'Don\'t disable a field without making the reason obvious in context.',
-      'Don\'t mix lg and md inputs within the same form.',
-    ],
-  },
+const ICON_SLOTS = {
+  '16:182': [
+    {
+      name: 'Leading icon — left of label',
+      desc: 'Optional 16×16 icon slot before the label. Use for directional or contextual icons.',
+      preview: (size, platform) => (
+        <Button type="primary" size={size} state="default" label="Pay now" iconLeft={true} platform={platform} />
+      ),
+    },
+    {
+      name: 'Trailing icon — right of label',
+      desc: 'Optional 16×16 icon slot after the label. Use for directional indicators or "more" actions.',
+      preview: (size, platform) => (
+        <Button type="primary" size={size} state="default" label="Pay now" iconRight={true} platform={platform} />
+      ),
+    },
+  ],
+  '109:1161': [
+    {
+      name: 'Right icon slot — clear button',
+      desc: 'Visible in typing state only. Shows the close-bold (×) icon to clear the field. The slot is always reserved (20×20) but invisible in all other states.',
+      preview: (size) => (
+        <InputField variant="text" size={size} state="typing" showOptional={false} />
+      ),
+    },
+  ],
 }
 
-function UsageSection({ nodeId }) {
-  const rules = USAGE[nodeId]
-  if (!rules) return <p style={{ fontFamily: 'var(--font-family)', fontSize: 14, color: 'var(--text-subtle)' }}>Usage guidelines not yet documented.</p>
+function IconSlotsSection({ nodeId, size, platform }) {
+  const slots = ICON_SLOTS[nodeId]
+  if (!slots) return null
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-      <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: '#F0FAF0', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14 }}>✓</span>
-          <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: '#1A7A34' }}>Do</span>
-        </div>
-        <ul style={{ margin: 0, padding: '12px 16px 12px 32px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {rules.dos.map((d, i) => (
-            <li key={i} style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-base)', lineHeight: 1.5 }}>{d}</li>
-          ))}
-        </ul>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{
+        padding: '10px 14px',
+        backgroundColor: 'var(--bg-warning-subtle)',
+        borderRadius: 8,
+        border: '1px solid var(--yellow-300)',
+      }}>
+        <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-warning)', fontWeight: 500 }}>
+          Only one icon slot can be active at a time — left OR right, never both simultaneously.
+        </span>
       </div>
-      <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-error-subtle)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 14 }}>✕</span>
-          <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: 'var(--text-error)' }}>Don't</span>
+      {slots.map((slot, i) => (
+        <div key={i} style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-subtle)' }}>
+            <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+              {slot.name}
+            </span>
+          </div>
+          <div style={{ padding: '28px 32px', display: 'flex', gap: 40, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {slot.preview(size, platform)}
+            </div>
+            <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', lineHeight: 1.5, maxWidth: 320 }}>
+              {slot.desc}
+            </span>
+          </div>
         </div>
-        <ul style={{ margin: 0, padding: '12px 16px 12px 32px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {rules.donts.map((d, i) => (
-            <li key={i} style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-base)', lineHeight: 1.5 }}>{d}</li>
-          ))}
-        </ul>
-      </div>
+      ))}
     </div>
+  )
+}
+
+// ─── Interactive preview wrappers ─────────────────────────────────────────────
+
+function InteractiveButton({ variant, size, platform }) {
+  const [loading, setLoading] = useState(false)
+  const isGhost = variant === 'ghost' || variant === 'ghost-destructive'
+
+  const handleClick = () => {
+    if (loading || isGhost) return
+    setLoading(true)
+    setTimeout(() => setLoading(false), 2000)
+  }
+
+  return (
+    <Button
+      type={variant}
+      size={size}
+      state={loading ? 'loading' : 'default'}
+      label="Pay now"
+      platform={platform}
+      onClick={handleClick}
+    />
+  )
+}
+
+function InteractiveInput({ variant, size }) {
+  const [inputValue, setInputValue] = useState('')
+  const [focused, setFocused] = useState(false)
+
+  const state = focused
+    ? (inputValue ? 'typing' : 'focused')
+    : (inputValue ? 'filled' : 'default')
+
+  return (
+    <InputField
+      variant={variant}
+      size={size}
+      state={state}
+      value={inputValue}
+      showOptional={false}
+      label={variant === 'phone' ? 'Phone number' : 'Account name'}
+      onChange={setInputValue}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onClear={() => setInputValue('')}
+    />
   )
 }
 
@@ -488,7 +544,10 @@ export default function Explorer() {
   const [platform, setPlatform] = useState('android')
 
   useEffect(() => {
-    setSections(spec ? SECTION_DEFS : BASIC_SECTIONS)
+    const sections = spec
+      ? SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
+      : BASIC_SECTIONS
+    setSections(sections)
     return () => setSections([])
   }, [nodeId])
 
@@ -574,7 +633,9 @@ export default function Explorer() {
               <PreviewArea platform={platform} onChangePlatform={setPlatform}>
                 {missing
                   ? <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
-                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay now', platform })
+                  : spec.interactive && (effectiveState === 'default' || nodeId === '109:1161')
+                    ? spec.interactive({ variant: effectiveVariant, size: effectiveSize, platform })
+                    : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay now', platform })
                 }
               </PreviewArea>
             </div>
@@ -586,6 +647,14 @@ export default function Explorer() {
             <StatesSection spec={spec} variant={effectiveVariant} size={effectiveSize} platform={platform} />
           </section>
 
+          {/* ── Icon slots ── */}
+          {ICON_SLOTS[nodeId] && (
+            <section id="icon-slots" style={{ marginBottom: 56 }}>
+              <SectionHeading>Icon slots</SectionHeading>
+              <IconSlotsSection nodeId={nodeId} size={effectiveSize} platform={platform} />
+            </section>
+          )}
+
           {/* ── Specs ── */}
           <section id="specs" style={{ marginBottom: 56 }}>
             <SectionHeading>Specs</SectionHeading>
@@ -596,12 +665,6 @@ export default function Explorer() {
             ) : (
               <SpecsTable tokens={tokens} />
             )}
-          </section>
-
-          {/* ── Usage ── */}
-          <section id="usage" style={{ marginBottom: 56 }}>
-            <SectionHeading>Usage</SectionHeading>
-            <UsageSection nodeId={nodeId} />
           </section>
         </>
       )}
