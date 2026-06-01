@@ -104,9 +104,9 @@ function isMissing(type, size, state) {
   )
 }
 
-// ─── Spinner (loading state) ──────────────────────────────────────────────────
+// ─── Platform spinners ────────────────────────────────────────────────────────
 
-function Spinner({ color }) {
+function AndroidSpinner({ color }) {
   return (
     <span
       style={{
@@ -116,10 +116,51 @@ function Spinner({ color }) {
         border: `2px solid ${color}`,
         borderTopColor: 'transparent',
         borderRadius: '50%',
-        animation: 'btn-spin 0.7s linear infinite',
+        animation: 'btn-android-spin 0.7s linear infinite',
         flexShrink: 0,
       }}
     />
+  )
+}
+
+function IOSSpinner({ color }) {
+  return (
+    <>
+      <style>{`
+        @keyframes ios-spoke {
+          0%     { opacity: 1;    }
+          14.28% { opacity: 0.85; }
+          28.57% { opacity: 0.65; }
+          42.86% { opacity: 0.45; }
+          57.14% { opacity: 0.30; }
+          71.43% { opacity: 0.18; }
+          85.71% { opacity: 0.10; }
+          100%   { opacity: 1;    }
+        }
+      `}</style>
+      <span style={{ display: 'inline-block', position: 'relative', width: 16, height: 16, flexShrink: 0 }}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span
+            key={i}
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: 2,
+              height: 5.5,
+              marginLeft: -1,
+              marginTop: -7.5,
+              borderRadius: 1,
+              backgroundColor: color,
+              transformOrigin: '50% calc(100% + 2px)',
+              transform: `rotate(${i * 45}deg)`,
+              animation: 'ios-spoke 0.96s linear infinite',
+              animationDelay: `${-i * 0.12}s`,
+            }}
+          />
+        ))}
+      </span>
+    </>
   )
 }
 
@@ -151,12 +192,13 @@ export function MissingSpec({ label = 'Missing specification' }) {
 // ─── Button ───────────────────────────────────────────────────────────────────
 
 export default function Button({
-  type = 'primary',    // primary | secondary | gradient | ghost | ghost-destructive
-  size = 'lg',         // lg | md | sm
-  state = 'default',   // default | active | pressed | disabled | loading
+  type = 'primary',       // primary | secondary | gradient | ghost | ghost-destructive
+  size = 'lg',            // lg | md | sm
+  state = 'default',      // default | active | pressed | disabled | loading
   label = 'Button',
   iconLeft = false,
   iconRight = false,
+  platform = 'android',   // android | ios
   onClick,
 }) {
   if (isMissing(type, size, state)) {
@@ -211,7 +253,7 @@ export default function Button({
 
   return (
     <>
-      <style>{`@keyframes btn-spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes btn-android-spin { to { transform: rotate(360deg); } }`}</style>
       <button
         style={buttonStyle}
         disabled={isDisabled || isLoading}
@@ -221,7 +263,9 @@ export default function Button({
           <span style={{ width: 16, height: 16, background: 'currentColor', borderRadius: 2, opacity: 0.5, flexShrink: 0 }} />
         )}
         {isLoading ? (
-          <Spinner color={spec.text} />
+          platform === 'ios'
+            ? <IOSSpinner color={spec.text} />
+            : <AndroidSpinner color={spec.text} />
         ) : (
           <span>{label}</span>
         )}

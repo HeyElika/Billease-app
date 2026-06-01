@@ -22,8 +22,8 @@ const REGISTRY = {
     defaultVariant: 'primary',
     defaultSize: 'lg',
     defaultState: 'default',
-    renderComponent: ({ variant, size, state, label }) => (
-      <Button type={variant} size={size} state={state} label={label} />
+    renderComponent: ({ variant, size, state, label, platform }) => (
+      <Button type={variant} size={size} state={state} label={label} platform={platform ?? 'android'} />
     ),
     getTokens: getTokensForVariant,
     isMissing: (variant, size, state) =>
@@ -119,7 +119,7 @@ function PillSelector({ label, options, value, onChange }) {
   )
 }
 
-function PreviewArea({ children, dark, onToggleDark }) {
+function PreviewArea({ children, platform, onChangePlatform }) {
   return (
     <div style={{
       borderRadius: 8,
@@ -144,21 +144,33 @@ function PreviewArea({ children, dark, onToggleDark }) {
         }}>
           Preview
         </span>
-        <button
-          onClick={onToggleDark}
-          style={{
-            padding: '2px 10px',
-            borderRadius: 9999,
-            border: '1px solid var(--border-default)',
-            backgroundColor: dark ? 'var(--neutral-800)' : '#fff',
-            color: dark ? '#fff' : 'var(--text-subtle)',
-            fontSize: 11,
-            fontFamily: 'var(--font-family)',
-            cursor: 'pointer',
-          }}
-        >
-          {dark ? 'Dark' : 'Light'}
-        </button>
+        <div style={{ display: 'flex', gap: 2, borderRadius: 8, border: '1px solid var(--border-subtle)', padding: 2, backgroundColor: 'var(--bg-subtle)' }}>
+          {['android', 'ios'].map(p => {
+            const active = platform === p
+            return (
+              <button
+                key={p}
+                onClick={() => onChangePlatform(p)}
+                style={{
+                  padding: '2px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  backgroundColor: active ? '#fff' : 'transparent',
+                  color: active ? 'var(--text-base)' : 'var(--text-subtle)',
+                  fontSize: 11,
+                  fontWeight: active ? 600 : 400,
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                  boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.1s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {p === 'android' ? 'Android' : 'iOS'}
+              </button>
+            )
+          })}
+        </div>
       </div>
       <div style={{
         minHeight: 140,
@@ -166,8 +178,8 @@ function PreviewArea({ children, dark, onToggleDark }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 40,
-        backgroundColor: dark ? 'var(--neutral-800)' : '#fff',
-        backgroundImage: dark ? 'none' : `
+        backgroundColor: '#fff',
+        backgroundImage: `
           linear-gradient(45deg, var(--neutral-200) 25%, transparent 25%),
           linear-gradient(-45deg, var(--neutral-200) 25%, transparent 25%),
           linear-gradient(45deg, transparent 75%, var(--neutral-200) 75%),
@@ -203,7 +215,7 @@ const ANATOMY_PARTS = {
   ],
 }
 
-function AnatomySection({ nodeId, spec }) {
+function AnatomySection({ nodeId, spec, platform }) {
   const parts = ANATOMY_PARTS[nodeId]
   const defaultVariant = spec.defaultVariant
   return (
@@ -221,7 +233,7 @@ function AnatomySection({ nodeId, spec }) {
       }}>
         {spec.sizes.map(sz => (
           <div key={sz} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            {spec.renderComponent({ variant: defaultVariant, size: sz, state: 'default', label: 'Pay now' })}
+            {spec.renderComponent({ variant: defaultVariant, size: sz, state: 'default', label: 'Pay now', platform })}
             <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{sz}</span>
           </div>
         ))}
@@ -251,7 +263,7 @@ function AnatomySection({ nodeId, spec }) {
 
 // ─── States section ───────────────────────────────────────────────────────────
 
-function StatesSection({ spec, variant, size }) {
+function StatesSection({ spec, variant, size, platform }) {
   const isGhost = variant === 'ghost' || variant === 'ghost-destructive'
   return (
     <div style={{
@@ -283,7 +295,7 @@ function StatesSection({ spec, variant, size }) {
             <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               {missing
                 ? <MissingSpec label="—" />
-                : spec.renderComponent({ variant, size, state: s, label: 'Button' })
+                : spec.renderComponent({ variant, size, state: s, label: 'Button', platform })
               }
               <span style={{ fontSize: 11, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
                 {s}
@@ -454,7 +466,7 @@ export default function Explorer() {
   const [variant, setVariant] = useState(spec?.defaultVariant ?? 'primary')
   const [size,    setSize]    = useState(spec?.defaultSize    ?? 'lg')
   const [state,   setState]   = useState(spec?.defaultState   ?? 'default')
-  const [darkBg,  setDarkBg]  = useState(false)
+  const [platform, setPlatform] = useState('android')
 
   useEffect(() => {
     setSections(spec ? SECTION_DEFS : BASIC_SECTIONS)
@@ -526,7 +538,7 @@ export default function Explorer() {
           {/* ── Anatomy ── */}
           <section id="anatomy" style={{ marginBottom: 56 }}>
             <SectionHeading>Anatomy</SectionHeading>
-            <AnatomySection nodeId={nodeId} spec={spec} />
+            <AnatomySection nodeId={nodeId} spec={spec} platform={platform} />
           </section>
 
           {/* ── Variants ── */}
@@ -540,10 +552,10 @@ export default function Explorer() {
                 <PillSelector label="Size"  options={spec.sizes}  value={effectiveSize}  onChange={setSize}  />
                 <PillSelector label="State" options={spec.states} value={effectiveState} onChange={setState} />
               </div>
-              <PreviewArea dark={darkBg} onToggleDark={() => setDarkBg(d => !d)}>
+              <PreviewArea platform={platform} onChangePlatform={setPlatform}>
                 {missing
                   ? <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
-                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay now' })
+                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay now', platform })
                 }
               </PreviewArea>
             </div>
@@ -552,7 +564,7 @@ export default function Explorer() {
           {/* ── States ── */}
           <section id="states" style={{ marginBottom: 56 }}>
             <SectionHeading>States</SectionHeading>
-            <StatesSection spec={spec} variant={effectiveVariant} size={effectiveSize} />
+            <StatesSection spec={spec} variant={effectiveVariant} size={effectiveSize} platform={platform} />
           </section>
 
           {/* ── Specs ── */}
