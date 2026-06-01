@@ -264,8 +264,9 @@ function AnatomySection({ nodeId, spec, platform }) {
 
 // ─── States section ───────────────────────────────────────────────────────────
 
-function StatesSection({ spec, variant, size, platform }) {
+function VariantStatesRow({ spec, variant, size, platform }) {
   const isGhost = variant === 'ghost' || variant === 'ghost-destructive'
+  const labelPrefix = (variant === '(none)' || variant === 'text') ? '' : `${variant} / `
   return (
     <div style={{
       borderRadius: 8,
@@ -279,7 +280,7 @@ function StatesSection({ spec, variant, size, platform }) {
         backgroundColor: 'var(--bg-subtle)',
       }}>
         <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-          All States — {(variant === '(none)' || variant === 'text') ? '' : `${variant} / `}{size}
+          All States — {labelPrefix}{size}
         </span>
       </div>
       <div style={{
@@ -307,6 +308,23 @@ function StatesSection({ spec, variant, size, platform }) {
       </div>
     </div>
   )
+}
+
+function StatesSection({ spec, variant, size, platform }) {
+  // For components with multiple real variants, show all simultaneously
+  const meaningfulVariants = spec.variants.filter(v => v !== '(none)')
+  const showAll = meaningfulVariants.length > 1
+
+  if (showAll) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {meaningfulVariants.map(v => (
+          <VariantStatesRow key={v} spec={spec} variant={v} size={size} platform={platform} />
+        ))}
+      </div>
+    )
+  }
+  return <VariantStatesRow spec={spec} variant={variant} size={size} platform={platform} />
 }
 
 // ─── Specs section ────────────────────────────────────────────────────────────

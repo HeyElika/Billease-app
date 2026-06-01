@@ -47,10 +47,19 @@ const ERROR_STATES = new Set(['error', 'error-filled'])
 // States that show the typed value (not placeholder color) in the input text
 const VALUE_STATES = new Set(['typing', 'filled', 'error-filled'])
 
-// Icon slot behavior (from Figma componentProperties 'swap icon#21:5'):
-//   typing state → close-bold icon (×, clears text) — contextual, not rendered by default
-//   all other states → 'hide' (slot empty, nothing shown)
-// Icon is documented separately in anatomy; it is not part of the base component.
+// Icon slot behavior (from Figma componentProperties 'swap icon#21:5' + 'icon right#193:56'):
+//   icon right boolean = defaultValue: true → slot always rendered (20×20 sm size)
+//   typing state  → close-bold (componentId 97:1392) = × to clear text
+//   all other states → 'hide' (componentId 24:4320) = invisible, slot still takes space
+
+function CloseIcon({ color }) {
+  // close-bold (Figma 97:1392) — drawn as × since SVG path is not in our icon set
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, display: 'block' }}>
+      <path d="M12 4L4 12M4 4L12 12" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 
 // ─── InputField ───────────────────────────────────────────────────────────────
@@ -194,7 +203,13 @@ export default function InputField({
           />
         )}
 
-        {/* icon slot — empty by default; callers swap in close/eye icons contextually */}
+        {/* icon slot — always present (icon right#193:56 = true by default) */}
+        <span style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {state === 'typing'
+            ? <CloseIcon color={isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)'} />
+            : null /* 'hide' component — slot occupies space, shows nothing */
+          }
+        </span>
       </div>
 
       {/* Bottom row: error message (error states only) */}
