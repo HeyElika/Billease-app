@@ -105,62 +105,56 @@ function isMissing(type, size, state) {
 }
 
 // ─── Platform spinners ────────────────────────────────────────────────────────
+// Android: conic-gradient filled circle — matches Figma node 11108:2625
+//   GRADIENT_ANGULAR fill, color→transparent over 25.5% (~92°), strokeWeight 1.5
+//   Light mode: #265CE5 (bg-secondary); in button context: spec.text color
+// iOS: 8-spoke radial activity indicator — matches Figma node 2430:1071
+//   30×30 component set, 8 frames, 120ms LINEAR transitions, 960ms full cycle
 
 function AndroidSpinner({ color }) {
+  // Figma gradientHandlePositions[1] at (0.0625, 0.625) → start angle ≈286° in CSS
+  // Gradient sweeps ~92° (25.5% of 360°) from full color to transparent
   return (
     <span
       style={{
         display: 'inline-block',
-        width: 16,
-        height: 16,
-        border: `2px solid ${color}`,
-        borderTopColor: 'transparent',
+        width: 20,
+        height: 20,
         borderRadius: '50%',
-        animation: 'btn-android-spin 0.7s linear infinite',
+        background: `conic-gradient(from 286deg, ${color} 0deg, transparent 92deg)`,
+        animation: 'btn-android-spin 0.8s linear infinite',
         flexShrink: 0,
       }}
     />
   )
 }
 
+// iOS: 8 spokes at 45° intervals, each 1.5×5px, staggered opacity cascade
+// Container 20×20px (scaled from Figma 30×30). outer_r=9px inner_r=4px
+// Spoke top: 1px from container edge. transformOrigin at container center (9px below spoke top)
 function IOSSpinner({ color }) {
   return (
-    <>
-      <style>{`
-        @keyframes ios-spoke {
-          0%     { opacity: 1;    }
-          14.28% { opacity: 0.85; }
-          28.57% { opacity: 0.65; }
-          42.86% { opacity: 0.45; }
-          57.14% { opacity: 0.30; }
-          71.43% { opacity: 0.18; }
-          85.71% { opacity: 0.10; }
-          100%   { opacity: 1;    }
-        }
-      `}</style>
-      <span style={{ display: 'inline-block', position: 'relative', width: 16, height: 16, flexShrink: 0 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span
-            key={i}
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: 2,
-              height: 5.5,
-              marginLeft: -1,
-              marginTop: -7.5,
-              borderRadius: 1,
-              backgroundColor: color,
-              transformOrigin: '50% calc(100% + 2px)',
-              transform: `rotate(${i * 45}deg)`,
-              animation: 'ios-spoke 0.96s linear infinite',
-              animationDelay: `${-i * 0.12}s`,
-            }}
-          />
-        ))}
-      </span>
-    </>
+    <span style={{ position: 'relative', display: 'inline-block', width: 20, height: 20, flexShrink: 0 }}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <span
+          key={i}
+          style={{
+            position: 'absolute',
+            top: 1,
+            left: '50%',
+            width: 1.5,
+            height: 5,
+            marginLeft: -0.75,
+            borderRadius: 0.75,
+            backgroundColor: color,
+            transformOrigin: '50% 9px',
+            transform: `rotate(${i * 45}deg)`,
+            animation: 'ios-spoke 0.96s linear infinite',
+            animationDelay: `${-i * 0.12}s`,
+          }}
+        />
+      ))}
+    </span>
   )
 }
 
@@ -253,7 +247,19 @@ export default function Button({
 
   return (
     <>
-      <style>{`@keyframes btn-android-spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes btn-android-spin { to { transform: rotate(360deg); } }
+        @keyframes ios-spoke {
+          0%    { opacity: 1;    }
+          12.5% { opacity: 0.85; }
+          25%   { opacity: 0.65; }
+          37.5% { opacity: 0.45; }
+          50%   { opacity: 0.30; }
+          62.5% { opacity: 0.18; }
+          75%   { opacity: 0.10; }
+          87.5% { opacity: 0.08; }
+        }
+      `}</style>
       <button
         style={buttonStyle}
         disabled={isDisabled || isLoading}
