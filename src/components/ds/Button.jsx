@@ -13,7 +13,15 @@ const HEIGHT = { lg: 48, md: 40, sm: 32 }
 const PADDING_H = { lg: 20, md: 16, sm: 12 }
 
 // text child style.fontSize per size
-const FONT_SIZE = { lg: 16, md: 16, sm: 14 }
+// Figma: boundVariables.fontSize → VariableID:2:388 (--text-lg = 16px, --text-md = 14px)
+const FONT_SIZE = { lg: 16, md: 16, sm: 14 }                  // px values for spec table
+const FONT_SIZE_TOKEN = { lg: 'var(--text-lg)', md: 'var(--text-lg)', sm: 'var(--text-md)' }
+
+// Figma: boundVariables.fontStyle → VariableID:2:374 (SemiBold = 600)
+const FONT_WEIGHT_TOKEN = 600   // no separate CSS variable; resolved from token
+
+// Figma: lineHeightPercentFontSize = 150 → lineHeight 1.5
+const LINE_HEIGHT = 1.5
 
 // itemSpacing: 8px for filled types, 4px for ghost types
 const GAP = { filled: 8, ghost: 4 }
@@ -165,10 +173,10 @@ export default function Button({
   const height = HEIGHT[size]
   const paddingH = isFilled ? PADDING_H[size] : 0
   const gap = isGhost ? GAP.ghost : GAP.filled
-  const fontSize = FONT_SIZE[size]
   const isDisabled = state === 'disabled'
   const isLoading = state === 'loading'
   const radius = isFilled ? RADIUS_FILLED : 0
+  const fontSizeToken = FONT_SIZE_TOKEN[size]
 
   // Multi-fill background: overlay stacked on base (replicates Figma layered fills)
   const background = spec.overlay
@@ -190,10 +198,10 @@ export default function Button({
     border: 'none',
     outline: 'none',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
-    fontFamily: 'var(--font-family)',
-    fontSize,
-    fontWeight: 600,
-    lineHeight: 1,
+    fontFamily: 'var(--font-family)',    // VariableID:2:364
+    fontSize: fontSizeToken,             // VariableID:2:388
+    fontWeight: FONT_WEIGHT_TOKEN,       // VariableID:2:374
+    lineHeight: LINE_HEIGHT,             // 150% per Figma lineHeightPercentFontSize
     color: spec.text,
     textDecoration: 'none',
     whiteSpace: 'nowrap',
@@ -238,8 +246,8 @@ export function getTokensForVariant(type, size, state) {
 
   const tokens = [
     { property: 'height',        value: `${HEIGHT[size]}px`,                       tokenPath: '—',                      resolves: `${HEIGHT[size]}px` },
-    { property: 'font-size',     value: `${FONT_SIZE[size]}px`,                    tokenPath: `typography/size/${size === 'sm' ? 'md' : 'lg'}`, resolves: `${FONT_SIZE[size]}px` },
-    { property: 'font-weight',   value: '600',                                     tokenPath: 'typography/weight/semibold', resolves: '600' },
+    { property: 'font-size',     value: FONT_SIZE_TOKEN[size],                      tokenPath: `typography/size/${size === 'sm' ? 'md' : 'lg'}`, resolves: `${FONT_SIZE[size]}px` },
+    { property: 'font-weight',   value: `${FONT_WEIGHT_TOKEN}`,                    tokenPath: 'typography/weight/semibold', resolves: '600' },
     { property: 'gap',           value: `${isGhost ? GAP.ghost : GAP.filled}px`,  tokenPath: isGhost ? 'spacing/100' : 'spacing/200', resolves: isGhost ? '4px' : '8px' },
     { property: 'border-radius', value: isGhost ? 'none' : '9999px',              tokenPath: isGhost ? '—' : 'border/radius/full', resolves: isGhost ? 'none' : '9999px' },
   ]

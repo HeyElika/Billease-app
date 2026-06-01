@@ -221,7 +221,7 @@ function AnatomySection({ nodeId, spec }) {
       }}>
         {spec.sizes.map(sz => (
           <div key={sz} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            {spec.renderComponent({ variant: defaultVariant, size: sz, state: 'default', label: 'Pay Now' })}
+            {spec.renderComponent({ variant: defaultVariant, size: sz, state: 'default', label: 'Pay now' })}
             <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{sz}</span>
           </div>
         ))}
@@ -543,7 +543,7 @@ export default function Explorer() {
               <PreviewArea dark={darkBg} onToggleDark={() => setDarkBg(d => !d)}>
                 {missing
                   ? <MissingSpec label={`No Figma spec: ${effectiveVariant}/${effectiveSize}/${effectiveState}`} />
-                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay Now' })
+                  : spec.renderComponent({ variant: effectiveVariant, size: effectiveSize, state: effectiveState, label: 'Pay now' })
                 }
               </PreviewArea>
             </div>
