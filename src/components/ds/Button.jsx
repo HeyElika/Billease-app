@@ -105,56 +105,62 @@ function isMissing(type, size, state) {
 }
 
 // ─── Platform spinners ────────────────────────────────────────────────────────
-// Android: conic-gradient filled circle — matches Figma node 11108:2625
-//   GRADIENT_ANGULAR fill, color→transparent over 25.5% (~92°), strokeWeight 1.5
-//   Light mode: #265CE5 (bg-secondary); in button context: spec.text color
-// iOS: 8-spoke radial activity indicator — matches Figma node 2430:1071
-//   30×30 component set, 8 frames, 120ms LINEAR transitions, 960ms full cycle
+// Android: SVG arc — Figma node 11108:2625, GRADIENT_ANGULAR fill, 25.5% arc (~92°)
+//   strokeDasharray gives a clean partial ring, strokeLinecap="round" for soft ends
+// iOS: SVG 8-spoke — Figma node 2430:1071, 8 frames × 120ms LINEAR = 960ms cycle
+//   Clockwise rotation: delay formula -(8-i)%8 × 120ms ensures lit spoke advances CW
 
 function AndroidSpinner({ color }) {
-  // Figma gradientHandlePositions[1] at (0.0625, 0.625) → start angle ≈286° in CSS
-  // Gradient sweeps ~92° (25.5% of 360°) from full color to transparent
+  // r=8.25 inside 20×20 viewBox. circumference≈51.84. 25.5% arc≈13.22px visible.
+  const r = 8.25
+  const circ = 2 * Math.PI * r
+  const arc = circ * 0.255
   return (
-    <span
-      style={{
-        display: 'inline-block',
-        width: 20,
-        height: 20,
-        borderRadius: '50%',
-        background: `conic-gradient(from 286deg, ${color} 0deg, transparent 92deg)`,
-        animation: 'btn-android-spin 0.8s linear infinite',
-        flexShrink: 0,
-      }}
-    />
+    <svg
+      width="20" height="20" viewBox="0 0 20 20"
+      style={{ animation: 'btn-android-spin 0.8s linear infinite', flexShrink: 0, display: 'block' }}
+    >
+      <circle
+        cx="10" cy="10" r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeDasharray={`${arc.toFixed(2)} ${(circ - arc).toFixed(2)}`}
+        transform="rotate(-90 10 10)"
+      />
+    </svg>
   )
 }
 
-// iOS: 8 spokes at 45° intervals, each 1.5×5px, staggered opacity cascade
-// Container 20×20px (scaled from Figma 30×30). outer_r=9px inner_r=4px
-// Spoke top: 1px from container edge. transformOrigin at container center (9px below spoke top)
+// 8 spokes as SVG lines, inner_r=3.5 outer_r=8.5, cx=cy=10 (20×20 viewBox)
+// animationDelay: -(8-i)%8 × 0.12s → spoke 0 lit first, then 1,2,… clockwise
 function IOSSpinner({ color }) {
+  const spokes = 8
+  const cx = 10, cy = 10, innerR = 3.5, outerR = 8.5
   return (
-    <span style={{ position: 'relative', display: 'inline-block', width: 20, height: 20, flexShrink: 0 }}>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <span
-          key={i}
-          style={{
-            position: 'absolute',
-            top: 1,
-            left: '50%',
-            width: 1.5,
-            height: 5,
-            marginLeft: -0.75,
-            borderRadius: 0.75,
-            backgroundColor: color,
-            transformOrigin: '50% 9px',
-            transform: `rotate(${i * 45}deg)`,
-            animation: 'ios-spoke 0.96s linear infinite',
-            animationDelay: `${-i * 0.12}s`,
-          }}
-        />
-      ))}
-    </span>
+    <svg width="20" height="20" viewBox="0 0 20 20" style={{ flexShrink: 0, display: 'block' }}>
+      {Array.from({ length: spokes }).map((_, i) => {
+        const rad = ((i * 45) - 90) * Math.PI / 180
+        const x1 = (cx + innerR * Math.cos(rad)).toFixed(2)
+        const y1 = (cy + innerR * Math.sin(rad)).toFixed(2)
+        const x2 = (cx + outerR * Math.cos(rad)).toFixed(2)
+        const y2 = (cy + outerR * Math.sin(rad)).toFixed(2)
+        return (
+          <line
+            key={i}
+            x1={x1} y1={y1} x2={x2} y2={y2}
+            stroke={color}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            style={{
+              animation: 'ios-spoke 0.96s linear infinite',
+              animationDelay: `${-((8 - i) % 8) * 0.12}s`,
+            }}
+          />
+        )
+      })}
+    </svg>
   )
 }
 
