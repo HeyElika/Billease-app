@@ -32,14 +32,14 @@ const REGISTRY = {
   },
 
   '109:1161': {
-    variants: ['(none)'],
+    variants: ['text', 'phone'],
     sizes: INPUT_SIZES,
     states: INPUT_STATES,
-    defaultVariant: '(none)',
+    defaultVariant: 'text',
     defaultSize: 'lg',
     defaultState: 'default',
-    renderComponent: ({ size, state }) => (
-      <InputField size={size} state={state} />
+    renderComponent: ({ variant, size, state }) => (
+      <InputField variant={variant} size={size} state={state} />
     ),
     getTokens: (variant, size, state) => getTokensForInput(size, state),
     isMissing: () => false,
@@ -209,8 +209,9 @@ const ANATOMY_PARTS = {
     { name: 'Input box',          desc: 'bg-sunken (#EAEDF0) fill, radius 12px · height 48px (lg) / 40px (md) · padding 12px H' },
     { name: 'Placeholder text',   desc: '16px/400 text-subtle (#606C79) — shown in default, focused, error, disabled states' },
     { name: 'Value text',         desc: '16px/400 text-base (#1D2D40) — shown in typing, filled, error-filled states' },
-    { name: 'Right icon',         desc: '20 × 20 icon slot (icon-placeholder instance) · text-subtle color' },
-    { name: 'Focus / error ring', desc: '1px border · #265CE5 (bg-secondary) on focus/typing · #DD0C0C (text-error) on error states' },
+    { name: 'Country code (phone)', desc: '+63 prefix · 16px/400 text-base · followed by 1px divider · gap 12px · Philippines only, no flag' },
+    { name: 'Right icon slot',    desc: 'Hidden by default (Figma: "hide" component). Shows close-bold (×) in typing state to clear text; swap in eye icon for password fields. Contextual — not part of the base component.' },
+    { name: 'Focus / error ring', desc: '1px border · #265CE5 (bg-secondary) on focused/typing · #DD0C0C (text-error) on error states' },
     { name: 'Error message row',  desc: '14px/400 text-primary (#F84040) · shown below box on error / error-filled only' },
   ],
 }
@@ -278,7 +279,7 @@ function StatesSection({ spec, variant, size, platform }) {
         backgroundColor: 'var(--bg-subtle)',
       }}>
         <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-          All States — {variant === '(none)' ? '' : `${variant} / `}{size}
+          All States — {(variant === '(none)' || variant === 'text') ? '' : `${variant} / `}{size}
         </span>
       </div>
       <div style={{
