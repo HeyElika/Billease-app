@@ -15,20 +15,13 @@ function getStyle(name) {
 }
 
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl', '2xl']
+
 const SIZE_PX = { xs: 16, sm: 20, md: 24, lg: 32, xl: 40, '2xl': 48 }
 
 const OVERVIEW_SECTIONS = [
   { id: 'anatomy', label: 'Anatomy' },
   { id: 'sizes',   label: 'Sizes'   },
   { id: 'props',   label: 'Props'   },
-]
-
-const STYLE_FILTERS = [
-  { value: 'all',     label: 'All'     },
-  { value: 'outline', label: 'Outline' },
-  { value: 'fill',    label: 'Fill'    },
-  { value: 'utility', label: 'Utility' },
-  { value: 'status',  label: 'Status'  },
 ]
 
 // Anatomy pairs: outline variant → fill variant
@@ -283,8 +276,6 @@ function IconCard({ name, size, copied, onCopy }) {
 
 function LibraryTab() {
   const [search, setSearch] = useState('')
-  const [styleFilter, setStyleFilter] = useState('all')
-  const [size, setSize] = useState('md')
   const [copied, setCopied] = useState(null)
 
   function handleCopy(name) {
@@ -293,107 +284,42 @@ function LibraryTab() {
     setTimeout(() => setCopied(null), 1200)
   }
 
-  const filtered = ALL_ICON_NAMES.filter(name => {
-    const matchesSearch = name.includes(search.toLowerCase().trim())
-    const matchesStyle  = styleFilter === 'all' || getStyle(name) === styleFilter
-    return matchesSearch && matchesStyle
-  })
+  const filtered = ALL_ICON_NAMES.filter(name =>
+    name.includes(search.toLowerCase().trim())
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* Search + filter bar */}
-      <div style={{
-        display: 'flex',
-        gap: 12,
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        padding: '14px 16px',
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        border: '1px solid var(--border-subtle)',
-      }}>
-        {/* Search */}
-        <div style={{ position: 'relative', flex: '1 1 200px' }}>
-          <BilleaseIcon
-            name="search"
-            size="sm"
-            color="var(--icon-subtle)"
-            style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-          />
-          <input
-            type="text"
-            placeholder="Search icons…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              paddingLeft: 34,
-              paddingRight: 12,
-              paddingTop: 8,
-              paddingBottom: 8,
-              border: '1px solid var(--border-default)',
-              borderRadius: 8,
-              fontSize: 14,
-              fontFamily: 'var(--font-family)',
-              color: 'var(--text-base)',
-              backgroundColor: 'var(--bg-sunken)',
-              outline: 'none',
-            }}
-          />
-        </div>
-
-        {/* Style filter pills */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {STYLE_FILTERS.map(f => {
-            const active = styleFilter === f.value
-            return (
-              <button
-                key={f.value}
-                onClick={() => setStyleFilter(f.value)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 9999,
-                  border: `1px solid ${active ? 'var(--border-primary)' : 'var(--border-default)'}`,
-                  backgroundColor: active ? 'var(--bg-error-subtle)' : 'transparent',
-                  color: active ? 'var(--text-primary)' : 'var(--text-subtle)',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 400,
-                  fontFamily: 'var(--font-family)',
-                  cursor: 'pointer',
-                  transition: 'all 0.1s',
-                }}
-              >
-                {f.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Size switcher */}
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center', borderLeft: '1px solid var(--border-subtle)', paddingLeft: 12 }}>
-          <span style={{ fontSize: 11, color: 'var(--text-disabled)', marginRight: 2, fontFamily: 'var(--font-family)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Size</span>
-          {SIZES.map(s => (
-            <button
-              key={s}
-              onClick={() => setSize(s)}
-              style={{
-                padding: '3px 8px',
-                borderRadius: 6,
-                border: `1px solid ${size === s ? 'var(--border-primary)' : 'transparent'}`,
-                backgroundColor: size === s ? 'var(--bg-error-subtle)' : 'transparent',
-                color: size === s ? 'var(--text-primary)' : 'var(--text-subtle)',
-                fontSize: 11,
-                fontFamily: 'monospace',
-                fontWeight: size === s ? 600 : 400,
-                cursor: 'pointer',
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+      {/* Search bar */}
+      <div style={{ position: 'relative', maxWidth: 320 }}>
+        <BilleaseIcon
+          name="search"
+          size="sm"
+          color="var(--icon-subtle)"
+          style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+        />
+        <input
+          type="text"
+          placeholder="Search icons…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            paddingLeft: 34,
+            paddingRight: 12,
+            paddingTop: 8,
+            paddingBottom: 8,
+            border: '1px solid var(--border-default)',
+            borderRadius: 8,
+            fontSize: 14,
+            fontFamily: 'var(--font-family)',
+            color: 'var(--text-base)',
+            backgroundColor: 'var(--bg-sunken)',
+            outline: 'none',
+          }}
+        />
       </div>
 
       {/* Result count */}
@@ -413,7 +339,7 @@ function LibraryTab() {
             <IconCard
               key={name}
               name={name}
-              size={size}
+              size="md"
               copied={copied === name}
               onCopy={handleCopy}
             />
