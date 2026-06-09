@@ -23,8 +23,8 @@ const REGISTRY = {
     defaultVariant: 'primary',
     defaultSize: 'lg',
     defaultState: 'default',
-    renderComponent: ({ variant, size, state, label, platform, iconLeft, iconRight, iconOnly }) => (
-      <Button type={variant} size={size} state={state} label={label} platform={platform ?? 'android'} iconLeft={iconLeft} iconRight={iconRight} iconOnly={iconOnly} />
+    renderComponent: ({ variant, size, state, label, platform, iconLeft, iconRight }) => (
+      <Button type={variant} size={size} state={state} label={label} platform={platform ?? 'android'} iconLeft={iconLeft} iconRight={iconRight} />
     ),
     interactive: ({ variant, size, platform }) => (
       <InteractiveButton variant={variant} size={size} platform={platform ?? 'android'} />

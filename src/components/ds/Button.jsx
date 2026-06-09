@@ -200,7 +200,7 @@ export default function Button({
   label = 'Button',
   iconLeft = false,
   iconRight = false,
-  iconOnly = false,
+  fullWidth = false,
   platform = 'android',   // android | ios
   onClick,
 }) {
@@ -234,11 +234,12 @@ export default function Button({
     justifyContent: 'center',
     gap,
     height,
-    paddingLeft: iconOnly ? 0 : paddingH,
-    paddingRight: iconOnly ? 0 : paddingH,
+    paddingLeft: paddingH,
+    paddingRight: paddingH,
     paddingTop: 0,
     paddingBottom: 0,
-    width: iconOnly ? height : undefined,
+    width: fullWidth ? '100%' : undefined,
+    boxSizing: 'border-box',
     borderRadius: radius,
     background,
     border: 'none',
@@ -275,20 +276,18 @@ export default function Button({
         disabled={isDisabled || isLoading}
         onClick={onClick}
       >
-        {iconLeft && !isLoading && !iconOnly && (
+        {iconLeft && !isLoading && (
           <BilleaseIcon name="arrow-left" size="xs" color={spec.text} />
         )}
         {isLoading ? (
           platform === 'ios'
             ? <IOSSpinner color={spec.text} />
             : <AndroidSpinner color={spec.text} />
-        ) : iconOnly ? (
-          <BilleaseIcon name="edit-outline" size="xs" color={spec.text} />
         ) : (
           <span>{label}</span>
         )}
-        {iconRight && !isLoading && !iconOnly && (
-          <BilleaseIcon name="arrows" size="xs" color={spec.text} />
+        {iconRight && !isLoading && (
+          <BilleaseIcon name="arrow-left" size="xs" color={spec.text} style={{ transform: 'rotate(180deg)' }} />
         )}
       </button>
     </>

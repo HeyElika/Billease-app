@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
+import ActionBar from '../components/ds/ActionBar'
+import IconOnlyButton from '../components/ds/IconOnlyButton'
 
 // ─── Display label mappings ───────────────────────────────────────────────────
 
@@ -103,9 +105,6 @@ function AppearanceSection({ spec, platform }) {
         {spec.variants.map(variant => (
           <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant] || variant, platform })}
-            <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px', textAlign: 'center' }}>
-              {VARIANT_LABEL[variant] || variant}
-            </span>
           </div>
         ))}
       </CardBody>
@@ -135,18 +134,9 @@ function StatesSection({ spec, platform }) {
                     variant,
                     size: spec.defaultSize,
                     state,
-                    label: 'Button',
+                    label: state === 'loading' ? '' : (STATE_LABEL[state] || state),
                     platform,
                   })}
-                  <span style={{
-                    fontFamily: 'var(--font-family)',
-                    fontSize: 11,
-                    color: 'var(--text-subtle)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.3px',
-                  }}>
-                    {STATE_LABEL[state] || state}
-                  </span>
                 </div>
               )
             })}
@@ -221,7 +211,6 @@ function IconSlotsSection({ spec, platform }) {
           {variants.map(variant => (
             <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant], platform, iconLeft: true })}
-              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
             </div>
           ))}
         </CardBody>
@@ -233,7 +222,6 @@ function IconSlotsSection({ spec, platform }) {
           {variants.map(variant => (
             <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant], platform, iconRight: true })}
-              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
             </div>
           ))}
         </CardBody>
@@ -242,10 +230,10 @@ function IconSlotsSection({ spec, platform }) {
       <DocCard>
         <CardHeader label="Icon button" />
         <CardBody>
-          {variants.map(variant => (
-            <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              {spec.renderComponent({ variant, size: 'lg', state: 'default', label: '', platform, iconOnly: true })}
-              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
+          {['secondary', 'ghost'].map(type => (
+            <div key={type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <IconOnlyButton type={type} state="default" />
+              <span style={labelStyle}>{VARIANT_LABEL[type]}</span>
             </div>
           ))}
         </CardBody>
@@ -256,65 +244,29 @@ function IconSlotsSection({ spec, platform }) {
 
 // ─── Section 5: Button Groups ─────────────────────────────────────────────────
 
-function ButtonGroupsSection({ spec, platform }) {
+function ButtonGroupsSection({ platform }) {
   const patterns = [
-    {
-      label: 'Horizontal group',
-      render: () => (
-        <div style={{ display: 'flex', flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {spec.renderComponent({ variant: 'primary', size: 'lg', state: 'default', label: 'Confirm', platform })}
-          {spec.renderComponent({ variant: 'secondary', size: 'lg', state: 'default', label: 'Cancel', platform })}
-        </div>
-      ),
-    },
-    {
-      label: 'Vertical group',
-      render: () => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 240 }}>
-          {spec.renderComponent({ variant: 'primary', size: 'lg', state: 'default', label: 'Pay now', platform })}
-          {spec.renderComponent({ variant: 'secondary', size: 'lg', state: 'default', label: 'Cancel', platform })}
-        </div>
-      ),
-    },
-    {
-      label: 'Mobile stacked',
-      render: () => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 260 }}>
-          {spec.renderComponent({ variant: 'primary', size: 'lg', state: 'default', label: 'Pay now', platform })}
-          {spec.renderComponent({ variant: 'secondary', size: 'lg', state: 'default', label: 'Cancel', platform })}
-        </div>
-      ),
-    },
-    {
-      label: 'Ghost + Primary',
-      render: () => (
-        <div style={{ display: 'flex', flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {spec.renderComponent({ variant: 'ghost', size: 'lg', state: 'default', label: 'Cancel', platform })}
-          {spec.renderComponent({ variant: 'primary', size: 'lg', state: 'default', label: 'Confirm', platform })}
-        </div>
-      ),
-    },
+    { label: 'Default',        props: { alignment: 'vertical',   showSecondary: false } },
+    { label: 'With secondary', props: { alignment: 'vertical',   showSecondary: true  } },
+    { label: 'Horizontal',     props: { alignment: 'horizontal', showSecondary: true  } },
+    { label: 'Text on top',    props: { alignment: 'vertical',   showSecondary: true, textTop: 'Some info text here' } },
+    { label: 'Text on bottom', props: { alignment: 'vertical',   showSecondary: true, textBottom: 'By continuing you agree to Terms & Conditions' } },
+    { label: 'With border',    props: { alignment: 'vertical',   showSecondary: true, showBorder: true } },
   ]
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-      gap: 16,
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {patterns.map(pattern => (
         <DocCard key={pattern.label}>
           <CardHeader label={pattern.label} />
-          <div style={{
-            padding: '32px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'var(--bg-subtle)',
-            minHeight: 120,
-          }}>
-            {pattern.render()}
-          </div>
+          <CardBody style={{ padding: 0 }}>
+            <ActionBar
+              {...pattern.props}
+              platform={platform}
+              primaryLabel="Button"
+              secondaryLabel="Button"
+            />
+          </CardBody>
         </DocCard>
       ))}
     </div>
@@ -562,10 +514,9 @@ function SpecsSection({ spec }) {
           Background and text color by state, grouped by appearance
         </div>
 
-        {/* Tab bar */}
+        {/* Tab bar — TOC style */}
         <div style={{
           display: 'flex',
-          gap: 6,
           flexWrap: 'wrap',
           marginBottom: 16,
         }}>
@@ -576,16 +527,16 @@ function SpecsSection({ spec }) {
                 key={variant}
                 onClick={() => setActiveVariant(variant)}
                 style={{
-                  padding: '4px 14px',
-                  borderRadius: 9999,
-                  border: `1px solid ${active ? 'var(--border-primary)' : 'var(--border-default)'}`,
-                  backgroundColor: active ? 'var(--bg-error-subtle)' : '#fff',
+                  padding: '5px 16px',
+                  border: 'none',
+                  borderLeft: active ? '2px solid var(--text-primary)' : '2px solid transparent',
+                  backgroundColor: 'transparent',
                   color: active ? 'var(--text-primary)' : 'var(--text-subtle)',
                   fontSize: 13,
                   fontWeight: active ? 600 : 400,
                   fontFamily: 'var(--font-family)',
                   cursor: 'pointer',
-                  transition: 'all 0.1s',
+                  transition: 'color 0.1s, border-color 0.1s',
                   lineHeight: '20px',
                 }}
               >
@@ -706,7 +657,7 @@ export default function ButtonDocs({ comp, spec, platform, onChangePlatform }) {
       </DocSection>
 
       <DocSection id="button-groups" title="Button Groups">
-        <ButtonGroupsSection spec={spec} platform={platform} />
+        <ButtonGroupsSection platform={platform} />
       </DocSection>
 
       <DocSection id="specs" title="Specs">
