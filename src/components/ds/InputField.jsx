@@ -6,31 +6,43 @@
 
 // ─── Specs from Figma ──────────────────────────────────────────────────────────
 // input/fields COMPONENT_SET · size=lg/md · state=default/focused/typing/filled/error/error-filled/disabled
+// Component properties:
+//   optional#109:0        BOOLEAN  default=false
+//   label#193:41          BOOLEAN  default=true
+//   icon right#193:56     BOOLEAN  default=true
+//   info#209:89           BOOLEAN  default=false
+//   character limit#2460:0 BOOLEAN default=false
+//   country code#11972:0  BOOLEAN  default=false
+//   Show sugestion#12019:0 BOOLEAN default=false
+//   size                  VARIANT  md | lg
+//   state                 VARIANT  default | focused | typing | filled | error | error-filled | disabled
 
 // Input box height per size (absoluteBoundingBox.height of the Input-field frame)
 const BOX_HEIGHT = { lg: 48, md: 40 }
 
-// Padding inside input box (paddingLeft/Right from Figma)
+// Padding inside input box
+// lg: 12 all sides. md: 8 top/bottom, 12 left/right
 const PADDING_H = 12
 const PADDING_V = { lg: 12, md: 8 }
 
 // Border radius (cornerRadius)
 const RADIUS = 12
 
-// Gap inside input box between placeholder-with-code frame and icon slot (itemSpacing)
+// Gap inside input box between text frame and icon slot (itemSpacing)
 const INNER_GAP = 8
 
 // Gap between outer stack children: label → input → bottom row (itemSpacing on variant)
 const OUTER_GAP = 8
 
-// Label row gap between label text and "(Optional)" tag (itemSpacing on label frame)
+// Label row gap between label text and "(Optional)" tag
 const LABEL_GAP = 4
 
-// Phone variant: gap between +63 text and divider, and divider and placeholder
-// Figma: 'placeholder with code' frame has itemSpacing=12 (VariableID:2:726)
-const PHONE_CODE_GAP = 12
+// Country code frame: itemSpacing=10 between code text and divider,
+// paddingRight=12 between the frame and the input (VariableID:2:726)
+const COUNTRY_CODE_INNER_GAP = 10
+const COUNTRY_CODE_RIGHT_PAD = 12
 
-// ─── Per-state box styles (read from Input-field/lg/* frames) ─────────────────
+// ─── Per-state box styles ──────────────────────────────────────────────────────
 const STATE_STYLES = {
   default:        { bg: 'var(--bg-sunken)',  border: 'none' },
   focused:        { bg: 'var(--bg-base)',    border: '1px solid var(--bg-secondary)' },
@@ -41,21 +53,11 @@ const STATE_STYLES = {
   disabled:       { bg: 'var(--bg-sunken)',  border: 'none' },
 }
 
-// States that show an error message below the input
-const ERROR_STATES = new Set(['error', 'error-filled'])
+const ERROR_STATES  = new Set(['error', 'error-filled'])
+const VALUE_STATES  = new Set(['typing', 'filled', 'error-filled'])
 
-// States that show the typed value (not placeholder color) in the input text
-const VALUE_STATES = new Set(['typing', 'filled', 'error-filled'])
-
-// Icon slot behavior (from Figma componentProperties 'swap icon#21:5' + 'icon right#193:56'):
-//   icon right boolean = defaultValue: true → slot always rendered (20×20 sm size)
-//   typing state  → close-bold (componentId 97:1392) = × to clear text
-//   all other states → 'hide' (componentId 24:4320) = invisible, slot still takes space
-
+// Figma: typing state → close-bold (componentId 97:1392); all others → hide (componentId 24:4320)
 function CloseIcon() {
-  // close-bold (Figma node 97:1392) — exact SVG exported from Figma at 2× (48×48 viewBox)
-  // Path 1: circle bg — fill #EAEDF0 (bg-sunken, VariableID:5:1388)
-  // Path 2: × shape  — fill #1D2D40 (text-base, VariableID:5:62), no stroke
   return (
     <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
       <path d="M0 24C0 10.7452 10.7452 0 24 0C37.2548 0 48 10.7452 48 24C48 37.2548 37.2548 48 24 48C10.7452 48 0 37.2548 0 24Z" fill="#EAEDF0"/>
@@ -68,32 +70,56 @@ function CloseIcon() {
 // ─── InputField ───────────────────────────────────────────────────────────────
 
 export default function InputField({
-  variant = 'text',        // text | phone
-  size = 'lg',             // lg | md
-  state = 'default',       // default | focused | typing | filled | error | error-filled | disabled
+  // Variant / size
+  variant = 'text',             // text | phone — 'phone' is an alias for showCountryCode=true
+  size = 'lg',                  // lg | md
+
+  // State
+  state = 'default',            // default | focused | typing | filled | error | error-filled | disabled
+
+  // Content
   label = 'Account name',
   placeholder = 'Enter text',
-  phonePlaceholder = 'XXX XXX XXXX',
   value = 'Sample input value',
-  phoneValue = '917 555 0123',
   errorMessage = 'Error message alongside the input',
-  showOptional = true,
-  // Interactive mode — when onChange is provided the input becomes live
+  infoMessage = 'Info message goes here',
+  countryCode = '+63',
+  phonePlaceholder = 'XXX XXX XXXX',
+  phoneValue = '917 555 0123',
+
+  // Feature toggles (map directly to Figma component properties)
+  showLabel = true,             // label#193:41       — show/hide label row
+  showOptional = false,         // optional#109:0     — show "(Optional)" tag
+  showIcon = true,              // icon right#193:56  — show icon slot on right
+  info = false,                 // info#209:89        — show info message below
+  characterLimit = false,       // character limit#2460:0 — show char count
+  showCountryCode = false,      // country code#11972:0   — show country code prefix
+  maxLength = 50,
+
+  // Interactive mode — provide onChange to make the input live
   onChange,
   onFocus,
   onBlur,
   onClear,
 }) {
-  const interactive = typeof onChange === 'function'
-  const boxStyle = STATE_STYLES[state]
-  const isDisabled = state === 'disabled'
-  const hasError = ERROR_STATES.has(state)
-  const isValueState = VALUE_STATES.has(state)
-  const isPhone = variant === 'phone'
+  const interactive   = typeof onChange === 'function'
+  const isPhone       = variant === 'phone' || showCountryCode
+  const boxStyle      = STATE_STYLES[state]
+  const isDisabled    = state === 'disabled'
+  const hasError      = ERROR_STATES.has(state)
+  const isValueState  = VALUE_STATES.has(state)
+  const boxHeight     = BOX_HEIGHT[size]
+  const paddingV      = PADDING_V[size]
 
-  const inputTextColor = (interactive || isValueState) ? 'var(--text-base)' : 'var(--text-subtle)'
-  const boxHeight = BOX_HEIGHT[size]
-  const paddingV = PADDING_V[size]
+  // Placeholder/value text color
+  // Disabled uses var(--text-disabled) (#B4BDC5); other non-value states use var(--text-subtle)
+  const inputTextColor = (interactive || isValueState)
+    ? 'var(--text-base)'
+    : isDisabled
+      ? 'var(--text-disabled)'
+      : 'var(--text-subtle)'
+
+  const currentLength = interactive ? (value?.length ?? 0) : (isValueState ? value.length : 0)
 
   const inputStyle = {
     flex: 1,
@@ -119,29 +145,32 @@ export default function InputField({
       fontFamily: 'var(--font-family)',
     }}>
 
-      {/* Label row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
-        <span style={{
-          fontSize: 16,
-          fontWeight: 400,
-          lineHeight: '24px',
-          color: 'var(--text-base)',
-          fontFamily: 'var(--font-family)',
-        }}>
-          {label}
-        </span>
-        {showOptional && (
+      {/* Label row — visible when showLabel=true (label#193:41) */}
+      {showLabel && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
           <span style={{
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: 400,
-            lineHeight: '21px',
-            color: 'var(--text-subtle)',
+            lineHeight: '24px',
+            color: 'var(--text-base)',
             fontFamily: 'var(--font-family)',
           }}>
-            (Optional)
+            {label}
           </span>
-        )}
-      </div>
+          {/* (Optional) tag — optional#109:0, default=false */}
+          {showOptional && (
+            <span style={{
+              fontSize: 14,
+              fontWeight: 400,
+              lineHeight: '21px',
+              color: 'var(--text-subtle)',
+              fontFamily: 'var(--font-family)',
+            }}>
+              (Optional)
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Input box */}
       <div style={{
@@ -161,85 +190,126 @@ export default function InputField({
         transition: 'background-color 0.12s, border-color 0.12s',
       }}>
 
-        {isPhone ? (
-          /* Phone variant: "+63 | placeholder" prefix group */
+        {/* Country code prefix — country code#11972:0
+            Frame: paddingRight=12 (gap to input), itemSpacing=10 (code↔divider) */}
+        {isPhone && (
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: PHONE_CODE_GAP,
-            flex: 1,
-            minWidth: 0,
+            gap: COUNTRY_CODE_INNER_GAP,
+            paddingRight: COUNTRY_CODE_RIGHT_PAD,
+            flexShrink: 0,
           }}>
-            {/* Country code — Philippines, no flag */}
             <span style={{
               fontSize: 16,
               fontWeight: 400,
               lineHeight: '24px',
               color: 'var(--text-base)',
               fontFamily: 'var(--font-family)',
-              flexShrink: 0,
             }}>
-              +63
+              {countryCode}
             </span>
-
-            {/* Vertical divider */}
             <span style={{
               width: 1,
               height: 16,
               backgroundColor: 'var(--border-default)',
               flexShrink: 0,
             }} />
-
-            {/* Phone number input */}
-            <input
-              type="text"
-              placeholder={phonePlaceholder}
-              value={interactive ? value : (isValueState ? phoneValue : '')}
-              readOnly={!interactive}
-              disabled={isDisabled}
-              onChange={interactive ? (e) => onChange(e.target.value) : undefined}
-              onFocus={interactive ? onFocus : undefined}
-              onBlur={interactive ? onBlur : undefined}
-              style={inputStyle}
-            />
           </div>
-        ) : (
-          /* Text variant: standard input */
-          <input
-            type="text"
-            placeholder={placeholder}
-            value={interactive ? value : (isValueState ? value : '')}
-            readOnly={!interactive}
-            disabled={isDisabled}
-            onChange={interactive ? (e) => onChange(e.target.value) : undefined}
-            onFocus={interactive ? onFocus : undefined}
-            onBlur={interactive ? onBlur : undefined}
-            style={inputStyle}
-          />
         )}
 
-        {/* icon slot — always present (icon right#193:56 = true by default) */}
-        <span
-          style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: state === 'typing' && interactive ? 'pointer' : 'default' }}
-          onClick={state === 'typing' && interactive ? onClear : undefined}
-        >
-          {state === 'typing'
-            ? <CloseIcon />
-            : null /* 'hide' component — slot occupies space, shows nothing */
-          }
-        </span>
+        {/* Text input */}
+        <input
+          type="text"
+          placeholder={isPhone ? phonePlaceholder : placeholder}
+          value={interactive
+            ? value
+            : (isValueState ? (isPhone ? phoneValue : value) : '')}
+          readOnly={!interactive}
+          disabled={isDisabled}
+          onChange={interactive ? (e) => onChange(e.target.value) : undefined}
+          onFocus={interactive ? onFocus : undefined}
+          onBlur={interactive ? onBlur : undefined}
+          style={inputStyle}
+        />
+
+        {/* Icon slot — icon right#193:56, default=true
+            typing → close-bold (clears); all other states → hide (invisible, holds space) */}
+        {showIcon && (
+          <span
+            style={{
+              width: 20,
+              height: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              cursor: state === 'typing' && interactive ? 'pointer' : 'default',
+            }}
+            onClick={state === 'typing' && interactive ? onClear : undefined}
+          >
+            {state === 'typing' ? <CloseIcon /> : null}
+          </span>
+        )}
       </div>
 
-      {/* Bottom row: error message (error states only) */}
-      {hasError && (
+      {/* Info message — info#209:89, default=false
+          color=var(--text-base), fontSize=14, lineHeight=21px
+          Shown in non-error states only */}
+      {info && !hasError && (
         <span style={{
           fontSize: 14,
           fontWeight: 400,
           lineHeight: '21px',
-          color: 'var(--text-primary)',
+          color: 'var(--text-base)',
           fontFamily: 'var(--font-family)',
         }}>
-          {errorMessage}
+          {infoMessage}
+        </span>
+      )}
+
+      {/* Error row — flex row: [error text, flex:1] + optional [char limit, right-aligned]
+          Error text color=var(--text-primary) (#F84040) */}
+      {hasError && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: INNER_GAP }}>
+          <span style={{
+            flex: 1,
+            fontSize: 14,
+            fontWeight: 400,
+            lineHeight: '21px',
+            color: 'var(--text-primary)',
+            fontFamily: 'var(--font-family)',
+          }}>
+            {errorMessage}
+          </span>
+          {/* Character limit shown in error row when enabled */}
+          {characterLimit && (
+            <span style={{
+              fontSize: 14,
+              fontWeight: 400,
+              lineHeight: '21px',
+              color: 'var(--text-subtle)',
+              fontFamily: 'var(--font-family)',
+              flexShrink: 0,
+            }}>
+              {currentLength}/{maxLength}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Standalone character limit (non-error states) — character limit#2460:0, default=false
+          Right-aligned, color=var(--text-subtle), fontSize=14 */}
+      {!hasError && characterLimit && (
+        <span style={{
+          fontSize: 14,
+          fontWeight: 400,
+          lineHeight: '21px',
+          color: 'var(--text-subtle)',
+          fontFamily: 'var(--font-family)',
+          textAlign: 'right',
+        }}>
+          {currentLength}/{maxLength}
         </span>
       )}
     </div>
@@ -253,7 +323,8 @@ export function getTokensForInput(size, state) {
   if (!box) return []
 
   const isValueState = VALUE_STATES.has(state)
-  const hasError = ERROR_STATES.has(state)
+  const hasError     = ERROR_STATES.has(state)
+  const isDisabled   = state === 'disabled'
 
   return [
     { property: 'height (box)',        value: `${BOX_HEIGHT[size]}px`,  tokenPath: '—',               resolves: `${BOX_HEIGHT[size]}px` },
@@ -266,7 +337,7 @@ export function getTokensForInput(size, state) {
     { property: 'label font-size',     value: '16px',                   tokenPath: 'typography/size/lg', resolves: '16px' },
     { property: 'label color',         value: 'var(--text-base)',       tokenPath: 'text/base',       resolves: '#1D2D40' },
     { property: 'input font-size',     value: '16px',                   tokenPath: 'typography/size/lg', resolves: '16px' },
-    { property: 'input color',         value: isValueState ? 'var(--text-base)' : 'var(--text-subtle)', tokenPath: isValueState ? 'text/base' : 'text/subtle', resolves: isValueState ? '#1D2D40' : '#606C79' },
+    { property: 'input color',         value: isValueState ? 'var(--text-base)' : isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)', tokenPath: isValueState ? 'text/base' : isDisabled ? 'text/disabled' : 'text/subtle', resolves: isValueState ? '#1D2D40' : isDisabled ? '#B4BDC5' : '#606C79' },
     ...(hasError ? [{ property: 'error color', value: 'var(--text-primary)', tokenPath: 'text/primary', resolves: '#F84040' }] : []),
   ]
 }
