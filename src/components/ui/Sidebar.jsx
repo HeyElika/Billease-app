@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { NavLink, useParams, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
 import { HEADER_HEIGHT } from './Header'
 
@@ -163,8 +163,11 @@ function FoundationSidebar() {
 
 // ─── Section: Components ──────────────────────────────────────────────────────
 function ComponentsSidebar() {
-  const { nodeId: nodeIdParam } = useParams()
-  const activeNodeId = nodeIdParam ? nodeIdParam.replace(/_/g, ':') : null
+  const { pathname } = useLocation()
+  const nodeIdSlug = pathname.startsWith('/explorer/')
+    ? pathname.slice('/explorer/'.length).split('/')[0]
+    : null
+  const activeNodeId = nodeIdSlug ? nodeIdSlug.replace(/_/g, ':') : null
   const [search, setSearch] = useState('')
   const query = search.trim().toLowerCase()
 
