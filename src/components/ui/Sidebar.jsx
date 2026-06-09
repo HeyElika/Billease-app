@@ -3,7 +3,6 @@ import { NavLink, useParams, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
 import { HEADER_HEIGHT } from './Header'
 
-// Categories shown in sidebar (user-specified order)
 const SHOWN_CATEGORIES = [
   'Accordion', 'Alert', 'Badge', 'Banners', 'Buttons', 'Cards',
   'Checkbox', 'Dropdown', 'Empty state', 'Hero', 'Input', 'List',
@@ -27,6 +26,58 @@ function ChevronIcon({ open }) {
     >
       <path d="M4 2.5L7.5 6L4 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
+  )
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{
+      padding: '12px 16px 6px',
+      fontFamily: 'var(--font-family)',
+      fontSize: 11,
+      fontWeight: 700,
+      color: 'var(--text-disabled)',
+      letterSpacing: '0.6px',
+      textTransform: 'uppercase',
+    }}>
+      {children}
+    </div>
+  )
+}
+
+function SidebarNavLink({ to, children }) {
+  return (
+    <NavLink
+      to={to}
+      style={({ isActive }) => ({
+        display: 'block',
+        padding: '7px 16px',
+        textDecoration: 'none',
+        fontFamily: 'var(--font-family)',
+        fontSize: 13,
+        color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
+        fontWeight: isActive ? 600 : 400,
+        borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
+        backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
+        transition: 'background-color 0.1s, color 0.1s',
+      })}
+      onMouseEnter={e => {
+        const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+        if (!isCurrent) {
+          e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
+          e.currentTarget.style.color = 'var(--text-base)'
+        }
+      }}
+      onMouseLeave={e => {
+        const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+        if (!isCurrent) {
+          e.currentTarget.style.backgroundColor = 'transparent'
+          e.currentTarget.style.color = 'var(--text-subtle)'
+        }
+      }}
+    >
+      {children}
+    </NavLink>
   )
 }
 
@@ -59,57 +110,75 @@ function CategoryItem({ category, components, open, onToggle }) {
 
       {open && (
         <div>
-          {components.map(comp => {
-            const slug = toSlug(comp.id)
-            return (
-              <NavLink
-                key={comp.id}
-                to={`/explorer/${slug}`}
-                style={({ isActive }) => ({
-                  display: 'block',
-                  padding: '5px 16px 5px 26px',
-                  textDecoration: 'none',
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 13,
-                  color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
-                  fontWeight: isActive ? 600 : 400,
-                  borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
-                  backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
-                  transition: 'background-color 0.1s, color 0.1s',
-                })}
-                onMouseEnter={e => {
-                  const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-                  if (!isCurrent) {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
-                    e.currentTarget.style.color = 'var(--text-base)'
-                  }
-                }}
-                onMouseLeave={e => {
-                  const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-                  if (!isCurrent) {
-                    e.currentTarget.style.backgroundColor = 'transparent'
-                    e.currentTarget.style.color = 'var(--text-subtle)'
-                  }
-                }}
-              >
-                {comp.name}
-              </NavLink>
-            )
-          })}
+          {components.map(comp => (
+            <NavLink
+              key={comp.id}
+              to={`/explorer/${toSlug(comp.id)}`}
+              style={({ isActive }) => ({
+                display: 'block',
+                padding: '5px 16px 5px 26px',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-family)',
+                fontSize: 13,
+                color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
+                fontWeight: isActive ? 600 : 400,
+                borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
+                backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
+                transition: 'background-color 0.1s, color 0.1s',
+              })}
+              onMouseEnter={e => {
+                const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                if (!isCurrent) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
+                  e.currentTarget.style.color = 'var(--text-base)'
+                }
+              }}
+              onMouseLeave={e => {
+                const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                if (!isCurrent) {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = 'var(--text-subtle)'
+                }
+              }}
+            >
+              {comp.name}
+            </NavLink>
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-export default function Sidebar() {
+// ─── Section: Foundation ──────────────────────────────────────────────────────
+function FoundationSidebar() {
+  return (
+    <div style={{ paddingBottom: 24 }}>
+      <SectionLabel>Foundations</SectionLabel>
+      <SidebarNavLink to="/tokens">Design Tokens</SidebarNavLink>
+      <SidebarNavLink to="/icons">Iconography</SidebarNavLink>
+    </div>
+  )
+}
+
+// ─── Section: Components ──────────────────────────────────────────────────────
+function ComponentsSidebar() {
   const { nodeId: nodeIdParam } = useParams()
-  const location = useLocation()
   const activeNodeId = nodeIdParam ? nodeIdParam.replace(/_/g, ':') : null
   const [search, setSearch] = useState('')
   const query = search.trim().toLowerCase()
 
-  // Build category→components map (filtered by search)
+  const activeCategoryForComp = componentIndex.find(c => c.id === activeNodeId)?.category ?? null
+  const [openCategory, setOpenCategory] = useState(activeCategoryForComp ?? 'Buttons')
+
+  useEffect(() => {
+    if (activeCategoryForComp) setOpenCategory(activeCategoryForComp)
+  }, [activeCategoryForComp])
+
+  const handleToggle = useCallback((cat) => {
+    setOpenCategory(prev => prev === cat ? null : cat)
+  }, [])
+
   const categoryMap = {}
   SHOWN_CATEGORIES.forEach(cat => {
     categoryMap[cat] = componentIndex.filter(c => {
@@ -119,25 +188,92 @@ export default function Sidebar() {
     })
   })
 
-  // Which category is active?
-  const activeCategoryForComp = componentIndex.find(c => c.id === activeNodeId)?.category ?? null
+  return (
+    <div style={{ paddingBottom: 24 }}>
+      {/* Search */}
+      <div style={{ padding: '12px 12px 4px' }}>
+        <div style={{ position: 'relative' }}>
+          <svg
+            width="14" height="14" viewBox="0 0 14 14" fill="none"
+            style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-disabled)', pointerEvents: 'none' }}
+          >
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search components…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '6px 8px 6px 28px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 6,
+              fontFamily: 'var(--font-family)',
+              fontSize: 12,
+              color: 'var(--text-base)',
+              backgroundColor: 'var(--bg-subtle)',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+        </div>
+      </div>
 
-  // Single-open accordion: track which category is open
-  const defaultOpen = activeCategoryForComp ?? 'Buttons'
-  const [openCategory, setOpenCategory] = useState(defaultOpen)
+      <SectionLabel>Components</SectionLabel>
 
-  // When the active route changes to a different category, open that category
-  useEffect(() => {
-    if (activeCategoryForComp) setOpenCategory(activeCategoryForComp)
-  }, [activeCategoryForComp])
+      {SHOWN_CATEGORIES.map(cat => {
+        const comps = categoryMap[cat] || []
+        if (comps.length === 0) return null
+        const isOpen = query
+          ? comps.some(c => c.name.toLowerCase().includes(query))
+          : openCategory === cat
+        return (
+          <CategoryItem
+            key={cat}
+            category={cat}
+            components={comps}
+            open={isOpen}
+            onToggle={() => handleToggle(cat)}
+          />
+        )
+      })}
+    </div>
+  )
+}
 
-  // When searching, open all matched categories — clear search to restore single-open
-  const handleToggle = useCallback((cat) => {
-    setOpenCategory(prev => prev === cat ? null : cat)
-  }, [])
+// ─── Section: placeholder ─────────────────────────────────────────────────────
+function PlaceholderSidebar({ label }) {
+  return (
+    <div style={{ paddingBottom: 24 }}>
+      <SectionLabel>{label}</SectionLabel>
+      <div style={{
+        padding: '16px',
+        fontFamily: 'var(--font-family)',
+        fontSize: 13,
+        color: 'var(--text-disabled)',
+      }}>
+        Coming soon
+      </div>
+    </div>
+  )
+}
 
-  const isTokensActive = location.pathname === '/tokens'
-  const isIconsActive = location.pathname === '/icons'
+// ─── Sidebar root ─────────────────────────────────────────────────────────────
+export default function Sidebar() {
+  const { pathname } = useLocation()
+
+  const isFoundation = pathname.startsWith('/tokens') || pathname.startsWith('/icons')
+  const isComponents = pathname.startsWith('/explorer')
+  const isMotion     = pathname.startsWith('/motion')
+
+  function renderContent() {
+    if (isFoundation) return <FoundationSidebar />
+    if (isComponents) return <ComponentsSidebar />
+    if (isMotion)     return <PlaceholderSidebar label="Motion" />
+    return <PlaceholderSidebar label="Patterns" />
+  }
 
   return (
     <aside style={{
@@ -154,126 +290,8 @@ export default function Sidebar() {
       zIndex: 100,
       flexShrink: 0,
     }}>
-
-      {/* Scrollable nav body */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
-
-        {/* Search */}
-        <div style={{ padding: '12px 12px 4px' }}>
-          <div style={{ position: 'relative' }}>
-            <svg
-              width="14" height="14" viewBox="0 0 14 14" fill="none"
-              style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-disabled)', pointerEvents: 'none' }}
-            >
-              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search components…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px 6px 28px',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 6,
-                fontFamily: 'var(--font-family)',
-                fontSize: 12,
-                color: 'var(--text-base)',
-                backgroundColor: 'var(--bg-subtle)',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Components section */}
-        <div style={{
-          padding: '12px 16px 6px',
-          fontFamily: 'var(--font-family)',
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--text-disabled)',
-          letterSpacing: '0.6px',
-          textTransform: 'uppercase',
-        }}>
-          Components
-        </div>
-
-        {SHOWN_CATEGORIES.map(cat => {
-          const comps = categoryMap[cat] || []
-          if (comps.length === 0) return null
-          const isOpen = query
-            ? comps.some(c => c.name.toLowerCase().includes(query))
-            : openCategory === cat
-          return (
-            <CategoryItem
-              key={cat}
-              category={cat}
-              components={comps}
-              open={isOpen}
-              onToggle={() => handleToggle(cat)}
-            />
-          )
-        })}
-
-        {/* Divider */}
-        <div style={{
-          margin: '12px 16px',
-          borderTop: '1px solid var(--border-subtle)',
-        }} />
-
-        {/* Foundations section */}
-        <div style={{
-          padding: '4px 16px 6px',
-          fontFamily: 'var(--font-family)',
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--text-disabled)',
-          letterSpacing: '0.6px',
-          textTransform: 'uppercase',
-        }}>
-          Foundations
-        </div>
-
-        {[
-          { to: '/tokens', label: 'Design Tokens', active: isTokensActive },
-          { to: '/icons',  label: 'Iconography',   active: isIconsActive  },
-        ].map(({ to, label, active }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '7px 16px',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-family)',
-              fontSize: 13,
-              color: active ? 'var(--text-primary)' : 'var(--text-subtle)',
-              fontWeight: active ? 600 : 400,
-              borderLeft: active ? '2px solid var(--bg-primary)' : '2px solid transparent',
-              backgroundColor: active ? 'var(--bg-error-subtle)' : 'transparent',
-              transition: 'background-color 0.1s, color 0.1s',
-            }}
-            onMouseEnter={e => {
-              if (!active) {
-                e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
-                e.currentTarget.style.color = 'var(--text-base)'
-              }
-            }}
-            onMouseLeave={e => {
-              if (!active) {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = 'var(--text-subtle)'
-              }
-            }}
-          >
-            {label}
-          </NavLink>
-        ))}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {renderContent()}
       </div>
 
       {/* Footer */}
