@@ -1,38 +1,55 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/ui/Sidebar'
+import Header, { HEADER_HEIGHT } from './components/ui/Header'
 import TOC from './components/ui/TOC'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
 import Iconography from './pages/Iconography'
+import Motion from './pages/Motion'
+import Patterns from './pages/Patterns'
 import { TocProvider } from './context/TocContext'
 
 function Layout() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', minHeight: '100vh' }}>
-      <Sidebar />
-      {/* Page wrapper: offset for fixed sidebar */}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Header />
+
+      {/* Content area pushed below the fixed header */}
       <div style={{
-        marginLeft: 220,
-        flex: 1,
+        marginTop: HEADER_HEIGHT,
         display: 'flex',
         flexDirection: 'row',
-        minHeight: '100vh',
+        flex: 1,
+        minHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
       }}>
-        <main style={{
+        <Sidebar />
+
+        {/* Page wrapper: offset for fixed sidebar */}
+        <div style={{
+          marginLeft: 220,
           flex: 1,
-          minWidth: 0,
-          padding: '48px 64px',
-          backgroundColor: '#ffffff',
+          display: 'flex',
+          flexDirection: 'row',
+          minHeight: '100%',
         }}>
-          <Routes>
-            <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
-            <Route path="/explorer/:nodeId" element={<Explorer />} />
-            <Route path="/tokens" element={<Tokens />} />
-            <Route path="/icons" element={<Iconography />} />
-            <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
-          </Routes>
-        </main>
-        <TOC />
+          <main style={{
+            flex: 1,
+            minWidth: 0,
+            padding: '48px 64px',
+            backgroundColor: '#ffffff',
+          }}>
+            <Routes>
+              <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
+              <Route path="/explorer/:nodeId" element={<Explorer />} />
+              <Route path="/tokens" element={<Tokens />} />
+              <Route path="/icons" element={<Iconography />} />
+              <Route path="/motion" element={<Motion />} />
+              <Route path="/patterns" element={<Patterns />} />
+              <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
+            </Routes>
+          </main>
+          <TOC />
+        </div>
       </div>
     </div>
   )

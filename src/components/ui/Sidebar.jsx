@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { NavLink, useParams, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
+import { HEADER_HEIGHT } from './Header'
 
 // Categories shown in sidebar (user-specified order)
 const SHOWN_CATEGORIES = [
@@ -142,9 +143,9 @@ export default function Sidebar() {
     <aside style={{
       position: 'fixed',
       left: 0,
-      top: 0,
+      top: HEADER_HEIGHT,
       width: 220,
-      height: '100vh',
+      height: `calc(100vh - ${HEADER_HEIGHT}px)`,
       overflowY: 'auto',
       backgroundColor: '#ffffff',
       borderRight: '1px solid #EAEDF0',
@@ -153,46 +154,6 @@ export default function Sidebar() {
       zIndex: 100,
       flexShrink: 0,
     }}>
-
-      {/* Logo */}
-      <div style={{
-        padding: '20px 16px 16px',
-        borderBottom: '1px solid var(--border-subtle)',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: 6,
-            backgroundColor: 'var(--bg-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-family)' }}>B</span>
-          </div>
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-family)',
-              fontSize: 14,
-              fontWeight: 700,
-              color: 'var(--text-base)',
-              lineHeight: 1.2,
-            }}>
-              Billease DS
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-family)',
-              fontSize: 11,
-              color: 'var(--text-subtle)',
-            }}>
-              Native App Library
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Scrollable nav body */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
