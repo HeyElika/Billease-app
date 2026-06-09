@@ -26,10 +26,7 @@ const OVERVIEW_SECTIONS = [
 
 // Anatomy pairs: outline variant → fill variant
 const ANATOMY_PAIRS = [
-  { outline: 'home-outline',        fill: 'home-fill',        label: 'Home'        },
-  { outline: 'user-outline',        fill: 'user-fill',        label: 'User'        },
-  { outline: 'calendar-outline',    fill: 'calendar-fill',    label: 'Calendar'    },
-  { outline: 'installment-outline', fill: 'installment-fill', label: 'Installment' },
+  { outline: 'home-outline', fill: 'home-fill', label: 'Home' },
 ]
 
 // ─── Overview tab ─────────────────────────────────────────────────────────────
