@@ -106,6 +106,7 @@ function AppearanceSection() {
               size="lg"
               state="default"
               label={VARIANT_LABEL[variant]}
+              showIcon={false}
             />
           </div>
         ))}
@@ -130,8 +131,7 @@ function StatesSection() {
                   size="lg"
                   state={state}
                   label={STATE_LABEL[state]}
-                  info={state === 'focused'}
-                  infoMessage="Required field"
+                  showIcon={false}
                 />
               </div>
             ))}
@@ -227,7 +227,57 @@ function PropertiesSection() {
   )
 }
 
-// ─── Section 5: Specs ─────────────────────────────────────────────────────────
+// ─── Section 5: Icon Slot ─────────────────────────────────────────────────────
+
+function IconSlotSection() {
+  const descStyle = {
+    fontSize: 13,
+    fontFamily: 'var(--font-family)',
+    color: 'var(--text-subtle)',
+    lineHeight: 1.5,
+    maxWidth: 320,
+  }
+
+  const slots = [
+    {
+      label: 'Hidden (default)',
+      desc: 'No icon slot rendered. Use this when the field does not need a clear or action button.',
+      render: () => (
+        <InputField variant="text" size="lg" state="typing" label="Account name" showIcon={false} />
+      ),
+    },
+    {
+      label: 'Clear button (close-bold)',
+      desc: 'Visible in typing state only. Tapping it clears the field value. The slot is always reserved (20×20) but invisible in all other states.',
+      render: () => (
+        <InputField variant="text" size="lg" state="typing" label="Account name" showIcon={true} />
+      ),
+    },
+  ]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ padding: '10px 14px', backgroundColor: 'var(--bg-warning-subtle)', borderRadius: 8, border: '1px solid var(--yellow-300)' }}>
+        <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-warning)', fontWeight: 500 }}>
+          The right icon slot is optional and contextual — it is hidden by default. Only enable it when an explicit in-field action is needed (e.g., clear, show/hide password).
+        </span>
+      </div>
+      {slots.map(slot => (
+        <DocCard key={slot.label}>
+          <CardHeader label={slot.label} />
+          <CardBody style={{ gap: 40, alignItems: 'center' }}>
+            <div style={{ minWidth: 280 }}>
+              {slot.render()}
+            </div>
+            <span style={descStyle}>{slot.desc}</span>
+          </CardBody>
+        </DocCard>
+      ))}
+    </div>
+  )
+}
+
+// ─── Section 7: Specs ─────────────────────────────────────────────────────────
 
 function ColorChip({ resolves }) {
   if (typeof resolves !== 'string') return null
@@ -434,7 +484,7 @@ function SpecsSection() {
   )
 }
 
-// ─── Section 6: Changelog ─────────────────────────────────────────────────────
+// ─── Section 8: Changelog ─────────────────────────────────────────────────────
 
 const CHANGE_TYPE = {
   removed:    { label: 'Removed',    bg: 'var(--bg-error-subtle)',   color: 'var(--text-primary)'   },
@@ -538,6 +588,10 @@ export default function InputFieldDocs({ comp }) {
 
       <DocSection id="properties" title="Properties">
         <PropertiesSection />
+      </DocSection>
+
+      <DocSection id="icon-slot" title="Icon Slot">
+        <IconSlotSection />
       </DocSection>
 
       <DocSection id="specs" title="Specs">

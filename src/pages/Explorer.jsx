@@ -79,6 +79,7 @@ const INPUT_SECTION_DEFS = [
   { id: 'states',      label: 'States'      },
   { id: 'sizes',       label: 'Sizes'       },
   { id: 'properties',  label: 'Properties'  },
+  { id: 'icon-slot',   label: 'Icon Slot'   },
   { id: 'specs',       label: 'Specs'       },
   { id: 'changelog',   label: 'Changelog'   },
 ]

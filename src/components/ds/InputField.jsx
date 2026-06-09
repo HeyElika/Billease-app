@@ -3,6 +3,7 @@
  * Source: Figma node 109:1161 (input/fields), file qESeTFW1GEEosrYnm4Hu3b
  * All visual specs read directly from Figma. No invented values.
  */
+import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 
 // ─── Specs from Figma ──────────────────────────────────────────────────────────
 // input/fields COMPONENT_SET · size=lg/md · state=default/focused/typing/filled/error/error-filled/disabled
@@ -57,14 +58,6 @@ const ERROR_STATES  = new Set(['error', 'error-filled'])
 const VALUE_STATES  = new Set(['typing', 'filled', 'error-filled'])
 
 // Figma: typing state → close-bold (componentId 97:1392); all others → hide (componentId 24:4320)
-function CloseIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
-      <path d="M0 24C0 10.7452 10.7452 0 24 0C37.2548 0 48 10.7452 48 24C48 37.2548 37.2548 48 24 48C10.7452 48 0 37.2548 0 24Z" fill="#EAEDF0"/>
-      <path d="M31.4375 14.4355C32.0184 13.8546 32.9816 13.8547 33.5625 14.4355C34.1434 15.0164 34.1434 15.9796 33.5625 16.5605L26.1231 24L33.5625 31.4394C34.1432 32.0204 34.1434 32.9835 33.5625 33.5644C32.9816 34.1451 32.0184 34.1452 31.4375 33.5644L23.9981 26.125L16.5606 33.5644C15.9797 34.1451 15.0164 34.1451 14.4356 33.5644C13.8548 32.9836 13.855 32.0204 14.4356 31.4394L21.8731 24L14.4356 16.5605C13.8549 15.9796 13.8547 15.0164 14.4356 14.4355C15.0164 13.8547 15.9797 13.8547 16.5606 14.4355L23.9981 21.873L31.4375 14.4355Z" fill="#1D2D40"/>
-    </svg>
-  )
-}
 
 
 // ─── InputField ───────────────────────────────────────────────────────────────
@@ -248,7 +241,7 @@ export default function InputField({
             }}
             onClick={state === 'typing' && interactive ? onClear : undefined}
           >
-            {state === 'typing' ? <CloseIcon /> : null}
+            {state === 'typing' ? <BilleaseIcon name="close-bold" size="sm" /> : null}
           </span>
         )}
       </div>

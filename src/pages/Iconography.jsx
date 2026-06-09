@@ -442,39 +442,30 @@ export default function Iconography() {
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8 }}>
-        <span>Foundations</span>
-        <span style={{ margin: '0 6px', color: 'var(--text-disabled)' }}>›</span>
-        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Iconography</span>
-      </div>
-
-      <h1 style={{ margin: '0 0 6px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
+      <h1 style={{ margin: '0 0 28px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
         Iconography
       </h1>
-      <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
-        {ALL_ICON_NAMES.length} icons · Figma file{' '}
-        <code style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--text-base)' }}>qESeTFW1GEEosrYnm4Hu3b</code>
-      </p>
+
+      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 0 }} />
 
       {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border-subtle)', marginBottom: 32 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 32 }}>
         {[{ id: 'overview', label: 'Overview' }, { id: 'library', label: 'Library' }].map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               border: 'none',
+              borderBottom: tab === t.id ? '2px solid var(--text-primary)' : '2px solid transparent',
               backgroundColor: 'transparent',
               fontFamily: 'var(--font-family)',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: tab === t.id ? 600 : 400,
-              color: tab === t.id ? 'var(--text-base)' : 'var(--text-subtle)',
+              color: tab === t.id ? 'var(--text-primary)' : 'var(--text-subtle)',
               cursor: 'pointer',
-              borderBottom: `2px solid ${tab === t.id ? 'var(--text-base)' : 'transparent'}`,
-              marginBottom: -1,
-              transition: 'color 0.1s',
+              transition: 'color 0.1s, border-color 0.1s',
+              lineHeight: '20px',
             }}
           >
             {t.label}

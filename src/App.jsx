@@ -11,7 +11,7 @@ import { TocProvider } from './context/TocContext'
 
 function Layout() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#ffffff' }}>
       <Header />
 
       {/* Content area pushed below the fixed header */}
@@ -21,6 +21,7 @@ function Layout() {
         flexDirection: 'row',
         flex: 1,
         minHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
+        backgroundColor: '#ffffff',
       }}>
         <Sidebar />
 
@@ -31,6 +32,7 @@ function Layout() {
           display: 'flex',
           flexDirection: 'row',
           minHeight: '100%',
+          backgroundColor: '#ffffff',
         }}>
           <main style={{
             flex: 1,

@@ -95,15 +95,8 @@ export default function Tokens() {
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8 }}>
-        <span>Foundations</span>
-        <span style={{ margin: '0 6px', color: 'var(--text-disabled)' }}>›</span>
-        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>Design Tokens</span>
-      </div>
-
       <h1 style={{
-        margin: '0 0 4px',
+        margin: '0 0 28px',
         fontSize: 32,
         fontWeight: 700,
         color: 'var(--text-base)',
@@ -111,15 +104,6 @@ export default function Tokens() {
       }}>
         Design Tokens
       </h1>
-      <p style={{
-        margin: '0 0 28px',
-        fontSize: 14,
-        color: 'var(--text-subtle)',
-        lineHeight: 1.6,
-      }}>
-        Source of truth from <code style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--text-base)' }}>variables.json</code> (Figma export).
-        Semantic tokens always resolve to a primitive.
-      </p>
 
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 28 }} />
 
