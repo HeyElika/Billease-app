@@ -314,11 +314,9 @@ function TokenCell({ tokenPath, resolves }) {
       fontFamily: 'monospace',
       color: 'var(--text-base)',
     }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <ColorChip resolves={resolves} />
         <span style={{ color: 'var(--text-secondary)' }}>{tokenPath}</span>
-        <span style={{ color: 'var(--text-disabled)', margin: '0 4px' }}> → </span>
-        <span style={{ color: 'var(--text-base)' }}>{resolves}</span>
       </span>
     </td>
   )
