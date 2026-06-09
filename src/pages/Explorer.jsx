@@ -8,7 +8,7 @@ import ButtonDocs from './ButtonDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
-const VARIANTS = ['primary', 'secondary', 'ghost', 'gradient', 'ghost-destructive']
+const VARIANTS = ['primary', 'secondary', 'ghost', 'ghost-destructive']
 const STATES   = ['default', 'active', 'pressed', 'disabled', 'loading']
 const SIZES    = ['lg', 'md', 'sm']
 
@@ -70,6 +70,7 @@ const BUTTON_SECTION_DEFS = [
   { id: 'icon-slots',    label: 'Icon Slots'    },
   { id: 'button-groups', label: 'Button Groups' },
   { id: 'specs',         label: 'Specs'         },
+  { id: 'changelog',     label: 'Changelog'     },
 ]
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────

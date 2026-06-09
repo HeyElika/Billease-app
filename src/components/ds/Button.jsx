@@ -68,14 +68,6 @@ const SPECS = {
     disabled: { bg: 'var(--bg-sunken)',    overlay: 'rgba(0,0,0,0.10)',      text: 'var(--text-disabled)' },
     loading:  { bg: 'var(--bg-sunken)',    overlay: null,                    text: 'var(--text-base)'     },
   },
-  // Gradient default uses linear-gradient from red-400 → red-500 (Figma gradientStops exact)
-  gradient: {
-    default:  { bg: 'linear-gradient(to bottom, var(--red-400) 0%, var(--red-500) 70%)', overlay: null,                    text: 'var(--text-on-dark)'   },
-    active:   { bg: 'var(--bg-primary)',   overlay: 'rgba(0,0,0,0.30)',      text: 'var(--text-on-dark)'  },
-    pressed:  { bg: 'var(--bg-primary)',   overlay: 'rgba(0,0,0,0.50)',      text: 'var(--text-on-dark)'  },
-    disabled: { bg: 'var(--bg-primary)',   overlay: 'rgba(255,255,255,0.30)',text: 'rgba(255,255,255,0.5)'},
-    loading:  { bg: 'linear-gradient(to bottom, var(--red-400) 0%, var(--red-500) 70%)', overlay: null,                    text: 'var(--text-on-dark)'   },
-  },
   // Ghost: no background fill, no border, no radius. Padding absent in Figma.
   ghost: {
     default:  { bg: 'transparent',         overlay: null, text: 'var(--text-subtle)'   },
@@ -319,10 +311,9 @@ export function getTokensForVariant(type, size, state) {
   }
 
   const bgTokenMap = {
-    'var(--bg-primary)': { tokenPath: 'bg/primary',             resolves: '#F84040' },
-    'var(--bg-sunken)':  { tokenPath: 'bg/sunken',              resolves: '#EAEDF0' },
-    'transparent':       { tokenPath: '—',                      resolves: 'transparent' },
-    'linear-gradient(to bottom, var(--red-400) 0%, var(--red-500) 70%)': { tokenPath: 'color/red/400 → 500', resolves: '#FA7B6F → #F84040' },
+    'var(--bg-primary)': { tokenPath: 'bg/primary',  resolves: '#F84040'    },
+    'var(--bg-sunken)':  { tokenPath: 'bg/sunken',   resolves: '#EAEDF0'    },
+    'transparent':       { tokenPath: '—',            resolves: 'transparent' },
   }
   const bgInfo = bgTokenMap[spec.bg] || { tokenPath: spec.bg, resolves: spec.bg }
   tokens.push({ property: 'background', value: spec.bg, tokenPath: bgInfo.tokenPath, resolves: bgInfo.resolves })

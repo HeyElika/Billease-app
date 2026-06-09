@@ -81,7 +81,6 @@ export default function TOC() {
                   fontFamily: 'var(--font-family)',
                   color: isActive ? 'var(--text-primary)' : 'var(--text-subtle)',
                   fontWeight: isActive ? 600 : 400,
-                  borderLeft: `2px solid ${isActive ? 'var(--bg-primary)' : 'transparent'}`,
                   background: 'none',
                   border: 'none',
                   borderLeft: `2px solid ${isActive ? 'var(--bg-primary)' : 'transparent'}`,

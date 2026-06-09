@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
 import ActionBar from '../components/ds/ActionBar'
 import IconOnlyButton from '../components/ds/IconOnlyButton'
+import { CHANGELOGS } from '../data/changelog'
 
 // ─── Display label mappings ───────────────────────────────────────────────────
 
@@ -573,6 +574,101 @@ function SpecsSection({ spec }) {
   )
 }
 
+// ─── Section 7: Changelog ─────────────────────────────────────────────────────
+
+const CHANGE_TYPE = {
+  removed:    { label: 'Removed',    bg: 'var(--bg-error-subtle)',   color: 'var(--text-primary)'   },
+  added:      { label: 'Added',      bg: '#E6F4EA',                  color: '#1E6B3A'               },
+  updated:    { label: 'Updated',    bg: '#EBF3FF',                  color: 'var(--text-secondary)' },
+  deprecated: { label: 'Deprecated', bg: '#FFF7E6',                  color: 'var(--text-warning)'   },
+}
+
+function ChangelogSection({ nodeId }) {
+  const entries = CHANGELOGS[nodeId] ?? []
+
+  if (entries.length === 0) {
+    return (
+      <DocCard>
+        <CardBody>
+          <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)' }}>
+            No changes recorded yet.
+          </span>
+        </CardBody>
+      </DocCard>
+    )
+  }
+
+  return (
+    <DocCard>
+      <div style={{ backgroundColor: '#fff', borderRadius: 8, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
+              {['Date', 'Type', 'Description'].map(h => (
+                <th key={h} style={{
+                  padding: '7px 16px',
+                  textAlign: 'left',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-family)',
+                  color: 'var(--text-disabled)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.4px',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((entry, i) => {
+              const t = CHANGE_TYPE[entry.type] ?? CHANGE_TYPE.updated
+              return (
+                <tr key={i} style={{ borderBottom: i < entries.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <td style={{
+                    padding: '10px 16px',
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    color: 'var(--text-subtle)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {entry.date}
+                  </td>
+                  <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      padding: '2px 10px',
+                      borderRadius: 9999,
+                      backgroundColor: t.bg,
+                      color: t.color,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      fontFamily: 'var(--font-family)',
+                    }}>
+                      {t.label}
+                    </span>
+                  </td>
+                  <td style={{
+                    padding: '10px 16px',
+                    fontSize: 13,
+                    fontFamily: 'var(--font-family)',
+                    color: 'var(--text-base)',
+                    lineHeight: 1.5,
+                  }}>
+                    {entry.description}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </DocCard>
+  )
+}
+
 // ─── Platform toggle ──────────────────────────────────────────────────────────
 
 function PlatformToggle({ platform, onChangePlatform }) {
@@ -634,6 +730,7 @@ function PlatformToggle({ platform, onChangePlatform }) {
 // ─── Main ButtonDocs component ────────────────────────────────────────────────
 
 export default function ButtonDocs({ comp, spec, platform, onChangePlatform }) {
+  const nodeId = comp?.id ?? '16:182'
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
       <PlatformToggle platform={platform} onChangePlatform={onChangePlatform} />
@@ -660,6 +757,10 @@ export default function ButtonDocs({ comp, spec, platform, onChangePlatform }) {
 
       <DocSection id="specs" title="Specs">
         <SpecsSection spec={spec} />
+      </DocSection>
+
+      <DocSection id="changelog" title="Changelog">
+        <ChangelogSection nodeId={nodeId} />
       </DocSection>
     </div>
   )
