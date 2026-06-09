@@ -369,8 +369,7 @@ function AppearanceTokensTable({ spec, activeVariant }) {
                   padding: '7px 12px',
                   fontSize: 12,
                   fontFamily: 'var(--font-family)',
-                  color: 'var(--text-base)',
-                  fontWeight: 600,
+                  color: 'var(--text-subtle)',
                   whiteSpace: 'nowrap',
                 }}>
                   {STATE_LABEL[state] || state}
