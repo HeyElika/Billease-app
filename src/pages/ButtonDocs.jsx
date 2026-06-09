@@ -276,15 +276,16 @@ function ButtonGroupsSection({ platform }) {
 // ─── Section 6: Specs ─────────────────────────────────────────────────────────
 
 function ColorChip({ resolves }) {
-  const hexMatch = typeof resolves === 'string' ? resolves.match(/#[0-9A-Fa-f]{3,8}/) : null
-  if (!hexMatch) return null
+  if (typeof resolves !== 'string') return null
+  const color = (resolves.match(/#[0-9A-Fa-f]{3,8}/) || resolves.match(/rgba?\([^)]+\)/))?.[0]
+  if (!color) return null
   return (
     <span style={{
       display: 'inline-block',
       width: 12,
       height: 12,
       borderRadius: 3,
-      backgroundColor: hexMatch[0],
+      backgroundColor: color,
       border: '1px solid rgba(0,0,0,0.10)',
       verticalAlign: 'middle',
       marginRight: 6,

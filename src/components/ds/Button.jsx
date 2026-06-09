@@ -337,7 +337,7 @@ export function getTokensForVariant(type, size, state) {
     'var(--text-subtle)':    { tokenPath: 'text/subtle',   resolves: '#606C79' },
     'var(--text-disabled)':  { tokenPath: 'text/disabled', resolves: '#B4BDC5' },
     'var(--text-primary)':   { tokenPath: 'text/primary',  resolves: '#F84040' },
-    'rgba(255,255,255,0.5)': { tokenPath: 'text/on-dark',  resolves: 'rgba(255,255,255,0.5)' },
+    'rgba(255,255,255,0.5)': { tokenPath: 'text/on-dark-disabled', resolves: 'rgba(255,255,255,0.5)' },
   }
   const textInfo = textTokenMap[spec.text] || { tokenPath: spec.text, resolves: spec.text }
   tokens.push({ property: 'color', value: spec.text, tokenPath: textInfo.tokenPath, resolves: textInfo.resolves })
