@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
   /* Font */
-  --font-family: 'Source Sans Pro', sans-serif;
+  --font-family: 'Inter', sans-serif;
 
   /* Type scale */
   --text-xxs: 11px;

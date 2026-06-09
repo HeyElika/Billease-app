@@ -4,6 +4,7 @@ import { componentIndex } from '../data/components'
 import { useToc } from '../context/TocContext'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
 import InputField, { getTokensForInput } from '../components/ds/InputField'
+import ButtonDocs from './ButtonDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,15 @@ const SECTION_DEFS = [
 ]
 
 const BASIC_SECTIONS = [{ id: 'overview', label: 'Overview' }]
+
+const BUTTON_SECTION_DEFS = [
+  { id: 'appearance',    label: 'Appearance'    },
+  { id: 'states',        label: 'States'        },
+  { id: 'sizes',         label: 'Sizes'         },
+  { id: 'icon-slots',    label: 'Icon Slots'    },
+  { id: 'button-groups', label: 'Button Groups' },
+  { id: 'specs',         label: 'Specs'         },
+]
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -544,9 +554,14 @@ export default function Explorer() {
   const [platform, setPlatform] = useState('android')
 
   useEffect(() => {
-    const sections = spec
-      ? SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
-      : BASIC_SECTIONS
+    let sections
+    if (nodeId === '16:182') {
+      sections = BUTTON_SECTION_DEFS
+    } else if (spec) {
+      sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
+    } else {
+      sections = BASIC_SECTIONS
+    }
     setSections(sections)
     return () => setSections([])
   }, [nodeId])
@@ -571,38 +586,9 @@ export default function Explorer() {
   return (
     <div id="overview" style={{ fontFamily: 'var(--font-family)' }}>
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span>Components</span>
-        <span style={{ color: 'var(--text-disabled)' }}>›</span>
-        <span>{comp.category}</span>
-        <span style={{ color: 'var(--text-disabled)' }}>›</span>
-        <span style={{ color: 'var(--text-base)', fontWeight: 600 }}>{comp.name}</span>
-      </div>
-
-      <h1 style={{ margin: '0 0 8px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
-        {comp.name}
+      <h1 style={{ margin: '0 0 28px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
+        {comp.name.charAt(0).toUpperCase() + comp.name.slice(1)}
       </h1>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, fontSize: 13, color: 'var(--text-subtle)', flexWrap: 'wrap' }}>
-        {comp.variants > 0 && <span>{comp.variants} variants</span>}
-        <span style={{ color: 'var(--border-default)' }}>·</span>
-        <span>Node {comp.id}</span>
-        <span style={{ color: 'var(--border-default)' }}>·</span>
-        <a
-          href={`https://www.figma.com/design/qESeTFW1GEEosrYnm4Hu3b?node-id=${encodeURIComponent(comp.id)}`}
-          target="_blank"
-          rel="noreferrer"
-          style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
-        >
-          Open in Figma ↗
-        </a>
-        {!spec && (
-          <span style={{ padding: '1px 8px', borderRadius: 4, backgroundColor: 'var(--bg-warning-subtle)', border: '1px solid var(--yellow-300)', color: 'var(--text-warning)', fontSize: 11, fontWeight: 600 }}>
-            Coming soon
-          </span>
-        )}
-      </div>
 
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
@@ -611,6 +597,8 @@ export default function Explorer() {
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
+      ) : nodeId === '16:182' ? (
+        <ButtonDocs comp={comp} spec={spec} platform={platform} onChangePlatform={setPlatform} />
       ) : (
         <>
           {/* ── Anatomy ── */}
