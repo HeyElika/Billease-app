@@ -21,7 +21,6 @@ const SIZE_PX = { xs: 16, sm: 20, md: 24, lg: 32, xl: 40, '2xl': 48 }
 const OVERVIEW_SECTIONS = [
   { id: 'anatomy', label: 'Anatomy' },
   { id: 'sizes',   label: 'Sizes'   },
-  { id: 'props',   label: 'Props'   },
 ]
 
 // Anatomy pairs: outline variant → fill variant
@@ -30,49 +29,6 @@ const ANATOMY_PAIRS = [
 ]
 
 // ─── Overview tab ─────────────────────────────────────────────────────────────
-
-function PropsTable() {
-  const rows = [
-    { prop: 'name',  type: 'string',                                    default: '—',             desc: 'Icon name (required). Must match a key in the icon library.' },
-    { prop: 'size',  type: "'xs'|'sm'|'md'|'lg'|'xl'|'2xl'",          default: "'sm'",           desc: '16 / 20 / 24 / 32 / 40 / 48 px. Controls both width and height.' },
-    { prop: 'color', type: 'string',                                    default: "'currentColor'", desc: 'SVG fill color. Ignored on status icons which have fixed semantic fills.' },
-    { prop: 'style', type: 'CSSProperties',                            default: '—',             desc: 'Additional inline styles applied to the <svg> element.' },
-  ]
-  return (
-    <div style={{ borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden', backgroundColor: '#fff' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
-            {['Prop', 'Type', 'Default', 'Description'].map(h => (
-              <th key={h} style={{
-                padding: '8px 14px',
-                textAlign: 'left',
-                fontSize: 11,
-                fontWeight: 700,
-                fontFamily: 'var(--font-family)',
-                color: 'var(--text-disabled)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.4px',
-                borderBottom: '1px solid var(--border-subtle)',
-                whiteSpace: 'nowrap',
-              }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={r.prop} style={{ borderBottom: i < rows.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-              <td style={{ padding: '9px 14px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{r.prop}</td>
-              <td style={{ padding: '9px 14px', fontFamily: 'monospace', fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{r.type}</td>
-              <td style={{ padding: '9px 14px', fontFamily: 'monospace', fontSize: 11, color: 'var(--text-base)' }}>{r.default}</td>
-              <td style={{ padding: '9px 14px', fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.5 }}>{r.desc}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 function OverviewTab() {
   return (
@@ -192,17 +148,6 @@ function OverviewTab() {
             </code>
           </div>
         </div>
-      </section>
-
-      {/* Props */}
-      <section id="props">
-        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
-          Props
-        </h2>
-        <p style={{ margin: '12px 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
-          <code style={{ fontFamily: 'monospace', fontSize: 12, backgroundColor: 'var(--bg-subtle)', padding: '1px 4px', borderRadius: 3 }}>BilleaseIcon</code> accepts standard SVG props in addition to the ones below.
-        </p>
-        <PropsTable />
       </section>
 
     </div>
