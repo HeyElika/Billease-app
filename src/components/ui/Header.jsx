@@ -53,8 +53,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Navigation tabs */}
-      <nav style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
+      {/* Navigation tabs — pushed to the right */}
+      <nav style={{ display: 'flex', alignItems: 'stretch', height: '100%', marginLeft: 'auto' }}>
         {NAV_ITEMS.map(({ label, matches }) => {
           const active = matches.some(m => pathname === m || pathname.startsWith(m + '/'))
           const to = matches[0] === '/explorer' ? '/explorer/16_182' : matches[0]
