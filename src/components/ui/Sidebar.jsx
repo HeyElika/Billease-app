@@ -29,18 +29,11 @@ function ChevronIcon({ open }) {
   )
 }
 
-function CategoryItem({ category, components, activeNodeId, defaultOpen }) {
-  const [open, setOpen] = useState(defaultOpen)
-
-  // Auto-open when an item in this category becomes active
-  useEffect(() => {
-    if (defaultOpen) setOpen(true)
-  }, [defaultOpen])
-
+function CategoryItem({ category, components, open, onToggle }) {
   return (
     <div>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           display: 'flex',
@@ -67,31 +60,32 @@ function CategoryItem({ category, components, activeNodeId, defaultOpen }) {
         <div>
           {components.map(comp => {
             const slug = toSlug(comp.id)
-            const isActive = comp.id === activeNodeId
             return (
               <NavLink
                 key={comp.id}
                 to={`/explorer/${slug}`}
-                style={{
+                style={({ isActive }) => ({
                   display: 'block',
-                  padding: '5px 16px 5px 28px',
+                  padding: '5px 16px 5px 26px',
                   textDecoration: 'none',
                   fontFamily: 'var(--font-family)',
                   fontSize: 13,
-                  color: isActive ? 'var(--text-primary)' : 'var(--text-subtle)',
+                  color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
                   fontWeight: isActive ? 600 : 400,
-                  borderLeft: isActive ? '2px solid var(--bg-primary)' : '2px solid transparent',
-                  backgroundColor: isActive ? 'var(--bg-error-subtle)' : 'transparent',
+                  borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
+                  backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
                   transition: 'background-color 0.1s, color 0.1s',
-                }}
+                })}
                 onMouseEnter={e => {
-                  if (!isActive) {
+                  const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                  if (!isCurrent) {
                     e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
                     e.currentTarget.style.color = 'var(--text-base)'
                   }
                 }}
                 onMouseLeave={e => {
-                  if (!isActive) {
+                  const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                  if (!isCurrent) {
                     e.currentTarget.style.backgroundColor = 'transparent'
                     e.currentTarget.style.color = 'var(--text-subtle)'
                   }
@@ -126,6 +120,20 @@ export default function Sidebar() {
 
   // Which category is active?
   const activeCategoryForComp = componentIndex.find(c => c.id === activeNodeId)?.category ?? null
+
+  // Single-open accordion: track which category is open
+  const defaultOpen = activeCategoryForComp ?? 'Buttons'
+  const [openCategory, setOpenCategory] = useState(defaultOpen)
+
+  // When the active route changes to a different category, open that category
+  useEffect(() => {
+    if (activeCategoryForComp) setOpenCategory(activeCategoryForComp)
+  }, [activeCategoryForComp])
+
+  // When searching, open all matched categories — clear search to restore single-open
+  const handleToggle = useCallback((cat) => {
+    setOpenCategory(prev => prev === cat ? null : cat)
+  }, [])
 
   const isTokensActive = location.pathname === '/tokens'
   const isIconsActive = location.pathname === '/icons'
@@ -236,14 +244,16 @@ export default function Sidebar() {
         {SHOWN_CATEGORIES.map(cat => {
           const comps = categoryMap[cat] || []
           if (comps.length === 0) return null
-          const isDefaultOpen = !!query || activeCategoryForComp?.toLowerCase() === cat.toLowerCase()
+          const isOpen = query
+            ? comps.some(c => c.name.toLowerCase().includes(query))
+            : openCategory === cat
           return (
             <CategoryItem
               key={cat}
               category={cat}
               components={comps}
-              activeNodeId={activeNodeId}
-              defaultOpen={isDefaultOpen || cat === 'Buttons'}
+              open={isOpen}
+              onToggle={() => handleToggle(cat)}
             />
           )
         })}
