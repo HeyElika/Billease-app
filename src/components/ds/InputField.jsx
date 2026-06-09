@@ -131,7 +131,7 @@ export default function InputField({
     fontWeight: 400,
     lineHeight: '24px',
     color: inputTextColor,
-    fontFamily: 'var(--font-family)',
+    fontFamily: 'var(--ds-font-family)',
     cursor: isDisabled ? 'not-allowed' : 'text',
   }
 
@@ -142,7 +142,7 @@ export default function InputField({
       gap: OUTER_GAP,
       width: '100%',
       maxWidth: 360,
-      fontFamily: 'var(--font-family)',
+      fontFamily: 'var(--ds-font-family)',
     }}>
 
       {/* Label row — visible when showLabel=true (label#193:41) */}
@@ -153,7 +153,7 @@ export default function InputField({
             fontWeight: 400,
             lineHeight: '24px',
             color: 'var(--text-base)',
-            fontFamily: 'var(--font-family)',
+            fontFamily: 'var(--ds-font-family)',
           }}>
             {label}
           </span>
@@ -164,7 +164,7 @@ export default function InputField({
               fontWeight: 400,
               lineHeight: '21px',
               color: 'var(--text-subtle)',
-              fontFamily: 'var(--font-family)',
+              fontFamily: 'var(--ds-font-family)',
             }}>
               (Optional)
             </span>
@@ -205,7 +205,7 @@ export default function InputField({
               fontWeight: 400,
               lineHeight: '24px',
               color: 'var(--text-base)',
-              fontFamily: 'var(--font-family)',
+              fontFamily: 'var(--ds-font-family)',
             }}>
               {countryCode}
             </span>
@@ -262,7 +262,7 @@ export default function InputField({
           fontWeight: 400,
           lineHeight: '21px',
           color: 'var(--text-base)',
-          fontFamily: 'var(--font-family)',
+          fontFamily: 'var(--ds-font-family)',
         }}>
           {infoMessage}
         </span>
@@ -278,7 +278,7 @@ export default function InputField({
             fontWeight: 400,
             lineHeight: '21px',
             color: 'var(--text-primary)',
-            fontFamily: 'var(--font-family)',
+            fontFamily: 'var(--ds-font-family)',
           }}>
             {errorMessage}
           </span>
@@ -289,7 +289,7 @@ export default function InputField({
               fontWeight: 400,
               lineHeight: '21px',
               color: 'var(--text-subtle)',
-              fontFamily: 'var(--font-family)',
+              fontFamily: 'var(--ds-font-family)',
               flexShrink: 0,
             }}>
               {currentLength}/{maxLength}
@@ -306,7 +306,7 @@ export default function InputField({
           fontWeight: 400,
           lineHeight: '21px',
           color: 'var(--text-subtle)',
-          fontFamily: 'var(--font-family)',
+          fontFamily: 'var(--ds-font-family)',
           textAlign: 'right',
         }}>
           {currentLength}/{maxLength}

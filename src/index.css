@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  /* Font */
+  /* Font — shell UI (sidebar, header, docs) */
   --font-family: 'Inter', sans-serif;
+  /* Font — Figma DS components (from VariableID:2:364) */
+  --ds-font-family: 'Source Sans Pro', sans-serif;
 
   /* Type scale */
   --text-xxs: 11px;

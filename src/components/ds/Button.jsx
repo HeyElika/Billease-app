@@ -1,3 +1,5 @@
+import BilleaseIcon from '../../assets/icons/BilleaseIcon'
+
 /**
  * Button — Billease Design System
  * Source: Figma node 16:182, file qESeTFW1GEEosrYnm4Hu3b
@@ -198,6 +200,7 @@ export default function Button({
   label = 'Button',
   iconLeft = false,
   iconRight = false,
+  iconOnly = false,
   platform = 'android',   // android | ios
   onClick,
 }) {
@@ -231,16 +234,17 @@ export default function Button({
     justifyContent: 'center',
     gap,
     height,
-    paddingLeft: paddingH,
-    paddingRight: paddingH,
+    paddingLeft: iconOnly ? 0 : paddingH,
+    paddingRight: iconOnly ? 0 : paddingH,
     paddingTop: 0,
     paddingBottom: 0,
+    width: iconOnly ? height : undefined,
     borderRadius: radius,
     background,
     border: 'none',
     outline: 'none',
     cursor: isDisabled ? 'not-allowed' : 'pointer',
-    fontFamily: 'var(--font-family)',    // VariableID:2:364
+    fontFamily: 'var(--ds-font-family)',    // VariableID:2:364
     fontSize: fontSizeToken,             // VariableID:2:388
     fontWeight: FONT_WEIGHT_TOKEN,       // VariableID:2:374
     lineHeight: LINE_HEIGHT,             // 150% per Figma lineHeightPercentFontSize
@@ -271,18 +275,20 @@ export default function Button({
         disabled={isDisabled || isLoading}
         onClick={onClick}
       >
-        {iconLeft && !isLoading && (
-          <span style={{ width: 16, height: 16, background: 'currentColor', borderRadius: 2, opacity: 0.5, flexShrink: 0 }} />
+        {iconLeft && !isLoading && !iconOnly && (
+          <BilleaseIcon name="arrow-left" size="xs" color={spec.text} />
         )}
         {isLoading ? (
           platform === 'ios'
             ? <IOSSpinner color={spec.text} />
             : <AndroidSpinner color={spec.text} />
+        ) : iconOnly ? (
+          <BilleaseIcon name="edit-outline" size="xs" color={spec.text} />
         ) : (
           <span>{label}</span>
         )}
-        {iconRight && !isLoading && (
-          <span style={{ width: 16, height: 16, background: 'currentColor', borderRadius: 2, opacity: 0.5, flexShrink: 0 }} />
+        {iconRight && !isLoading && !iconOnly && (
+          <BilleaseIcon name="arrows" size="xs" color={spec.text} />
         )}
       </button>
     </>

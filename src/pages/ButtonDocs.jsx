@@ -85,6 +85,7 @@ function CardBody({ children, style }) {
       gap: 32,
       alignItems: 'flex-start',
       flexWrap: 'wrap',
+      backgroundColor: '#fff',
       ...style,
     }}>
       {children}
@@ -96,42 +97,19 @@ function CardBody({ children, style }) {
 
 function AppearanceSection({ spec, platform }) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-      gap: 12,
-    }}>
-      {spec.variants.map(variant => (
-        <div key={variant} style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 10,
-          padding: '24px 16px 16px',
-          borderRadius: 8,
-          border: '1px solid var(--border-subtle)',
-          backgroundColor: isGhost(variant) ? 'var(--bg-subtle)' : '#fff',
-        }}>
-          {spec.renderComponent({
-            variant,
-            size: 'lg',
-            state: 'default',
-            label: VARIANT_LABEL[variant] || variant,
-            platform,
-          })}
-          <span style={{
-            fontFamily: 'var(--font-family)',
-            fontSize: 11,
-            color: 'var(--text-subtle)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.4px',
-            textAlign: 'center',
-          }}>
-            {VARIANT_LABEL[variant] || variant}
-          </span>
-        </div>
-      ))}
-    </div>
+    <DocCard>
+      <CardHeader label="All variants" />
+      <CardBody>
+        {spec.variants.map(variant => (
+          <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant] || variant, platform })}
+            <span style={{ fontFamily: 'var(--font-family)', fontSize: 11, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px', textAlign: 'center' }}>
+              {VARIANT_LABEL[variant] || variant}
+            </span>
+          </div>
+        ))}
+      </CardBody>
+    </DocCard>
   )
 }
 
@@ -143,7 +121,7 @@ function StatesSection({ spec, platform }) {
       {spec.variants.map(variant => (
         <DocCard key={variant}>
           <CardHeader label={VARIANT_LABEL[variant] || variant} />
-          <CardBody style={{ backgroundColor: isGhost(variant) ? 'var(--bg-subtle)' : '#fff' }}>
+          <CardBody>
             {spec.states.map(state => {
               if (spec.isMissing(variant, spec.defaultSize, state)) return null
               return (
@@ -219,96 +197,59 @@ function SizesSection({ spec, platform }) {
 // ─── Section 4: Icon Slots ────────────────────────────────────────────────────
 
 function IconSlotsSection({ spec, platform }) {
-  const slots = [
-    {
-      key: 'iconLeft',
-      title: 'Leading Icon — left of label',
-      desc: 'Optional 16×16 icon slot before the label.',
-      renderSlot: (size) => spec.renderComponent({
-        variant: 'primary',
-        size,
-        state: 'default',
-        label: SIZE_LABEL[size] || size,
-        platform,
-        iconLeft: true,
-      }),
-    },
-    {
-      key: 'iconRight',
-      title: 'Trailing Icon — right of label',
-      desc: 'Optional 16×16 icon slot after the label.',
-      renderSlot: (size) => spec.renderComponent({
-        variant: 'primary',
-        size,
-        state: 'default',
-        label: SIZE_LABEL[size] || size,
-        platform,
-        iconRight: true,
-      }),
-    },
-  ]
+  const variants = spec.variants
+  const labelStyle = {
+    fontFamily: 'var(--font-family)',
+    fontSize: 11,
+    color: 'var(--text-subtle)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.3px',
+    textAlign: 'center',
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{
-        padding: '10px 14px',
-        backgroundColor: 'var(--bg-warning-subtle)',
-        borderRadius: 8,
-        border: '1px solid var(--yellow-300)',
-      }}>
-        <span style={{
-          fontSize: 13,
-          fontFamily: 'var(--font-family)',
-          color: 'var(--text-warning)',
-          fontWeight: 500,
-        }}>
+      <div style={{ padding: '10px 14px', backgroundColor: 'var(--bg-warning-subtle)', borderRadius: 8, border: '1px solid var(--yellow-300)' }}>
+        <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-warning)', fontWeight: 500 }}>
           Only one icon slot can be active at a time — leading OR trailing, never both simultaneously.
         </span>
       </div>
 
-      {slots.map(slot => (
-        <DocCard key={slot.key}>
-          <CardHeader label={slot.title} />
-          <div style={{
-            padding: '28px 32px',
-            display: 'flex',
-            gap: 40,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24 }}>
-              {spec.sizes.map(size => (
-                <div key={size} style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 8,
-                }}>
-                  {slot.renderSlot(size)}
-                  <span style={{
-                    fontFamily: 'var(--font-family)',
-                    fontSize: 11,
-                    color: 'var(--text-subtle)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.3px',
-                  }}>
-                    {SIZE_LABEL[size] || size}
-                  </span>
-                </div>
-              ))}
+      <DocCard>
+        <CardHeader label="Leading icon — left of label" />
+        <CardBody>
+          {variants.map(variant => (
+            <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant], platform, iconLeft: true })}
+              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
             </div>
-            <span style={{
-              fontSize: 13,
-              fontFamily: 'var(--font-family)',
-              color: 'var(--text-subtle)',
-              lineHeight: 1.5,
-              maxWidth: 260,
-            }}>
-              {slot.desc}
-            </span>
-          </div>
-        </DocCard>
-      ))}
+          ))}
+        </CardBody>
+      </DocCard>
+
+      <DocCard>
+        <CardHeader label="Trailing icon — right of label" />
+        <CardBody>
+          {variants.map(variant => (
+            <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              {spec.renderComponent({ variant, size: 'lg', state: 'default', label: VARIANT_LABEL[variant], platform, iconRight: true })}
+              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
+            </div>
+          ))}
+        </CardBody>
+      </DocCard>
+
+      <DocCard>
+        <CardHeader label="Icon button" />
+        <CardBody>
+          {variants.map(variant => (
+            <div key={variant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              {spec.renderComponent({ variant, size: 'lg', state: 'default', label: '', platform, iconOnly: true })}
+              <span style={labelStyle}>{VARIANT_LABEL[variant]}</span>
+            </div>
+          ))}
+        </CardBody>
+      </DocCard>
     </div>
   )
 }
