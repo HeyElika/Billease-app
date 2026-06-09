@@ -5,6 +5,7 @@ import { useToc } from '../context/TocContext'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
 import InputField, { getTokensForInput } from '../components/ds/InputField'
 import ButtonDocs from './ButtonDocs'
+import InputFieldDocs from './InputFieldDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,15 @@ const BUTTON_SECTION_DEFS = [
   { id: 'button-groups', label: 'Button Groups' },
   { id: 'specs',         label: 'Specs'         },
   { id: 'changelog',     label: 'Changelog'     },
+]
+
+const INPUT_SECTION_DEFS = [
+  { id: 'appearance',  label: 'Appearance'  },
+  { id: 'states',      label: 'States'      },
+  { id: 'sizes',       label: 'Sizes'       },
+  { id: 'properties',  label: 'Properties'  },
+  { id: 'specs',       label: 'Specs'       },
+  { id: 'changelog',   label: 'Changelog'   },
 ]
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
@@ -558,6 +568,8 @@ export default function Explorer() {
     let sections
     if (nodeId === '16:182') {
       sections = BUTTON_SECTION_DEFS
+    } else if (nodeId === '109:1161') {
+      sections = INPUT_SECTION_DEFS
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -600,6 +612,8 @@ export default function Explorer() {
         </div>
       ) : nodeId === '16:182' ? (
         <ButtonDocs comp={comp} spec={spec} platform={platform} onChangePlatform={setPlatform} />
+      ) : nodeId === '109:1161' ? (
+        <InputFieldDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
