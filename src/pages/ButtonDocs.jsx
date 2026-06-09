@@ -527,7 +527,7 @@ function SpecsSection({ spec }) {
                 style={{
                   padding: '5px 16px',
                   border: 'none',
-                  borderLeft: active ? '2px solid var(--text-primary)' : '2px solid transparent',
+                  borderBottom: active ? '2px solid var(--text-primary)' : '2px solid transparent',
                   backgroundColor: 'transparent',
                   color: active ? 'var(--text-primary)' : 'var(--text-subtle)',
                   fontSize: 13,
