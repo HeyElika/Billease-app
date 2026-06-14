@@ -635,7 +635,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '188:3115' && nodeId !== '5529:781' ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
