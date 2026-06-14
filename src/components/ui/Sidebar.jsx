@@ -141,7 +141,7 @@ function CategoryItem({ category, components, open, onToggle }) {
                 }
               }}
             >
-              {comp.name}
+              {comp.name.replace(new RegExp(`^${category.toLowerCase()}/`, 'i'), '')}
             </NavLink>
           ))}
         </div>
