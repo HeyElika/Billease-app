@@ -595,7 +595,7 @@ export default function Explorer() {
       sections = INPUT_SECTION_DEFS
     } else if (nodeId === '51:1615') {
       sections = AMOUNT_SECTION_DEFS
-    } else if (nodeId === '188:2882' || nodeId === '188:3115') {
+    } else if (nodeId === '188:2882') {
       sections = OTP_SECTION_DEFS
     } else if (nodeId === '5529:781') {
       sections = TEXTAREA_SECTION_DEFS
@@ -635,7 +635,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '188:3115' && nodeId !== '5529:781' ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -645,7 +645,7 @@ export default function Explorer() {
         <InputFieldDocs comp={comp} />
       ) : nodeId === '51:1615' ? (
         <AmountInputDocs comp={comp} />
-      ) : nodeId === '188:2882' || nodeId === '188:3115' ? (
+      ) : nodeId === '188:2882' ? (
         <OTPInputDocs comp={comp} />
       ) : nodeId === '5529:781' ? (
         <TextareaInputDocs comp={comp} />

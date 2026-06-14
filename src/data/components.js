@@ -101,7 +101,6 @@ export const componentIndex = [
   // ↳ Input
   { id: '51:1615', name: 'input/amount', category: 'Input', variants: 6, variantProps: { state: ['default', 'error', 'filled', 'focused', 'success', 'typing'] } },
   { id: '188:2882', name: 'input/code', category: 'Input', variants: 7, variantProps: { state: ['default', 'disabled', 'error', 'filled', 'focused', 'masked', 'masked-error'] } },
-  { id: '188:3115', name: 'input/code/group', category: 'Input', variants: 4, variantProps: { type: ['OTP-email', 'OTP-mobile', 'PIN', 'code'] } },
   { id: '109:1161', name: 'input/field', category: 'Input', variants: 14, variantProps: { size: ['lg', 'md'], state: ['default', 'disabled', 'error', 'error-filled', 'filled', 'focused', 'typing'] } },
   { id: '82:2717', name: 'input/global', category: 'Input', variants: 7, variantProps: { state: ['default', 'failed', 'focused', 'negative', 'placeholder', 'positive', 'typing'] } },
   { id: '5529:781', name: 'input/text', category: 'Input', variants: 4, variantProps: { State: ['Default', 'Error', 'Filled', 'Typing'] } },
