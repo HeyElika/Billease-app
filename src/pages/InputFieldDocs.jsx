@@ -156,6 +156,7 @@ function SizesSection() {
               size={size}
               state="default"
               label={SIZE_LABEL[size]}
+              showIcon={false}
             />
             <span style={{
               fontFamily: 'var(--font-family)',
@@ -189,21 +190,21 @@ function PropertiesSection() {
       label: 'Optional label',
       desc: 'Appends an "(Optional)" tag beside the field label. Use when the field is not required.',
       render: () => (
-        <InputField variant="text" size="lg" state="default" label="Account name" showOptional={true} />
+        <InputField variant="text" size="lg" state="default" label="Password" placeholder="Enter password" showOptional={true} />
       ),
     },
     {
       label: 'Info message',
       desc: 'Displays a helper text row below the input in non-error states. Hidden when an error is shown.',
       render: () => (
-        <InputField variant="text" size="lg" state="default" label="Account name" info={true} infoMessage="Info message goes here" />
+        <InputField variant="text" size="lg" state="default" label="Account name" info={true} infoMessage="Info message goes here" showIcon={false} />
       ),
     },
     {
       label: 'Character limit',
       desc: 'Shows a character counter below the input. In error states it appears inline with the error message.',
       render: () => (
-        <InputField variant="text" size="lg" state="typing" label="Account name" characterLimit={true} maxLength={50} />
+        <InputField variant="text" size="lg" state="filled" label="Account name" characterLimit={true} maxLength={50} showIcon={false} />
       ),
     },
   ]

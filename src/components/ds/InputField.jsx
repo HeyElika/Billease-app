@@ -38,8 +38,9 @@ const OUTER_GAP = 8
 // Label row gap between label text and "(Optional)" tag
 const LABEL_GAP = 4
 
-// Country code: gap=12 between "+63" text and input (VariableID:2:726)
-const COUNTRY_CODE_RIGHT_PAD = 12
+// Country code: desired gap=12 between "+63" text and input (VariableID:2:726).
+// Flex container already contributes INNER_GAP(8), so marginRight = 12 - 8 = 4.
+const COUNTRY_CODE_RIGHT_PAD = 4
 
 // ─── Per-state box styles ──────────────────────────────────────────────────────
 const STATE_STYLES = {
