@@ -227,7 +227,7 @@ export default function InputField({
         />
 
         {/* Icon slot — icon right#193:56, default=true
-            typing → close-bold (clears); all other states → hide (invisible, holds space) */}
+            typing → close-bold; all other states → eye-off (hide) */}
         {showIcon && (
           <span
             style={{
@@ -241,7 +241,10 @@ export default function InputField({
             }}
             onClick={state === 'typing' && interactive ? onClear : undefined}
           >
-            {state === 'typing' ? <BilleaseIcon name="close-bold" size="sm" /> : null}
+            {state === 'typing'
+              ? <BilleaseIcon name="close-bold" size="sm" />
+              : <BilleaseIcon name="eye-off" size="sm" color={isDisabled ? 'var(--text-disabled)' : 'var(--icon-base)'} />
+            }
           </span>
         )}
       </div>
