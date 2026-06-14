@@ -4,8 +4,14 @@ import { componentIndex } from '../data/components'
 import { useToc } from '../context/TocContext'
 import Button, { MissingSpec, getTokensForVariant } from '../components/ds/Button'
 import InputField, { getTokensForInput } from '../components/ds/InputField'
+import AmountInput from '../components/ds/AmountInput'
+import OTPInput, { OTPCell } from '../components/ds/OTPInput'
+import TextareaInput from '../components/ds/TextareaInput'
 import ButtonDocs from './ButtonDocs'
 import InputFieldDocs from './InputFieldDocs'
+import AmountInputDocs from './AmountInputDocs'
+import OTPInputDocs from './OTPInputDocs'
+import TextareaInputDocs from './TextareaInputDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -82,6 +88,22 @@ const INPUT_SECTION_DEFS = [
   { id: 'icon-slot',   label: 'Icon Slot'   },
   { id: 'specs',       label: 'Specs'       },
   { id: 'changelog',   label: 'Changelog'   },
+]
+
+const AMOUNT_SECTION_DEFS = [
+  { id: 'states',    label: 'States'    },
+  { id: 'changelog', label: 'Changelog' },
+]
+
+const OTP_SECTION_DEFS = [
+  { id: 'states',    label: 'States'    },
+  { id: 'types',     label: 'Types'     },
+  { id: 'changelog', label: 'Changelog' },
+]
+
+const TEXTAREA_SECTION_DEFS = [
+  { id: 'states',    label: 'States'    },
+  { id: 'changelog', label: 'Changelog' },
 ]
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
@@ -571,6 +593,12 @@ export default function Explorer() {
       sections = BUTTON_SECTION_DEFS
     } else if (nodeId === '109:1161') {
       sections = INPUT_SECTION_DEFS
+    } else if (nodeId === '51:1615') {
+      sections = AMOUNT_SECTION_DEFS
+    } else if (nodeId === '188:2882' || nodeId === '188:3115') {
+      sections = OTP_SECTION_DEFS
+    } else if (nodeId === '5529:781') {
+      sections = TEXTAREA_SECTION_DEFS
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -615,6 +643,12 @@ export default function Explorer() {
         <ButtonDocs comp={comp} spec={spec} platform={platform} onChangePlatform={setPlatform} />
       ) : nodeId === '109:1161' ? (
         <InputFieldDocs comp={comp} />
+      ) : nodeId === '51:1615' ? (
+        <AmountInputDocs comp={comp} />
+      ) : nodeId === '188:2882' || nodeId === '188:3115' ? (
+        <OTPInputDocs comp={comp} />
+      ) : nodeId === '5529:781' ? (
+        <TextareaInputDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
