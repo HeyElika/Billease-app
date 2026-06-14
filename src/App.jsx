@@ -7,6 +7,7 @@ import Tokens from './pages/Tokens'
 import Iconography from './pages/Iconography'
 import Motion from './pages/Motion'
 import Patterns from './pages/Patterns'
+import Typography from './pages/Typography'
 import { TocProvider } from './context/TocContext'
 
 function Layout() {
@@ -44,6 +45,7 @@ function Layout() {
               <Route path="/explorer" element={<Navigate to="/explorer/16_182" replace />} />
               <Route path="/explorer/:nodeId" element={<Explorer />} />
               <Route path="/tokens" element={<Tokens />} />
+              <Route path="/typography" element={<Typography />} />
               <Route path="/icons" element={<Iconography />} />
               <Route path="/motion" element={<Motion />} />
               <Route path="/patterns" element={<Patterns />} />
