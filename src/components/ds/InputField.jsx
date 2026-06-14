@@ -38,9 +38,7 @@ const OUTER_GAP = 8
 // Label row gap between label text and "(Optional)" tag
 const LABEL_GAP = 4
 
-// Country code frame: itemSpacing=10 between code text and divider,
-// paddingRight=12 between the frame and the input (VariableID:2:726)
-const COUNTRY_CODE_INNER_GAP = 10
+// Country code: gap=12 between "+63" text and input (VariableID:2:726)
 const COUNTRY_CODE_RIGHT_PAD = 12
 
 // ─── Per-state box styles ──────────────────────────────────────────────────────
@@ -186,29 +184,17 @@ export default function InputField({
         {/* Country code prefix — country code#11972:0
             Frame: paddingRight=12 (gap to input), itemSpacing=10 (code↔divider) */}
         {isPhone && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: COUNTRY_CODE_INNER_GAP,
-            paddingRight: COUNTRY_CODE_RIGHT_PAD,
+          <span style={{
+            fontSize: 16,
+            fontWeight: 400,
+            lineHeight: '24px',
+            color: 'var(--text-base)',
+            fontFamily: 'var(--ds-font-family)',
             flexShrink: 0,
+            marginRight: COUNTRY_CODE_RIGHT_PAD,
           }}>
-            <span style={{
-              fontSize: 16,
-              fontWeight: 400,
-              lineHeight: '24px',
-              color: 'var(--text-base)',
-              fontFamily: 'var(--ds-font-family)',
-            }}>
-              {countryCode}
-            </span>
-            <span style={{
-              width: 1,
-              height: 16,
-              backgroundColor: 'var(--border-default)',
-              flexShrink: 0,
-            }} />
-          </div>
+            {countryCode}
+          </span>
         )}
 
         {/* Text input */}
