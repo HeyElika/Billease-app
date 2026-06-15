@@ -165,9 +165,9 @@ function AndroidKeyboard({ onDigit, onBackspace, onNext, nextEnabled }) {
 function ChangeEmailLink({ onClick }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-      <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#5A6475' }}>Wrong email?</span>
+      <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>Wrong email?</span>
       <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: 'var(--bg-secondary)', fontWeight: 600 }}>
+        <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', textDecoration: 'underline' }}>
           Change email
         </span>
       </button>
@@ -182,9 +182,9 @@ function EntryScreen({ values, focusedIndex, showError, resendSeconds, onDigit, 
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px 24px 16px', display: 'flex', flexDirection: 'column', gap: 20, overflow: 'hidden' }}>
-        <div>
-          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#5A6475', lineHeight: '21px' }}>
+      <div style={{ flex: 1, padding: '24px 24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, overflow: 'hidden' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
             Enter 6-digit code we sent to
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
@@ -198,9 +198,9 @@ function EntryScreen({ values, focusedIndex, showError, resendSeconds, onDigit, 
           showError={showError}
           errorMessage="Incorrect code. Try again."
         />
-        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#8E97A6' }}>
+        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
           {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : (
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-family)', color: 'var(--bg-secondary)', fontWeight: 600, padding: 0 }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', fontWeight: 600, padding: 0 }}>
               Resend code
             </button>
           )}
@@ -223,9 +223,9 @@ function BlockedScreen({ onChangeEmail }) {
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: 20, overflow: 'hidden' }}>
-        <div>
-          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#5A6475', lineHeight: '21px' }}>
+      <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, overflow: 'hidden' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
             Enter 6-digit code we sent to
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
@@ -238,7 +238,7 @@ function BlockedScreen({ onChangeEmail }) {
           showError
           errorMessage="Too many incorrect attempts"
         />
-        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#8E97A6' }}>
+        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
           Request a new code in 15 minutes
         </div>
         <ChangeEmailLink onClick={onChangeEmail} />
