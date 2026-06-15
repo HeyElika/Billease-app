@@ -327,7 +327,7 @@ function PhoneMock({ children, scale = SCALE }) {
         transformOrigin: 'top left',
         borderRadius: OUTER_R,
         backgroundColor: '#1C1C1E',
-        boxShadow: '0 0 0 1px #333, 0 28px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
+        boxShadow: '0 0 0 1px #333, inset 0 1px 0 rgba(255,255,255,0.07)',
         position: 'relative',
         overflow: 'hidden',
       }}>
