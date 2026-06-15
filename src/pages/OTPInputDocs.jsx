@@ -159,7 +159,54 @@ function TypesSection() {
   )
 }
 
-// ─── Section 3: Changelog ─────────────────────────────────────────────────────
+// ─── Section 3: Group states (Figma node 188:3115) ────────────────────────────
+
+const GROUP_EXAMPLES = [
+  {
+    label: 'Default — entering code',
+    values: ['3', '7', '', '', '', ''],
+    focusedIndex: 2,
+    showError: false,
+    errorMessage: '',
+  },
+  {
+    label: 'Error — incorrect attempt',
+    values: ['3', '7', '2', '9', '0', '1'],
+    focusedIndex: undefined,
+    showError: true,
+    errorMessage: 'Incorrect code. Try again.',
+  },
+  {
+    label: 'Blocked — too many attempts',
+    values: ['5', '8', '2', '1', '3', '7'],
+    focusedIndex: undefined,
+    showError: true,
+    errorMessage: 'Too many incorrect attempts',
+  },
+]
+
+function GroupStatesSection() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {GROUP_EXAMPLES.map(ex => (
+        <DocCard key={ex.label}>
+          <CardHeader label={ex.label} />
+          <CardBody>
+            <OTPInput
+              type="OTP-email"
+              values={ex.values}
+              focusedIndex={ex.focusedIndex}
+              showError={ex.showError}
+              errorMessage={ex.errorMessage}
+            />
+          </CardBody>
+        </DocCard>
+      ))}
+    </div>
+  )
+}
+
+// ─── Section 4: Changelog ─────────────────────────────────────────────────────
 
 const CHANGE_TYPE = {
   removed:    { label: 'Removed',    bg: 'var(--bg-error-subtle)',   color: 'var(--text-primary)'   },
@@ -255,6 +302,10 @@ export default function OTPInputDocs({ comp }) {
 
       <DocSection id="types" title="Types">
         <TypesSection />
+      </DocSection>
+
+      <DocSection id="group-states" title="Group states">
+        <GroupStatesSection />
       </DocSection>
 
       <DocSection id="changelog" title="Changelog">

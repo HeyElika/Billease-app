@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import OTPInput from '../../components/ds/OTPInput'
 import InputField from '../../components/ds/InputField'
 import Button from '../../components/ds/Button'
+import Link from '../../components/ds/Link'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 
 const SCALE = 0.7
@@ -166,11 +167,7 @@ function ChangeEmailLink({ onClick }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
       <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>Wrong email?</span>
-      <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', textDecoration: 'underline' }}>
-          Change email
-        </span>
-      </button>
+      <Link label="Change email" size="sm" state="default" showIcon={false} onClick={onClick} />
     </div>
   )
 }
@@ -423,7 +420,7 @@ export default function TooManyOTPAttempts() {
           display: 'flex', alignItems: 'center', gap: 4,
           fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)',
         }}>
-          <BilleaseIcon name="retry" size="xs" color="var(--text-subtle)" />
+          <BilleaseIcon name="auto-renew" size="xs" color="var(--text-subtle)" />
           Restart
         </button>
       </div>

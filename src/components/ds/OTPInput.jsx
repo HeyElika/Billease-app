@@ -7,11 +7,11 @@
 // ─── Cell state styles ─────────────────────────────────────────────────────────
 const CELL_STYLES = {
   default:       { background: 'var(--bg-sunken)',       border: 'none' },
-  focused:       { background: 'var(--bg-base)',         border: '1px solid var(--bg-secondary)' },
+  focused:       { background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--bg-secondary)' },
   filled:        { background: 'var(--bg-sunken)',       border: 'none' },
-  success:       { background: 'var(--bg-base)',         border: '1px solid var(--border-success)' },
+  success:       { background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--border-success)' },
   error:         { background: 'var(--bg-error-subtle)', border: 'none' },
-  'error-active':{ background: 'var(--bg-base)',         border: '1px solid var(--text-error)' },
+  'error-active':{ background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--text-error)' },
   masked:        { background: 'var(--bg-sunken)',       border: 'none' },
   'masked-error':{ background: 'var(--bg-error-subtle)', border: 'none' },
   disabled:      { background: 'var(--bg-sunken)',       border: 'none' },

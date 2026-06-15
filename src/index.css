@@ -78,6 +78,11 @@
   --space-900: 40px;
   --space-1000: 48px;
 
+  /* Border width (Figma: border/width/100–300) */
+  --border-width-100: 1px;
+  --border-width-200: 2px;
+  --border-width-300: 3px;
+
   /* Border radius */
   --radius-xxs: 1px;
   --radius-xs: 2px;
