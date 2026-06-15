@@ -1,7 +1,10 @@
+import { useEffect } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
+import { useToc } from '../context/TocContext'
+import { PROTOTYPE_FLOWS } from '../data/prototypeFlows'
 import TooManyOTPAttempts from './flows/EmailVerification'
 
-const FLOW_SCENARIOS = {
+const FLOW_COMPONENTS = {
   'email-verification': {
     'too-many-otp-attempts': TooManyOTPAttempts,
   },
@@ -9,9 +12,27 @@ const FLOW_SCENARIOS = {
 
 export default function PrototypesPage() {
   const { flowId, scenarioId } = useParams()
-  const scenarios = FLOW_SCENARIOS[flowId]
-  if (!scenarios) return <Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />
-  const Component = scenarios[scenarioId]
+  const { setNavItems } = useToc()
+
+  const flow = PROTOTYPE_FLOWS.find(f => f.id === flowId)
+
+  useEffect(() => {
+    if (!flow) return
+    setNavItems(
+      flow.scenarios.map(s => ({
+        id: s.id,
+        label: s.label,
+        to: `/prototypes/${flow.id}/${s.id}`,
+      }))
+    )
+    return () => setNavItems([])
+  }, [flow, setNavItems])
+
+  if (!flow) return <Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />
+
+  const scenarioComponents = FLOW_COMPONENTS[flowId] ?? {}
+  const Component = scenarioComponents[scenarioId]
   if (!Component) return <Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />
+
   return <Component />
 }

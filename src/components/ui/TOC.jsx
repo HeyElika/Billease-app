@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useToc } from '../../context/TocContext'
 
 export default function TOC() {
-  const { sections } = useToc()
+  const { sections, navItems } = useToc()
   const [activeId, setActiveId] = useState(null)
 
   useEffect(() => {
@@ -52,7 +53,42 @@ export default function TOC() {
       borderLeft: '1px solid #EAEDF0',
       backgroundColor: '#ffffff',
     }}>
-      {sections.length > 0 && (
+      {navItems.length > 0 && (
+        <>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--text-disabled)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.6px',
+            fontFamily: 'var(--font-family)',
+            marginBottom: 10,
+          }}>
+            Scenarios
+          </div>
+          {navItems.map(item => (
+            <NavLink
+              key={item.id}
+              to={item.to}
+              style={({ isActive }) => ({
+                display: 'block',
+                padding: '4px 0 4px 10px',
+                marginBottom: 2,
+                fontSize: 12,
+                fontFamily: 'var(--font-family)',
+                color: isActive ? 'var(--text-primary)' : 'var(--text-subtle)',
+                fontWeight: isActive ? 600 : 400,
+                textDecoration: 'none',
+                borderLeft: `2px solid ${isActive ? 'var(--bg-primary)' : 'transparent'}`,
+                transition: 'color 0.12s, border-color 0.12s',
+              })}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </>
+      )}
+      {navItems.length === 0 && sections.length > 0 && (
         <>
           <div style={{
             fontSize: 11,

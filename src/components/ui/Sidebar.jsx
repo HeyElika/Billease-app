@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
+import { PROTOTYPE_FLOWS } from '../../data/prototypeFlows'
 import { HEADER_HEIGHT } from './Header'
 
 const SHOWN_CATEGORIES = [
@@ -248,16 +249,6 @@ function ComponentsSidebar() {
 }
 
 // ─── Section: Prototypes ──────────────────────────────────────────────────────
-const PROTOTYPE_FLOWS = [
-  {
-    id: 'email-verification',
-    label: 'Email Verification',
-    scenarios: [
-      { id: 'too-many-otp-attempts', label: 'Too many wrong OTP attempts' },
-    ],
-  },
-]
-
 function PrototypesSidebar() {
   const [openFlow, setOpenFlow] = useState('email-verification')
 
