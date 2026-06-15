@@ -287,37 +287,64 @@ function ChangeEmailScreen({ email, emailFocused, onEmailChange, onFocus, onBlur
   )
 }
 
-// ── Phone mockup ──────────────────────────────────────────────────────────────
+// ── Phone mockup — Google Pixel 9 Pro (Obsidian) ─────────────────────────────
 function PhoneMock({ children }) {
-  const BORDER = 10
+  const BORDER = 13
   const frameW = CW + BORDER * 2
   const frameH = CH + BORDER * 2
+  const OUTER_R = 52
+  const INNER_R = 40
 
   return (
-    <div style={{ width: frameW * SCALE, height: frameH * SCALE, flexShrink: 0 }}>
+    <div style={{ width: frameW * SCALE, height: frameH * SCALE, flexShrink: 0, position: 'relative' }}>
+      {/* Right side buttons */}
+      <div style={{ position: 'absolute', right: -3 * SCALE, top: (BORDER + 148) * SCALE, zIndex: 20 }}>
+        {/* Volume up */}
+        <div style={{
+          width: 4 * SCALE, height: 58 * SCALE,
+          backgroundColor: '#2A2A2A',
+          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
+          marginBottom: 8 * SCALE,
+        }} />
+        {/* Volume down */}
+        <div style={{
+          width: 4 * SCALE, height: 58 * SCALE,
+          backgroundColor: '#2A2A2A',
+          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
+          marginBottom: 24 * SCALE,
+        }} />
+        {/* Power button */}
+        <div style={{
+          width: 4 * SCALE, height: 72 * SCALE,
+          backgroundColor: '#2A2A2A',
+          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
+        }} />
+      </div>
+
       <div style={{
         width: frameW, height: frameH,
         transform: `scale(${SCALE})`,
         transformOrigin: 'top left',
-        borderRadius: 44,
-        backgroundColor: '#1D2D40',
-        overflow: 'hidden',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.3)',
+        borderRadius: OUTER_R,
+        backgroundColor: '#1C1C1E',
+        boxShadow: '0 0 0 1px #333, 0 28px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
         position: 'relative',
+        overflow: 'hidden',
       }}>
         {/* Front camera hole-punch */}
         <div style={{
-          position: 'absolute', top: 18, left: '50%',
+          position: 'absolute', top: 20, left: '50%',
           transform: 'translateX(-50%)',
-          width: 12, height: 12, borderRadius: '50%',
-          backgroundColor: '#0c1820', zIndex: 10,
+          width: 11, height: 11, borderRadius: '50%',
+          backgroundColor: '#0a0a0a', zIndex: 10,
+          boxShadow: 'inset 0 0 3px rgba(0,0,0,0.8)',
         }} />
         {/* Screen */}
         <div style={{
           position: 'absolute', top: BORDER, left: BORDER,
           width: CW, height: CH,
           overflow: 'hidden', backgroundColor: '#fff',
-          borderRadius: 34,
+          borderRadius: INNER_R,
           display: 'flex', flexDirection: 'column',
         }}>
           {children}
