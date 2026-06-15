@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import OTPInput from '../../components/ds/OTPInput'
 import InputField from '../../components/ds/InputField'
 import Button from '../../components/ds/Button'
@@ -288,7 +288,7 @@ function ChangeEmailScreen({ email, emailFocused, onEmailChange, onFocus, onBlur
 }
 
 // ── Phone mockup — Google Pixel 9 Pro (Obsidian) ─────────────────────────────
-function PhoneMock({ children }) {
+function PhoneMock({ children, scale = SCALE }) {
   const BORDER = 13
   const frameW = CW + BORDER * 2
   const frameH = CH + BORDER * 2
@@ -296,34 +296,34 @@ function PhoneMock({ children }) {
   const INNER_R = 40
 
   return (
-    <div style={{ width: frameW * SCALE, height: frameH * SCALE, flexShrink: 0, position: 'relative' }}>
+    <div style={{ width: frameW * scale, height: frameH * scale, flexShrink: 0, position: 'relative' }}>
       {/* Right side buttons */}
-      <div style={{ position: 'absolute', right: -3 * SCALE, top: (BORDER + 148) * SCALE, zIndex: 20 }}>
+      <div style={{ position: 'absolute', right: -3 * scale, top: (BORDER + 148) * scale, zIndex: 20 }}>
         {/* Volume up */}
         <div style={{
-          width: 4 * SCALE, height: 58 * SCALE,
+          width: 4 * scale, height: 58 * scale,
           backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
-          marginBottom: 8 * SCALE,
+          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
+          marginBottom: 8 * scale,
         }} />
         {/* Volume down */}
         <div style={{
-          width: 4 * SCALE, height: 58 * SCALE,
+          width: 4 * scale, height: 58 * scale,
           backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
-          marginBottom: 24 * SCALE,
+          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
+          marginBottom: 24 * scale,
         }} />
         {/* Power button */}
         <div style={{
-          width: 4 * SCALE, height: 72 * SCALE,
+          width: 4 * scale, height: 72 * scale,
           backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * SCALE}px ${3 * SCALE}px 0`,
+          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
         }} />
       </div>
 
       <div style={{
         width: frameW, height: frameH,
-        transform: `scale(${SCALE})`,
+        transform: `scale(${scale})`,
         transformOrigin: 'top left',
         borderRadius: OUTER_R,
         backgroundColor: '#1C1C1E',
@@ -354,6 +354,10 @@ function PhoneMock({ children }) {
   )
 }
 
+const TOOLBAR_H = 44
+const FRAME_H = CH + 13 * 2  // CH + BORDER*2
+const FRAME_W = CW + 13 * 2
+
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function TooManyOTPAttempts() {
   const [screen, setScreen] = useState('entry')
@@ -364,6 +368,23 @@ export default function TooManyOTPAttempts() {
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
+  const [scale, setScale] = useState(SCALE)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    function computeScale() {
+      if (!containerRef.current) return
+      const { height, width } = containerRef.current.getBoundingClientRect()
+      const availH = height - TOOLBAR_H - 24  // gap between toolbar and phone
+      const availW = width - 32
+      const s = Math.min(availH / FRAME_H, availW / FRAME_W, 1)
+      setScale(Math.max(s, 0.4))
+    }
+    computeScale()
+    const ro = new ResizeObserver(computeScale)
+    if (containerRef.current) ro.observe(containerRef.current)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     if (screen !== 'entry' || resendSeconds <= 0) return
@@ -419,21 +440,21 @@ export default function TooManyOTPAttempts() {
   const SCREEN_LABELS = { entry: 'Enter code', blocked: 'Blocked', 'change-email': 'Change email' }
 
   return (
-    <div style={{
-      minHeight: '100%',
+    <div ref={containerRef} style={{
+      height: '100%',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'flex-start',
-      paddingTop: 40, paddingBottom: 40,
-      backgroundImage: 'repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%)',
-      backgroundSize: '20px 20px',
-      gap: 20,
+      paddingTop: 16,
+      backgroundColor: '#fff',
+      gap: 8,
+      overflow: 'hidden',
     }}>
       {/* Toolbar */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        backgroundColor: 'rgba(255,255,255,0.92)',
-        borderRadius: 8, padding: '8px 16px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+        height: TOOLBAR_H,
+        display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+        borderBottom: '1px solid var(--border-subtle)',
+        width: '100%', paddingLeft: 24, paddingRight: 24,
       }}>
         <BilleaseIcon name="activity-outline" size="xs" color="var(--bg-secondary)" />
         <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', fontWeight: 600, color: 'var(--text-base)' }}>
@@ -453,7 +474,7 @@ export default function TooManyOTPAttempts() {
       </div>
 
       {/* Phone */}
-      <PhoneMock>
+      <PhoneMock scale={scale}>
         <div style={{
           flex: 1, display: 'flex', flexDirection: 'column',
           transition: 'opacity 0.18s ease',
