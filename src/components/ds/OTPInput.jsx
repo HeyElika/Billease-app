@@ -122,6 +122,7 @@ export default function OTPInput({
           lineHeight: '21px',
           color: 'var(--text-primary)',
           fontFamily: 'var(--ds-font-family)',
+          textAlign: 'center',
         }}>
           {errorMessage}
         </span>
