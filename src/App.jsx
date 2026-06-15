@@ -8,6 +8,7 @@ import Iconography from './pages/Iconography'
 import Motion from './pages/Motion'
 import Patterns from './pages/Patterns'
 import Typography from './pages/Typography'
+import PrototypesPage from './pages/PrototypesPage'
 import { TocProvider } from './context/TocContext'
 
 function Layout() {
@@ -49,6 +50,8 @@ function Layout() {
               <Route path="/icons" element={<Iconography />} />
               <Route path="/motion" element={<Motion />} />
               <Route path="/patterns" element={<Patterns />} />
+              <Route path="/prototypes" element={<Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />} />
+              <Route path="/prototypes/:flowId/:scenarioId" element={<PrototypesPage />} />
               <Route path="*" element={<Navigate to="/explorer/16_182" replace />} />
             </Routes>
           </main>

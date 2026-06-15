@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { label: 'Components',  matches: ['/explorer']           },
   { label: 'Motion',      matches: ['/motion']             },
   { label: 'Patterns',    matches: ['/patterns']           },
+  { label: 'Prototypes',  matches: ['/prototypes']         },
 ]
 
 export default function Header() {
@@ -57,7 +58,11 @@ export default function Header() {
       <nav style={{ display: 'flex', alignItems: 'stretch', height: '100%', marginLeft: 'auto' }}>
         {NAV_ITEMS.map(({ label, matches }) => {
           const active = matches.some(m => pathname === m || pathname.startsWith(m + '/'))
-          const to = matches[0] === '/explorer' ? '/explorer/16_182' : matches[0]
+          const to = matches[0] === '/explorer'
+            ? '/explorer/16_182'
+            : matches[0] === '/prototypes'
+              ? '/prototypes/email-verification/too-many-otp-attempts'
+              : matches[0]
           return (
             <NavLink
               key={label}
