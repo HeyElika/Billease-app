@@ -12,6 +12,8 @@ import InputFieldDocs from './InputFieldDocs'
 import AmountInputDocs from './AmountInputDocs'
 import OTPInputDocs from './OTPInputDocs'
 import TextareaInputDocs from './TextareaInputDocs'
+import ActionMenuDocs from './ActionMenuDocs'
+import QuickActionDocs from './QuickActionDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -105,6 +107,21 @@ const TEXTAREA_SECTION_DEFS = [
   { id: 'states',    label: 'States'    },
   { id: 'changelog', label: 'Changelog' },
 ]
+
+const ACTION_MENU_SECTION_DEFS = [
+  { id: 'states',      label: 'States'      },
+  { id: 'action-menu', label: 'Action menu' },
+  { id: 'changelog',   label: 'Changelog'   },
+]
+
+const QUICK_ACTION_SECTION_DEFS = [
+  { id: 'states',        label: 'States'             },
+  { id: 'quick-action',  label: 'Quick action row'   },
+  { id: 'changelog',     label: 'Changelog'          },
+]
+
+const ACTION_MENU_IDS  = new Set(['11079:2976', '11079:3310'])
+const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -599,6 +616,10 @@ export default function Explorer() {
       sections = OTP_SECTION_DEFS
     } else if (nodeId === '5529:781') {
       sections = TEXTAREA_SECTION_DEFS
+    } else if (ACTION_MENU_IDS.has(nodeId)) {
+      sections = ACTION_MENU_SECTION_DEFS
+    } else if (QUICK_ACTION_IDS.has(nodeId)) {
+      sections = QUICK_ACTION_SECTION_DEFS
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -635,7 +656,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -649,6 +670,10 @@ export default function Explorer() {
         <OTPInputDocs comp={comp} />
       ) : nodeId === '5529:781' ? (
         <TextareaInputDocs comp={comp} />
+      ) : ACTION_MENU_IDS.has(nodeId) ? (
+        <ActionMenuDocs comp={comp} />
+      ) : QUICK_ACTION_IDS.has(nodeId) ? (
+        <QuickActionDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
