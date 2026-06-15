@@ -35,7 +35,6 @@ export const componentIndex = [
   { id: '16:2015', name: 'banner/info', category: 'Banners', variants: 18, variantProps: { status: ['activate', 'approved-bank', 'approved-credit', 'cancelled', 'in-progress', 'need-more-info', 'need-more-info-2', 'open-bank', 'paused', 'rejected', 'review'], version: ['2025', '2026'] } },
 
   // ↳ Buttons
-  { id: '11079:2976', name: 'action-menu/item', category: 'Buttons', variants: 3, variantProps: { state: ['Default', 'disabled', 'danger'] } },
   { id: '11079:3310', name: 'action-menu', category: 'Buttons', variants: 0, variantProps: {} },
   { id: '16:182', name: 'button', category: 'Buttons', variants: 61, variantProps: { size: ['lg', 'md', 'sm'], state: ['active', 'default', 'disabled', 'loading', 'pressed'], type: ['ghost', 'ghost-destructive', 'gradient', 'primary', 'secondary'] } },
   { id: '190:3261', name: 'link', category: 'Buttons', variants: 6, variantProps: { size: ['md', 'sm'], state: ['active', 'default', 'disabled'] } },

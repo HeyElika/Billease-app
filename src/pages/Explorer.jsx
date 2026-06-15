@@ -120,7 +120,7 @@ const QUICK_ACTION_SECTION_DEFS = [
   { id: 'changelog',     label: 'Changelog'          },
 ]
 
-const ACTION_MENU_IDS  = new Set(['11079:2976', '11079:3310'])
+const ACTION_MENU_IDS  = new Set(['11079:3310'])
 const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────

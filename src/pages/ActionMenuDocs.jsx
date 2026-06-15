@@ -57,32 +57,22 @@ function CardHeader({ label }) {
   )
 }
 
-// ─── Demo items config ──────────────────────────────────────────────────────
-
-const DEMO_ITEMS = [
-  { icon: 'edit-outline',      label: 'Edit profile'   },
-  { icon: 'statement-outline', label: 'View statement' },
-  { icon: 'info-outline',      label: 'Learn more'     },
-  { icon: 'trash-outline',     label: 'Delete',        danger: true },
-]
-
 // ─── Section: States ────────────────────────────────────────────────────────
 
-const STATES = ['Default', 'disabled', 'danger']
-const STATE_LABEL = { Default: 'Default', disabled: 'Disabled', danger: 'Danger' }
+const STATES = [
+  { state: 'Default',  icon: 'start-outline', label: 'Add to favorites' },
+  { state: 'disabled', icon: 'start-outline', label: 'Add to favorites' },
+  { state: 'danger',   icon: 'trash-outline', label: 'Remove recipient' },
+]
 
 function StatesSection() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {STATES.map(state => (
+      {STATES.map(({ state, icon, label }) => (
         <DocCard key={state}>
-          <CardHeader label={STATE_LABEL[state]} />
-          <div>
-            <ActionMenuItem
-              state={state}
-              icon={state === 'danger' ? 'trash-outline' : 'edit-outline'}
-              label={state === 'danger' ? 'Delete account' : 'Edit profile'}
-            />
+          <CardHeader label={state === 'Default' ? 'Default' : state === 'disabled' ? 'Disabled' : 'Danger'} />
+          <div style={{ padding: '0 16px' }}>
+            <ActionMenuItem state={state} icon={icon} label={label} showArrow={state !== 'danger'} />
           </div>
         </DocCard>
       ))}
@@ -90,24 +80,30 @@ function StatesSection() {
   )
 }
 
-// ─── Section: Action menu (full list) ───────────────────────────────────────
+// ─── Section: Action menu (full list example) ───────────────────────────────
+
+const FULL_MENU = [
+  { state: 'Default', icon: 'account-outline', label: 'Recipient details', description: 'View and edit recipient details', showArrow: true,  showDescription: true },
+  { state: 'Default', icon: 'start-outline',   label: 'Add to favorites',  showArrow: false, showDescription: false },
+  { state: 'danger',  icon: 'trash-outline',   label: 'Remove recipient',  showArrow: false, showDescription: false },
+]
 
 function ActionMenuSection() {
   return (
     <DocCard style={{ maxWidth: 360 }}>
-      <CardHeader label="Action menu — full example" />
-      <div>
-        {DEMO_ITEMS.map((item, i) => (
-          <div key={item.label}>
-            <ActionMenuItem
-              state={item.danger ? 'danger' : 'Default'}
-              icon={item.icon}
-              label={item.label}
-            />
-            {i < DEMO_ITEMS.length - 1 && (
-              <div style={{ height: 1, backgroundColor: 'var(--border-subtle)', margin: '0 16px' }} />
-            )}
-          </div>
+      <CardHeader label="Full action menu" />
+      {/* Items stack with no gaps — no dividers — matches Figma action-menu component */}
+      <div style={{ padding: '0 16px' }}>
+        {FULL_MENU.map((item, i) => (
+          <ActionMenuItem
+            key={i}
+            state={item.state}
+            icon={item.icon}
+            label={item.label}
+            description={item.description ?? ''}
+            showArrow={item.showArrow}
+            showDescription={item.showDescription}
+          />
         ))}
       </div>
     </DocCard>
@@ -125,7 +121,6 @@ const CHANGE_TYPE = {
 
 function ChangelogSection({ nodeId }) {
   const entries = CHANGELOGS[nodeId] ?? []
-
   if (entries.length === 0) {
     return (
       <DocCard>
@@ -137,7 +132,6 @@ function ChangelogSection({ nodeId }) {
       </DocCard>
     )
   }
-
   return (
     <DocCard>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -145,16 +139,10 @@ function ChangelogSection({ nodeId }) {
           <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
             {['Date', 'Type', 'Description'].map(h => (
               <th key={h} style={{
-                padding: '7px 16px',
-                textAlign: 'left',
-                fontSize: 11,
-                fontWeight: 700,
-                fontFamily: 'var(--font-family)',
-                color: 'var(--text-disabled)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.4px',
-                borderBottom: '1px solid var(--border-subtle)',
-                whiteSpace: 'nowrap',
+                padding: '7px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700,
+                fontFamily: 'var(--font-family)', color: 'var(--text-disabled)',
+                textTransform: 'uppercase', letterSpacing: '0.4px',
+                borderBottom: '1px solid var(--border-subtle)', whiteSpace: 'nowrap',
               }}>{h}</th>
             ))}
           </tr>
@@ -166,9 +154,7 @@ function ChangelogSection({ nodeId }) {
               <tr key={i} style={{ borderBottom: i < entries.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
                 <td style={{ padding: '10px 16px', fontSize: 12, fontFamily: 'monospace', color: 'var(--text-subtle)', whiteSpace: 'nowrap' }}>{entry.date}</td>
                 <td style={{ padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                  <span style={{ display: 'inline-flex', padding: '2px 10px', borderRadius: 9999, backgroundColor: t.bg, color: t.color, fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-family)' }}>
-                    {t.label}
-                  </span>
+                  <span style={{ display: 'inline-flex', padding: '2px 10px', borderRadius: 9999, backgroundColor: t.bg, color: t.color, fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-family)' }}>{t.label}</span>
                 </td>
                 <td style={{ padding: '10px 16px', fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>{entry.description}</td>
               </tr>
