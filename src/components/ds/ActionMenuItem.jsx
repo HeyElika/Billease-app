@@ -27,16 +27,6 @@ const SPECS = {
   danger:   { label: '#F84040',              icon: '#F84040'              },
 }
 
-// Chevron > arrow — xs (12×12 path inside 16×16 container)
-function ChevronRight({ color }) {
-  return (
-    <div style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M4 2.5L7.5 6L4 9.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    </div>
-  )
-}
 
 export default function ActionMenuItem({
   state       = 'Default',          // Default | disabled | danger
@@ -111,8 +101,8 @@ export default function ActionMenuItem({
         </div>
       </div>
 
-      {/* Right: chevron arrow (xs, 16×16) */}
-      {showArrow && <ChevronRight color={spec.icon} />}
+      {/* Right: chevron-right xs (16×16) — from Foundation Iconography */}
+      {showArrow && <BilleaseIcon name="chevron-right" size="xs" color={spec.icon} />}
     </div>
   )
 }
