@@ -250,79 +250,14 @@ function ComponentsSidebar() {
 
 // ─── Section: Prototypes ──────────────────────────────────────────────────────
 function PrototypesSidebar() {
-  const [openFlow, setOpenFlow] = useState('email-verification')
-
   return (
     <div style={{ paddingBottom: 24 }}>
       <SectionLabel>Flows</SectionLabel>
-      {PROTOTYPE_FLOWS.map(flow => {
-        const isOpen = openFlow === flow.id
-        return (
-          <div key={flow.id}>
-            <button
-              onClick={() => setOpenFlow(prev => prev === flow.id ? null : flow.id)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '7px 16px',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-family)',
-                fontSize: 13,
-                fontWeight: isOpen ? 600 : 400,
-                color: isOpen ? 'var(--text-base)' : 'var(--text-subtle)',
-                textAlign: 'left',
-                transition: 'color 0.12s',
-              }}
-            >
-              <span>{flow.label}</span>
-              <ChevronIcon open={isOpen} />
-            </button>
-
-            {isOpen && (
-              <div>
-                {flow.scenarios.map(s => (
-                  <NavLink
-                    key={s.id}
-                    to={`/prototypes/${flow.id}/${s.id}`}
-                    style={({ isActive }) => ({
-                      display: 'block',
-                      padding: '5px 16px 5px 26px',
-                      textDecoration: 'none',
-                      fontFamily: 'var(--font-family)',
-                      fontSize: 13,
-                      color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
-                      fontWeight: isActive ? 600 : 400,
-                      borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
-                      backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
-                      transition: 'background-color 0.1s, color 0.1s',
-                    })}
-                    onMouseEnter={e => {
-                      const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-                      if (!isCurrent) {
-                        e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
-                        e.currentTarget.style.color = 'var(--text-base)'
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-                      if (!isCurrent) {
-                        e.currentTarget.style.backgroundColor = 'transparent'
-                        e.currentTarget.style.color = 'var(--text-subtle)'
-                      }
-                    }}
-                  >
-                    {s.label}
-                  </NavLink>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
+      {PROTOTYPE_FLOWS.map(flow => (
+        <SidebarNavLink key={flow.id} to={`/prototypes/${flow.id}/${flow.scenarios[0].id}`}>
+          {flow.label}
+        </SidebarNavLink>
+      ))}
     </div>
   )
 }
