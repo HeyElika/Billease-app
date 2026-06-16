@@ -173,14 +173,13 @@ function ChangeEmailLink({ onClick }) {
 }
 
 // ── Entry / Error screen ──────────────────────────────────────────────────────
-function EntryScreen({ values, focusedIndex, showError, resendSeconds, onDigit, onBackspace, onNext, onChangeEmail }) {
-  const allFilled = values.every(v => v !== '')
+function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, resendSeconds, onDigit, onBackspace, onChangeEmail }) {
   return (
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px 24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, overflow: 'hidden' }}>
-        <div style={{ textAlign: 'center' }}>
+      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
             Enter 6-digit code we sent to
           </div>
@@ -188,40 +187,52 @@ function EntryScreen({ values, focusedIndex, showError, resendSeconds, onDigit, 
             test@gmail.com
           </div>
         </div>
-        <OTPInput
-          type="OTP-email"
-          values={values}
-          focusedIndex={focusedIndex}
-          showError={showError}
-          errorMessage="Incorrect code. Try again."
-        />
-        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
-          {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : (
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', fontWeight: 600, padding: 0 }}>
-              Resend code
-            </button>
-          )}
+        <div
+          className={shaking ? 'otp-shake' : ''}
+          onAnimationEnd={onShakeEnd}
+        >
+          <OTPInput
+            type="OTP-email"
+            values={values}
+            focusedIndex={focusedIndex}
+            showError={showError}
+            errorMessage="Incorrect code. Try again."
+          />
         </div>
-        <ChangeEmailLink onClick={onChangeEmail} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
+            {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : (
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', fontWeight: 600, padding: 0 }}>
+                Resend code
+              </button>
+            )}
+          </div>
+          <ChangeEmailLink onClick={onChangeEmail} />
+        </div>
       </div>
       <AndroidKeyboard
         onDigit={onDigit}
         onBackspace={onBackspace}
-        onNext={onNext}
-        nextEnabled={allFilled}
+        nextEnabled={false}
       />
     </>
   )
 }
 
 // ── Blocked screen ────────────────────────────────────────────────────────────
-function BlockedScreen({ onChangeEmail }) {
+function formatCountdown(secs) {
+  const m = Math.floor(secs / 60)
+  const s = secs % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+function BlockedScreen({ blockedTimer, blockedExpired, onChangeEmail, onRequestNewCode }) {
   return (
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, overflow: 'hidden' }}>
-        <div style={{ textAlign: 'center' }}>
+      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
             Enter 6-digit code we sent to
           </div>
@@ -235,10 +246,22 @@ function BlockedScreen({ onChangeEmail }) {
           showError
           errorMessage="Too many incorrect attempts"
         />
-        <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
-          Request a new code in 15 minutes
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          {blockedExpired ? (
+            <button onClick={onRequestNewCode} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
+              fontWeight: 600, padding: 0, textDecoration: 'underline',
+            }}>
+              Request new code
+            </button>
+          ) : (
+            <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
+              Request a new code in {formatCountdown(blockedTimer)}
+            </div>
+          )}
+          <ChangeEmailLink onClick={onChangeEmail} />
         </div>
-        <ChangeEmailLink onClick={onChangeEmail} />
       </div>
       <AndroidNavBar />
     </>
@@ -355,30 +378,35 @@ function PhoneMock({ children, scale = SCALE }) {
 }
 
 const TOOLBAR_H = 44
-const FRAME_H = CH + 13 * 2  // CH + BORDER*2
+const FRAME_H = CH + 13 * 2
 const FRAME_W = CW + 13 * 2
+const BLOCKED_SECS = 15 * 60  // 15 minutes
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function TooManyOTPAttempts() {
   const [screen, setScreen] = useState('entry')
   const [values, setValues] = useState(Array(6).fill(''))
   const [showError, setShowError] = useState(false)
+  const [shaking, setShaking] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resendSeconds, setResendSeconds] = useState(59)
+  const [blockedTimer, setBlockedTimer] = useState(BLOCKED_SECS)
+  const [blockedExpired, setBlockedExpired] = useState(false)
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
   const [scale, setScale] = useState(SCALE)
   const containerRef = useRef(null)
+  const attemptsRef = useRef(0)
 
+  // Dynamic phone scale
   useEffect(() => {
     function computeScale() {
       if (!containerRef.current) return
       const { height, width } = containerRef.current.getBoundingClientRect()
-      const availH = height - TOOLBAR_H - 24  // gap between toolbar and phone
+      const availH = height - TOOLBAR_H - 24
       const availW = width - 32
-      const s = Math.min(availH / FRAME_H, availW / FRAME_W, 1)
-      setScale(Math.max(s, 0.4))
+      setScale(Math.max(Math.min(availH / FRAME_H, availW / FRAME_W, 1), 0.4))
     }
     computeScale()
     const ro = new ResizeObserver(computeScale)
@@ -386,50 +414,76 @@ export default function TooManyOTPAttempts() {
     return () => ro.disconnect()
   }, [])
 
+  // Resend countdown (entry screen)
   useEffect(() => {
     if (screen !== 'entry' || resendSeconds <= 0) return
     const t = setTimeout(() => setResendSeconds(s => s - 1), 1000)
     return () => clearTimeout(t)
   }, [resendSeconds, screen])
 
+  // 15-min blocked countdown
+  useEffect(() => {
+    if (screen !== 'blocked' || blockedExpired || blockedTimer <= 0) return
+    if (blockedTimer === 0) { setBlockedExpired(true); return }
+    const t = setTimeout(() => setBlockedTimer(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [blockedTimer, screen, blockedExpired])
+
   function navigateTo(next) {
     setVisible(false)
     setTimeout(() => { setScreen(next); setVisible(true) }, 180)
   }
 
-  function handleDigit(d) {
-    const idx = values.findIndex(v => v === '')
-    if (idx === -1) return
-    const next = [...values]; next[idx] = d
-    setValues(next)
-    if (showError) setShowError(false)
-  }
-
-  function handleBackspace() {
-    const next = [...values]
-    for (let i = 5; i >= 0; i--) { if (next[i] !== '') { next[i] = ''; break } }
-    setValues(next)
-  }
-
-  function handleNext() {
-    const newAttempts = attempts + 1
+  function submitCode(filledValues) {
+    const newAttempts = attemptsRef.current + 1
+    attemptsRef.current = newAttempts
     setAttempts(newAttempts)
     if (newAttempts >= 5) {
+      setBlockedTimer(BLOCKED_SECS)
+      setBlockedExpired(false)
       navigateTo('blocked')
     } else {
       setValues(Array(6).fill(''))
       setShowError(true)
+      setShaking(true)
     }
+  }
+
+  function handleDigit(d) {
+    setValues(prev => {
+      const idx = prev.findIndex(v => v === '')
+      if (idx === -1) return prev
+      const next = [...prev]
+      next[idx] = d
+      if (showError) setShowError(false)
+      // Auto-submit when last cell filled
+      if (idx === 5) {
+        setTimeout(() => submitCode(next), 300)
+      }
+      return next
+    })
+  }
+
+  function handleBackspace() {
+    setValues(prev => {
+      const next = [...prev]
+      for (let i = 5; i >= 0; i--) { if (next[i] !== '') { next[i] = ''; break } }
+      return next
+    })
   }
 
   function handleRestart() {
     setVisible(false)
     setTimeout(() => {
+      attemptsRef.current = 0
       setScreen('entry')
       setValues(Array(6).fill(''))
       setShowError(false)
+      setShaking(false)
       setAttempts(0)
       setResendSeconds(59)
+      setBlockedTimer(BLOCKED_SECS)
+      setBlockedExpired(false)
       setEmail('')
       setEmailFocused(false)
       setVisible(true)
@@ -440,79 +494,108 @@ export default function TooManyOTPAttempts() {
   const SCREEN_LABELS = { entry: 'Enter code', blocked: 'Blocked', 'change-email': 'Change email' }
 
   return (
-    <div ref={containerRef} style={{
-      height: '100%',
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'flex-start',
-      paddingTop: 16,
-      backgroundColor: '#fff',
-      gap: 8,
-      overflow: 'hidden',
-    }}>
-      {/* Toolbar */}
-      <div style={{
-        height: TOOLBAR_H,
-        display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        width: '100%', paddingLeft: 24, paddingRight: 24,
-      }}>
-        <BilleaseIcon name="activity-outline" size="xs" color="var(--bg-secondary)" />
-        <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', fontWeight: 600, color: 'var(--text-base)' }}>
-          Interactive prototype
-        </span>
-        <span style={{ fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)' }}>
-          {SCREEN_LABELS[screen]} · {attempts}/5 attempts
-        </span>
-        <button onClick={handleRestart} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 4,
-          fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)',
-        }}>
-          <BilleaseIcon name="auto-renew" size="xs" color="var(--text-subtle)" />
-          Restart
-        </button>
-      </div>
+    <>
+      <style>{`
+        @keyframes otpShake {
+          0%,100% { transform: translateX(0); }
+          12%      { transform: translateX(-7px); }
+          25%      { transform: translateX(7px); }
+          37%      { transform: translateX(-5px); }
+          50%      { transform: translateX(5px); }
+          62%      { transform: translateX(-3px); }
+          75%      { transform: translateX(3px); }
+        }
+        .otp-shake { animation: otpShake 0.5s ease; }
+      `}</style>
 
-      {/* Phone */}
-      <PhoneMock scale={scale}>
+      <div ref={containerRef} style={{
+        height: '100%',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'flex-start',
+        paddingTop: 16,
+        backgroundColor: '#fff',
+        gap: 8,
+        overflow: 'hidden',
+      }}>
+        {/* Toolbar */}
         <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          transition: 'opacity 0.18s ease',
-          opacity: visible ? 1 : 0,
+          height: TOOLBAR_H,
+          display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+          borderBottom: '1px solid var(--border-subtle)',
+          width: '100%', paddingLeft: 24, paddingRight: 24,
         }}>
-          {screen === 'entry' && (
-            <EntryScreen
-              values={values}
-              focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
-              showError={showError}
-              resendSeconds={resendSeconds}
-              onDigit={handleDigit}
-              onBackspace={handleBackspace}
-              onNext={handleNext}
-              onChangeEmail={() => navigateTo('change-email')}
-            />
-          )}
-          {screen === 'blocked' && (
-            <BlockedScreen onChangeEmail={() => navigateTo('change-email')} />
-          )}
-          {screen === 'change-email' && (
-            <ChangeEmailScreen
-              email={email}
-              emailFocused={emailFocused}
-              onEmailChange={setEmail}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
-              onSubmit={() => {
-                setValues(Array(6).fill(''))
-                setShowError(false)
-                setAttempts(0)
-                setResendSeconds(59)
-                navigateTo('entry')
-              }}
-            />
-          )}
+          <BilleaseIcon name="activity-outline" size="xs" color="var(--bg-secondary)" />
+          <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', fontWeight: 600, color: 'var(--text-base)' }}>
+            Interactive prototype
+          </span>
+          <span style={{ fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)' }}>
+            {SCREEN_LABELS[screen]} · {attempts}/5 attempts
+          </span>
+          <button onClick={handleRestart} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)',
+          }}>
+            <BilleaseIcon name="auto-renew" size="xs" color="var(--text-subtle)" />
+            Restart
+          </button>
         </div>
-      </PhoneMock>
-    </div>
+
+        {/* Phone */}
+        <PhoneMock scale={scale}>
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            transition: 'opacity 0.18s ease',
+            opacity: visible ? 1 : 0,
+          }}>
+            {screen === 'entry' && (
+              <EntryScreen
+                values={values}
+                focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
+                showError={showError}
+                shaking={shaking}
+                onShakeEnd={() => setShaking(false)}
+                resendSeconds={resendSeconds}
+                onDigit={handleDigit}
+                onBackspace={handleBackspace}
+                onChangeEmail={() => navigateTo('change-email')}
+              />
+            )}
+            {screen === 'blocked' && (
+              <BlockedScreen
+                blockedTimer={blockedTimer}
+                blockedExpired={blockedExpired}
+                onChangeEmail={() => navigateTo('change-email')}
+                onRequestNewCode={() => {
+                  attemptsRef.current = 0
+                  setAttempts(0)
+                  setValues(Array(6).fill(''))
+                  setShowError(false)
+                  setResendSeconds(59)
+                  navigateTo('entry')
+                }}
+              />
+            )}
+            {screen === 'change-email' && (
+              <ChangeEmailScreen
+                email={email}
+                emailFocused={emailFocused}
+                onEmailChange={setEmail}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+                onSubmit={() => {
+                  attemptsRef.current = 0
+                  setValues(Array(6).fill(''))
+                  setShowError(false)
+                  setAttempts(0)
+                  setResendSeconds(59)
+                  navigateTo('entry')
+                }}
+              />
+            )}
+          </div>
+        </PhoneMock>
+      </div>
+    </>
   )
 }

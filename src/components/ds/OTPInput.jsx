@@ -84,6 +84,10 @@ export default function OTPInput({
   const { numCells, cellW, cellH } = config
 
   function getCellState(i) {
+    if (showError) {
+      if (focusedIndex === i) return 'error-active'
+      return 'error'
+    }
     if (focusedIndex === i) return 'focused'
     if (values[i]) return 'filled'
     return 'default'
