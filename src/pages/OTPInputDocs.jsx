@@ -75,27 +75,25 @@ function CardBody({ children, style }) {
 
 // ─── Section 1: States (individual cells) ─────────────────────────────────────
 
-const CELL_STATES = ['default', 'focused', 'filled', 'success', 'error', 'error-active', 'masked', 'disabled']
+const CELL_STATES = ['default', 'focused', 'filled', 'success', 'error', 'masked', 'disabled']
 const CELL_STATE_LABEL = {
-  default:       'Default',
-  focused:       'Focused',
-  filled:        'Filled',
-  success:       'Success',
-  error:         'Error',
-  'error-active':'Error active',
-  masked:        'Masked',
-  disabled:      'Disabled',
+  default:  'Default',
+  focused:  'Focused',
+  filled:   'Filled',
+  success:  'Success',
+  error:    'Error',
+  masked:   'Masked',
+  disabled: 'Disabled',
 }
 
 const CELL_STATE_VALUES = {
-  default:       '',
-  focused:       '',
-  filled:        '4',
-  success:       '4',
-  error:         '4',
-  'error-active':'',
-  masked:        '',
-  disabled:      '',
+  default:  '',
+  focused:  '',
+  filled:   '4',
+  success:  '4',
+  error:    '4',
+  masked:   '',
+  disabled: '',
 }
 
 function StatesSection() {
