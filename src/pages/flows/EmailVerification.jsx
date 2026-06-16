@@ -91,66 +91,59 @@ function AndroidNavBar() {
   )
 }
 
-// ── Android numeric keyboard ──────────────────────────────────────────────────
+// ── Android numeric keyboard (phone-dialer style, 3 cols × 4 rows) ────────────
 const KEYPAD_ROWS = [
-  ['1', '2', '3', '__dash'],
-  ['4', '5', '6', '__enter'],
-  ['7', '8', '9', '__back'],
-  ['__sym', '0', '__dot', '__next'],
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['__back', '0', '__done'],
 ]
 const SUB = { '2':'ABC','3':'DEF','4':'GHI','5':'JKL','6':'MNO','7':'PQRS','8':'TUV','9':'WXYZ','0':'+' }
+const KEY_H = 56
 
-function AndroidKeyboard({ onDigit, onBackspace, onNext, nextEnabled }) {
+function AndroidKeyboard({ onDigit, onBackspace }) {
   function Key({ k }) {
     if (k === '__back') {
       return (
         <button onClick={onBackspace} style={{
-          flex: 1, height: 55, background: '#B0B4BE', border: 'none', cursor: 'pointer',
+          flex: 1, height: KEY_H, background: '#D1D3DA', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <svg width="22" height="18" viewBox="0 0 24 20" fill="#1D2D40">
-            <path d="M21 2H8c-.69 0-1.23.35-1.59.88L1 10l5.41 9.11c.36.53.9.89 1.59.89h13c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 16H8.07L3.4 10l4.66-8H21v16zm-8.59-2L16 12.41 19.59 16 21 14.59 17.41 12 21 9.41 19.59 8 16 11.59 12.41 8 11 9.41 14.59 12 11 14.59l1.41 1.41z"/>
+          {/* Standard Android backspace chevron */}
+          <svg width="24" height="18" viewBox="0 0 28 20" fill="none">
+            <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
         </button>
       )
     }
-    if (k === '__next') {
-      return (
-        <button onClick={nextEnabled ? onNext : undefined} style={{
-          flex: 1, height: 55,
-          background: nextEnabled ? '#1652F0' : '#8AAAF4',
-          border: 'none', cursor: nextEnabled ? 'pointer' : 'default',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ color: '#fff', fontSize: 22 }}>→</span>
-        </button>
-      )
-    }
-    if (['__dash','__enter','__sym','__dot'].includes(k)) {
-      const label = k === '__dash' ? '—' : k === '__enter' ? '↵' : k === '__sym' ? '?123' : '.'
+    if (k === '__done') {
       return (
         <button style={{
-          flex: 1, height: 55, background: '#B0B4BE', border: 'none', cursor: 'default',
+          flex: 1, height: KEY_H, background: '#D1D3DA', border: 'none', cursor: 'default',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: '#1D2D40', fontSize: 17 }}>{label}</span>
+          {/* Done key — inert, submission is auto on 6th digit */}
+          <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
+            <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       )
     }
     return (
       <button onClick={() => onDigit(k)} style={{
-        flex: 1, height: 55, background: '#FEFEFE', border: 'none', cursor: 'pointer',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0,
+        flex: 1, height: KEY_H, background: '#FAFAFA', border: 'none', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
       }}>
-        <span style={{ fontSize: 26, fontWeight: 300, color: '#1D2D40', lineHeight: '28px' }}>{k}</span>
-        {SUB[k] && <span style={{ fontSize: 8, color: '#666', letterSpacing: '1.5px' }}>{SUB[k]}</span>}
+        <span style={{ fontSize: 28, fontWeight: 300, color: '#1D2D40', lineHeight: '32px', fontFamily: 'var(--font-family)' }}>{k}</span>
+        {SUB[k] && <span style={{ fontSize: 9, color: '#606C79', letterSpacing: '1.8px', fontFamily: 'var(--font-family)' }}>{SUB[k]}</span>}
       </button>
     )
   }
 
   return (
     <div style={{ flexShrink: 0 }}>
-      <div style={{ backgroundColor: '#9FA3AD', display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <div style={{ backgroundColor: '#C8CAD0', display: 'flex', flexDirection: 'column', gap: 1 }}>
         {KEYPAD_ROWS.map((row, ri) => (
           <div key={ri} style={{ display: 'flex', gap: 1 }}>
             {row.map(k => <Key key={k} k={k} />)}
@@ -210,11 +203,7 @@ function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, res
           <ChangeEmailLink onClick={onChangeEmail} />
         </div>
       </div>
-      <AndroidKeyboard
-        onDigit={onDigit}
-        onBackspace={onBackspace}
-        nextEnabled={false}
-      />
+      <AndroidKeyboard onDigit={onDigit} onBackspace={onBackspace} />
     </>
   )
 }
