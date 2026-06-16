@@ -226,42 +226,53 @@ function formatCountdown(secs) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+function BlockedAlert({ blockedTimer, blockedExpired, onRequestNewCode }) {
+  return (
+    <div style={{
+      width: '100%',
+      backgroundColor: 'var(--bg-error-subtle)',
+      border: '1px solid var(--border-error)',
+      borderRadius: 12,
+      padding: '14px 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <BilleaseIcon name="info-outline" size="xs" color="var(--text-error)" />
+        <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-family)', color: 'var(--text-error)' }}>
+          Too many incorrect attempts
+        </span>
+      </div>
+      {blockedExpired ? (
+        <button onClick={onRequestNewCode} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+          fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
+          fontWeight: 600, textDecoration: 'underline',
+        }}>
+          Request new code
+        </button>
+      ) : (
+        <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
+          Request a new code in {formatCountdown(blockedTimer)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function BlockedScreen({ blockedTimer, blockedExpired, onChangeEmail, onRequestNewCode }) {
   return (
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
-            Enter 6-digit code we sent to
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
-            test@gmail.com
-          </div>
-        </div>
-        <OTPInput
-          type="OTP-email"
-          values={['5','8','2','1','3','7']}
-          showError
-          errorMessage="Too many incorrect attempts"
+      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, overflowY: 'auto' }}>
+        <BlockedAlert
+          blockedTimer={blockedTimer}
+          blockedExpired={blockedExpired}
+          onRequestNewCode={onRequestNewCode}
         />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          {blockedExpired ? (
-            <button onClick={onRequestNewCode} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
-              fontWeight: 600, padding: 0, textDecoration: 'underline',
-            }}>
-              Request new code
-            </button>
-          ) : (
-            <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
-              Request a new code in {formatCountdown(blockedTimer)}
-            </div>
-          )}
-          <ChangeEmailLink onClick={onChangeEmail} />
-        </div>
+        <ChangeEmailLink onClick={onChangeEmail} />
       </div>
       <AndroidNavBar />
     </>
@@ -311,36 +322,37 @@ function ChangeEmailScreen({ email, emailFocused, onEmailChange, onFocus, onBlur
 }
 
 // ── Phone mockup — Google Pixel 9 Pro (Obsidian) ─────────────────────────────
+const P9_BORDER = 10   // ~2 mm bezels
+const P9_OUTER_R = 40  // Pixel 9 Pro screen corner radius in dp ≈ 29, +bezel = ~40
+const P9_INNER_R = 30  // screen corner
+
 function PhoneMock({ children, scale = SCALE }) {
-  const BORDER = 13
-  const frameW = CW + BORDER * 2
-  const frameH = CH + BORDER * 2
-  const OUTER_R = 52
-  const INNER_R = 40
+  const frameW = CW + P9_BORDER * 2
+  const frameH = CH + P9_BORDER * 2
 
   return (
     <div style={{ width: frameW * scale, height: frameH * scale, flexShrink: 0, position: 'relative' }}>
-      {/* Right side buttons */}
-      <div style={{ position: 'absolute', right: -3 * scale, top: (BORDER + 148) * scale, zIndex: 20 }}>
+      {/* Right side: power + volume (Pixel 9 Pro — all buttons on right) */}
+      <div style={{ position: 'absolute', right: -3 * scale, top: (P9_BORDER + 160) * scale, zIndex: 20 }}>
+        {/* Power */}
+        <div style={{
+          width: 3 * scale, height: 68 * scale,
+          backgroundColor: '#303030',
+          borderRadius: `0 ${2 * scale}px ${2 * scale}px 0`,
+          marginBottom: 14 * scale,
+        }} />
         {/* Volume up */}
         <div style={{
-          width: 4 * scale, height: 58 * scale,
-          backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
-          marginBottom: 8 * scale,
+          width: 3 * scale, height: 54 * scale,
+          backgroundColor: '#303030',
+          borderRadius: `0 ${2 * scale}px ${2 * scale}px 0`,
+          marginBottom: 6 * scale,
         }} />
         {/* Volume down */}
         <div style={{
-          width: 4 * scale, height: 58 * scale,
-          backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
-          marginBottom: 24 * scale,
-        }} />
-        {/* Power button */}
-        <div style={{
-          width: 4 * scale, height: 72 * scale,
-          backgroundColor: '#2A2A2A',
-          borderRadius: `0 ${3 * scale}px ${3 * scale}px 0`,
+          width: 3 * scale, height: 54 * scale,
+          backgroundColor: '#303030',
+          borderRadius: `0 ${2 * scale}px ${2 * scale}px 0`,
         }} />
       </div>
 
@@ -348,26 +360,27 @@ function PhoneMock({ children, scale = SCALE }) {
         width: frameW, height: frameH,
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
-        borderRadius: OUTER_R,
-        backgroundColor: '#1C1C1E',
-        boxShadow: '0 0 0 1px #333, inset 0 1px 0 rgba(255,255,255,0.07)',
+        borderRadius: P9_OUTER_R,
+        backgroundColor: '#1A1A1A',
+        boxShadow: '0 0 0 1px #2a2a2a',
         position: 'relative',
         overflow: 'hidden',
       }}>
-        {/* Front camera hole-punch */}
+        {/* Punch-hole camera — centered, 13 px from top of screen */}
         <div style={{
-          position: 'absolute', top: 20, left: '50%',
+          position: 'absolute',
+          top: P9_BORDER + 13,
+          left: '50%',
           transform: 'translateX(-50%)',
-          width: 11, height: 11, borderRadius: '50%',
+          width: 10, height: 10, borderRadius: '50%',
           backgroundColor: '#0a0a0a', zIndex: 10,
-          boxShadow: 'inset 0 0 3px rgba(0,0,0,0.8)',
         }} />
         {/* Screen */}
         <div style={{
-          position: 'absolute', top: BORDER, left: BORDER,
+          position: 'absolute', top: P9_BORDER, left: P9_BORDER,
           width: CW, height: CH,
           overflow: 'hidden', backgroundColor: '#fff',
-          borderRadius: INNER_R,
+          borderRadius: P9_INNER_R,
           display: 'flex', flexDirection: 'column',
         }}>
           {children}
@@ -378,8 +391,8 @@ function PhoneMock({ children, scale = SCALE }) {
 }
 
 const TOOLBAR_H = 44
-const FRAME_H = CH + 13 * 2
-const FRAME_W = CW + 13 * 2
+const FRAME_H = CH + P9_BORDER * 2
+const FRAME_W = CW + P9_BORDER * 2
 const BLOCKED_SECS = 15 * 60  // 15 minutes
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -406,7 +419,7 @@ export default function TooManyOTPAttempts() {
       const { height, width } = containerRef.current.getBoundingClientRect()
       const availH = height - TOOLBAR_H - 24
       const availW = width - 32
-      setScale(Math.max(Math.min(availH / FRAME_H, availW / FRAME_W, 1), 0.4))
+      setScale(Math.max(Math.min(availH / FRAME_H, availW / FRAME_W, 0.82), 0.4))
     }
     computeScale()
     const ro = new ResizeObserver(computeScale)
