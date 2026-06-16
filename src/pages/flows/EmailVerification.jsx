@@ -443,7 +443,7 @@ export default function TooManyOTPAttempts() {
       setBlockedExpired(false)
       navigateTo('blocked')
     } else {
-      setValues(Array(6).fill(''))
+      // Keep values visible (shown in error state) during shake, clear after
       setShowError(true)
       setShaking(true)
     }
@@ -554,7 +554,7 @@ export default function TooManyOTPAttempts() {
                 focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
                 showError={showError}
                 shaking={shaking}
-                onShakeEnd={() => setShaking(false)}
+                onShakeEnd={() => { setShaking(false); setValues(Array(6).fill('')) }}
                 resendSeconds={resendSeconds}
                 onDigit={handleDigit}
                 onBackspace={handleBackspace}

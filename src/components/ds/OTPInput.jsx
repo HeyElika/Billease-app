@@ -10,7 +10,7 @@ const CELL_STYLES = {
   focused:       { background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--bg-secondary)' },
   filled:        { background: 'var(--bg-sunken)',       border: 'none' },
   success:       { background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--border-success)' },
-  error:         { background: 'var(--bg-error-subtle)', border: 'none' },
+  error:         { background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--text-error)' },
   'error-active':{ background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--text-error)' },
   masked:        { background: 'var(--bg-sunken)',       border: 'none' },
   'masked-error':{ background: 'var(--bg-error-subtle)', border: 'none' },
