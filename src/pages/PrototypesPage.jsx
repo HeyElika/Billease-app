@@ -3,6 +3,9 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useToc } from '../context/TocContext'
 import { PROTOTYPE_FLOWS } from '../data/prototypeFlows'
 import TooManyOTPAttempts from './flows/EmailVerification'
+import { HEADER_HEIGHT } from '../components/ui/Header'
+
+const SIDEBAR_W = 220
 
 const FLOW_COMPONENTS = {
   'email-verification': {
@@ -34,5 +37,17 @@ export default function PrototypesPage() {
   const Component = scenarioComponents[scenarioId]
   if (!Component) return <Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />
 
-  return <Component />
+  return (
+    <div style={{
+      position: 'fixed',
+      top: HEADER_HEIGHT,
+      left: SIDEBAR_W,
+      right: 0,
+      bottom: 0,
+      overflow: 'hidden',
+      backgroundColor: '#fff',
+    }}>
+      <Component />
+    </div>
+  )
 }

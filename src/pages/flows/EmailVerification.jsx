@@ -215,52 +215,41 @@ function formatCountdown(secs) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-function BlockedAlert({ blockedTimer, blockedExpired, onRequestNewCode }) {
-  return (
-    <div style={{
-      width: '100%',
-      backgroundColor: 'var(--bg-error-subtle)',
-      border: '1px solid var(--border-error)',
-      borderRadius: 12,
-      padding: '14px 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <BilleaseIcon name="info-outline" size="xs" color="var(--text-error)" />
-        <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-family)', color: 'var(--text-error)' }}>
-          Too many incorrect attempts
-        </span>
-      </div>
-      {blockedExpired ? (
-        <button onClick={onRequestNewCode} style={{
-          background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
-          fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
-          fontWeight: 600, textDecoration: 'underline',
-        }}>
-          Request new code
-        </button>
-      ) : (
-        <span style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
-          Request a new code in {formatCountdown(blockedTimer)}
-        </span>
-      )}
-    </div>
-  )
-}
-
-function BlockedScreen({ blockedTimer, blockedExpired, onChangeEmail, onRequestNewCode }) {
+function BlockedScreen({ values, blockedTimer, blockedExpired, onChangeEmail, onRequestNewCode }) {
   return (
     <>
       <StatusBar />
       <NavHeader title="Email verification" />
-      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, overflowY: 'auto' }}>
-        <BlockedAlert
-          blockedTimer={blockedTimer}
-          blockedExpired={blockedExpired}
-          onRequestNewCode={onRequestNewCode}
-        />
+      <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
+            Enter 6-digit code we sent to
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
+            test@gmail.com
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+          <OTPInput
+            type="OTP-email"
+            values={values}
+            showError={true}
+            errorMessage="Too many incorrect attempts"
+          />
+          <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
+            {blockedExpired ? (
+              <button onClick={onRequestNewCode} style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
+                fontWeight: 600, textDecoration: 'underline',
+              }}>
+                Request new code
+              </button>
+            ) : (
+              `Request a new code in ${formatCountdown(blockedTimer)}`
+            )}
+          </div>
+        </div>
         <ChangeEmailLink onClick={onChangeEmail} />
       </div>
       <AndroidNavBar />
@@ -394,6 +383,7 @@ export default function TooManyOTPAttempts() {
   const [resendSeconds, setResendSeconds] = useState(59)
   const [blockedTimer, setBlockedTimer] = useState(BLOCKED_SECS)
   const [blockedExpired, setBlockedExpired] = useState(false)
+  const [blockedValues, setBlockedValues] = useState(Array(6).fill(''))
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -441,6 +431,7 @@ export default function TooManyOTPAttempts() {
     attemptsRef.current = newAttempts
     setAttempts(newAttempts)
     if (newAttempts >= 5) {
+      setBlockedValues(filledValues)
       setBlockedTimer(BLOCKED_SECS)
       setBlockedExpired(false)
       navigateTo('blocked')
@@ -486,6 +477,7 @@ export default function TooManyOTPAttempts() {
       setResendSeconds(59)
       setBlockedTimer(BLOCKED_SECS)
       setBlockedExpired(false)
+      setBlockedValues(Array(6).fill(''))
       setEmail('')
       setEmailFocused(false)
       setVisible(true)
@@ -565,6 +557,7 @@ export default function TooManyOTPAttempts() {
             )}
             {screen === 'blocked' && (
               <BlockedScreen
+                values={blockedValues}
                 blockedTimer={blockedTimer}
                 blockedExpired={blockedExpired}
                 onChangeEmail={() => navigateTo('change-email')}
