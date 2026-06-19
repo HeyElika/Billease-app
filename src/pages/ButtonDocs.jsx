@@ -399,13 +399,13 @@ function AppearanceTokensTable({ spec, activeVariant }) {
 function SizeTokensTable({ spec }) {
   const PROPERTY_KEYS = ['height', 'icon size', 'font-size', 'padding-left/right', 'gap', 'font-weight', 'border-radius']
 
-  // Build a map: property → { lg: resolves, md: resolves, sm: resolves }
+  // Build a map: property → { lg: { tokenPath, resolves }, md: …, sm: … }
   const dataMap = {}
   spec.sizes.forEach(size => {
     const tokens = getTokensForVariant('primary', size, 'default')
     tokens.forEach(t => {
       if (!dataMap[t.property]) dataMap[t.property] = {}
-      dataMap[t.property][size] = t.resolves
+      dataMap[t.property][size] = { tokenPath: t.tokenPath, resolves: t.resolves }
     })
   })
 
@@ -413,6 +413,23 @@ function SizeTokensTable({ spec }) {
     const row = dataMap[prop]
     return row && spec.sizes.some(s => row[s] !== undefined)
   })
+
+  function SizeCell({ entry }) {
+    if (!entry) return <span style={{ color: 'var(--text-disabled)' }}>—</span>
+    const hasToken = entry.tokenPath && entry.tokenPath !== '—'
+    return (
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ color: hasToken ? 'var(--text-secondary)' : 'var(--text-base)' }}>
+          {hasToken ? entry.tokenPath : entry.resolves}
+        </span>
+        {hasToken && (
+          <span style={{ fontSize: 10, color: 'var(--text-disabled)', fontFamily: 'monospace' }}>
+            {entry.resolves}
+          </span>
+        )}
+      </span>
+    )
+  }
 
   return (
     <div style={{
@@ -476,7 +493,7 @@ function SizeTokensTable({ spec }) {
                   fontFamily: 'monospace',
                   color: 'var(--text-base)',
                 }}>
-                  {dataMap[prop]?.[size] ?? '—'}
+                  <SizeCell entry={dataMap[prop]?.[size]} />
                 </td>
               ))}
             </tr>
