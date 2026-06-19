@@ -14,6 +14,7 @@ import OTPInputDocs from './OTPInputDocs'
 import TextareaInputDocs from './TextareaInputDocs'
 import ActionMenuDocs from './ActionMenuDocs'
 import QuickActionDocs from './QuickActionDocs'
+import LinkDocs from './LinkDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -114,6 +115,13 @@ const ACTION_MENU_SECTION_DEFS = [
   { id: 'changelog',   label: 'Changelog'   },
 ]
 
+const LINK_SECTION_DEFS = [
+  { id: 'states',    label: 'States'    },
+  { id: 'sizes',     label: 'Sizes'     },
+  { id: 'icon-slot', label: 'Icon slot' },
+  { id: 'changelog', label: 'Changelog' },
+]
+
 const QUICK_ACTION_SECTION_DEFS = [
   { id: 'states',        label: 'States'             },
   { id: 'quick-action',  label: 'Quick action row'   },
@@ -122,6 +130,7 @@ const QUICK_ACTION_SECTION_DEFS = [
 
 const ACTION_MENU_IDS  = new Set(['11079:3310'])
 const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
+const LINK_IDS         = new Set(['190:3261'])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -620,6 +629,8 @@ export default function Explorer() {
       sections = ACTION_MENU_SECTION_DEFS
     } else if (QUICK_ACTION_IDS.has(nodeId)) {
       sections = QUICK_ACTION_SECTION_DEFS
+    } else if (LINK_IDS.has(nodeId)) {
+      sections = LINK_SECTION_DEFS
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -656,7 +667,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -674,6 +685,8 @@ export default function Explorer() {
         <ActionMenuDocs comp={comp} />
       ) : QUICK_ACTION_IDS.has(nodeId) ? (
         <QuickActionDocs comp={comp} />
+      ) : LINK_IDS.has(nodeId) ? (
+        <LinkDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
