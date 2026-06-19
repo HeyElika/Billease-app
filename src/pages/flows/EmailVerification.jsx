@@ -3,6 +3,7 @@ import OTPInput from '../../components/ds/OTPInput'
 import InputField from '../../components/ds/InputField'
 import Button from '../../components/ds/Button'
 import Link from '../../components/ds/Link'
+import NavHeader from '../../components/ds/NavHeader'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 
 const SCALE = 0.7
@@ -58,24 +59,6 @@ function StatusBar() {
   )
 }
 
-// ── Nav header ────────────────────────────────────────────────────────────────
-function NavHeader({ title }) {
-  return (
-    <div style={{
-      height: 56, backgroundColor: '#fff', flexShrink: 0,
-      display: 'flex', alignItems: 'center',
-      borderBottom: '1px solid #EAEDF0',
-    }}>
-      <div style={{ width: 44, paddingLeft: 16, display: 'flex', alignItems: 'center' }}>
-        <BilleaseIcon name="arrow-left" size="sm" color="#1D2D40" />
-      </div>
-      <span style={{
-        flex: 1, textAlign: 'center', marginRight: 44,
-        fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40',
-      }}>{title}</span>
-    </div>
-  )
-}
 
 // ── Android nav bar ───────────────────────────────────────────────────────────
 function AndroidNavBar() {
@@ -170,7 +153,7 @@ function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, res
   return (
     <>
       <StatusBar />
-      <NavHeader title="Email verification" />
+      <NavHeader type="icon-left" title="Email verification" showBorder />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
@@ -224,7 +207,7 @@ function BlockedScreen({ lastValues, onChangeEmail }) {
   return (
     <>
       <StatusBar />
-      <NavHeader title="Email verification" />
+      <NavHeader type="icon-left" title="Email verification" showBorder />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
@@ -261,7 +244,7 @@ function ChangeEmailScreen({ email, emailFocused, onEmailChange, onFocus, onBlur
   return (
     <>
       <StatusBar />
-      <NavHeader title="Change email" />
+      <NavHeader type="icon-left" title="Change email" showBorder />
       <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: 20, overflow: 'hidden' }}>
         <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#5A6475', lineHeight: '21px' }}>
           Enter a different email address to receive a new verification code
