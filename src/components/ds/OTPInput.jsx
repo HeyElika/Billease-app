@@ -14,7 +14,7 @@ const CELL_STYLES = {
   'error-active':{ background: 'var(--bg-base)',         border: 'var(--border-width-200) solid var(--text-error)' },
   masked:        { background: 'var(--bg-sunken)',       border: 'none' },
   'masked-error':{ background: 'var(--bg-error-subtle)', border: 'none' },
-  disabled:      { background: 'var(--bg-sunken)',       border: 'none' },
+  disabled:      { background: 'var(--bg-subtle)',        border: 'none' },
 }
 
 // ─── Type → cell config ────────────────────────────────────────────────────────
