@@ -50,7 +50,7 @@ export default function QuickActionItem({
         <BilleaseIcon name={icon} size="md" color={spec.icon} />
       </div>
       <span style={{
-        fontFamily: 'var(--font-family)',
+        fontFamily: 'var(--ds-font-family)',
         fontSize: 12,
         fontWeight: 400,
         lineHeight: '16px',

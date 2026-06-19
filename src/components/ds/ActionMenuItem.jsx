@@ -74,7 +74,7 @@ export default function ActionMenuItem({
         {/* Text stack */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <span style={{
-            fontFamily: 'var(--font-family)',
+            fontFamily: 'var(--ds-font-family)',
             fontSize: 16,
             fontWeight: 400,
             lineHeight: '24px',
@@ -84,7 +84,7 @@ export default function ActionMenuItem({
           </span>
           {showDescription && description && (
             <span style={{
-              fontFamily: 'var(--font-family)',
+              fontFamily: 'var(--ds-font-family)',
               fontSize: 13,
               fontWeight: 400,
               lineHeight: '19.5px',

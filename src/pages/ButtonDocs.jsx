@@ -11,7 +11,6 @@ const VARIANT_LABEL = {
   primary: 'Primary',
   secondary: 'Secondary',
   ghost: 'Ghost',
-  gradient: 'Gradient',
   'ghost-destructive': 'Ghost Destructive',
 }
 const STATE_LABEL = {

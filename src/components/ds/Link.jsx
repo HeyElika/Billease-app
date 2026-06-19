@@ -56,7 +56,7 @@ export default function Link({
           name="arrow-left"
           size="xs"
           color={color}
-          style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}
+          style={{ transform: 'rotate(180deg)', flexShrink: 0 }}
         />
       )}
     </button>
