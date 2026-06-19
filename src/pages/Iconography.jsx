@@ -36,7 +36,7 @@ function OverviewTab() {
 
       {/* Anatomy */}
       <section id="anatomy">
-        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)' }}>
           Anatomy
         </h2>
         <p style={{ margin: '12px 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
@@ -115,7 +115,7 @@ function OverviewTab() {
 
       {/* Sizes */}
       <section id="sizes">
-        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', paddingBottom: 12, borderBottom: '1px solid var(--border-subtle)' }}>
+        <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)' }}>
           Sizes
         </h2>
         <p style={{ margin: '12px 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6 }}>

@@ -35,8 +35,6 @@ function DocSection({ id, title, children }) {
         fontWeight: 700,
         color: 'var(--text-base)',
         margin: '0 0 20px',
-        paddingBottom: 12,
-        borderBottom: '1px solid var(--border-subtle)',
       }}>
         {title}
       </h2>
