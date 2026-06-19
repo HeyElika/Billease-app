@@ -209,10 +209,18 @@ function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, res
 }
 
 // ── Blocked screen ────────────────────────────────────────────────────────────
-// Figma: empty OTP cells in error state, static "Request a new code in 15 minutes"
-// text, no keyboard, no nav bar.
-function BlockedScreen({ onChangeEmail }) {
-  const emptyValues = Array(6).fill('')
+// Transition: error state (last digits, red borders) → disabled state (empty grey cells)
+// Keyboard is already gone when this screen mounts. After 700ms the OTP clears to disabled.
+function BlockedScreen({ lastValues, onChangeEmail }) {
+  const [isDisabled, setIsDisabled] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsDisabled(true), 700)
+    return () => clearTimeout(t)
+  }, [])
+
+  const displayValues = isDisabled ? Array(6).fill('') : lastValues
+
   return (
     <>
       <StatusBar />
@@ -229,8 +237,9 @@ function BlockedScreen({ onChangeEmail }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
           <OTPInput
             type="OTP-email"
-            values={emptyValues}
-            showError={true}
+            values={displayValues}
+            showError={!isDisabled}
+            disabled={isDisabled}
             errorMessage="Too many incorrect attempts"
           />
           <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
@@ -366,6 +375,7 @@ export default function TooManyOTPAttempts() {
   const [shaking, setShaking] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resendSeconds, setResendSeconds] = useState(59)
+  const [blockedValues, setBlockedValues] = useState(Array(6).fill(''))
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -406,6 +416,7 @@ export default function TooManyOTPAttempts() {
     attemptsRef.current = newAttempts
     setAttempts(newAttempts)
     if (newAttempts >= 5) {
+      setBlockedValues(filledValues)
       navigateTo('blocked')
     } else {
       // Keep values visible (shown in error state) during shake, clear after
@@ -447,6 +458,7 @@ export default function TooManyOTPAttempts() {
       setShaking(false)
       setAttempts(0)
       setResendSeconds(59)
+      setBlockedValues(Array(6).fill(''))
       setEmail('')
       setEmailFocused(false)
       setVisible(true)
@@ -526,6 +538,7 @@ export default function TooManyOTPAttempts() {
             )}
             {screen === 'blocked' && (
               <BlockedScreen
+                lastValues={blockedValues}
                 onChangeEmail={() => navigateTo('change-email')}
               />
             )}

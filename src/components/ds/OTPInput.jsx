@@ -78,12 +78,14 @@ export default function OTPInput({
   focusedIndex,
   errorMessage = '',
   showError = false,
+  disabled = false,
   onChange,
 }) {
   const config = TYPE_CONFIG[type] ?? TYPE_CONFIG['OTP-mobile']
   const { numCells, cellW, cellH } = config
 
   function getCellState(i) {
+    if (disabled) return 'disabled'
     if (showError) {
       if (focusedIndex === i) return 'error-active'
       return 'error'
