@@ -7,16 +7,12 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
  * Variants (type prop):
  *   icon-left         ← (default) back arrow + title + empty right slot
  *   title-only        centered title only
- *   icon-left-right   back arrow + title + close icon  ⚠ close icon missing from library
- *   logo-only         back arrow + Billease logo        ⚠ logo asset not in icon library
- *   icon-right        empty left + title + close icon   ⚠ close icon missing from library
+ *   icon-left-right   back arrow + title + close icon
+ *   logo-only         back arrow + Billease logo
+ *   icon-right        empty left + title + close icon
  *   help              back arrow + title + "Help" link
- *   w/progress        progress bar + close icon         ⚠ close icon missing from library
+ *   w/progress        progress bar + close icon
  *   w/subtitle        back arrow + title + subtitle
- *
- * ⚠ MISSING: A close/X icon is not in the Billease icon library.
- *   Variants that require it (icon-left-right, icon-right, w/progress) render a
- *   MissingIcon placeholder until the icon is added.
  */
 
 // ─── Specs from Figma ────────────────────────────────────────────────────────
@@ -91,20 +87,6 @@ function EmptySlot() {
   return <div style={{ ...ICON_SLOT, opacity: 0 }} />
 }
 
-// Placeholder shown for icons not yet in the library
-function MissingIcon() {
-  return (
-    <div style={{
-      width: 20, height: 20, borderRadius: 4,
-      backgroundColor: 'var(--bg-error-subtle)',
-      border: '1px solid var(--border-error)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 9, color: 'var(--text-error)', fontWeight: 700,
-    }}>
-      ?
-    </div>
-  )
-}
 
 // ─── NavHeader ────────────────────────────────────────────────────────────────
 
@@ -131,14 +113,13 @@ export default function NavHeader({
     </IconSlot>
   )
 
-  // ⚠ Close icon not in library — renders a missing-icon badge
   const CloseIcon = (
     <IconSlot>
       <button
         onClick={onClose}
         style={{ background: 'none', border: 'none', padding: 0, cursor: onClose ? 'pointer' : 'default', display: 'flex' }}
       >
-        <MissingIcon />
+        <BilleaseIcon name="close-mini" size="sm" color="var(--text-base)" />
       </button>
     </IconSlot>
   )
