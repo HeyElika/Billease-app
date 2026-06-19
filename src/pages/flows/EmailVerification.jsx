@@ -209,13 +209,10 @@ function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, res
 }
 
 // ── Blocked screen ────────────────────────────────────────────────────────────
-function formatCountdown(secs) {
-  const m = Math.floor(secs / 60)
-  const s = secs % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function BlockedScreen({ values, blockedTimer, blockedExpired, onChangeEmail, onRequestNewCode }) {
+// Figma: empty OTP cells in error state, static "Request a new code in 15 minutes"
+// text, no keyboard, no nav bar.
+function BlockedScreen({ onChangeEmail }) {
+  const emptyValues = Array(6).fill('')
   return (
     <>
       <StatusBar />
@@ -232,27 +229,16 @@ function BlockedScreen({ values, blockedTimer, blockedExpired, onChangeEmail, on
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
           <OTPInput
             type="OTP-email"
-            values={values}
+            values={emptyValues}
             showError={true}
             errorMessage="Too many incorrect attempts"
           />
           <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
-            {blockedExpired ? (
-              <button onClick={onRequestNewCode} style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40',
-                fontWeight: 600, textDecoration: 'underline',
-              }}>
-                Request new code
-              </button>
-            ) : (
-              `Request a new code in ${formatCountdown(blockedTimer)}`
-            )}
+            Request a new code in 15 minutes
           </div>
         </div>
         <ChangeEmailLink onClick={onChangeEmail} />
       </div>
-      <AndroidNavBar />
     </>
   )
 }
@@ -371,7 +357,6 @@ function PhoneMock({ children, scale = SCALE }) {
 const TOOLBAR_H = 44
 const FRAME_H = CH + P9_BORDER * 2
 const FRAME_W = CW + P9_BORDER * 2
-const BLOCKED_SECS = 15 * 60  // 15 minutes
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function TooManyOTPAttempts() {
@@ -381,9 +366,6 @@ export default function TooManyOTPAttempts() {
   const [shaking, setShaking] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resendSeconds, setResendSeconds] = useState(59)
-  const [blockedTimer, setBlockedTimer] = useState(BLOCKED_SECS)
-  const [blockedExpired, setBlockedExpired] = useState(false)
-  const [blockedValues, setBlockedValues] = useState(Array(6).fill(''))
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
@@ -413,13 +395,6 @@ export default function TooManyOTPAttempts() {
     return () => clearTimeout(t)
   }, [resendSeconds, screen])
 
-  // 15-min blocked countdown
-  useEffect(() => {
-    if (screen !== 'blocked' || blockedExpired || blockedTimer <= 0) return
-    if (blockedTimer === 0) { setBlockedExpired(true); return }
-    const t = setTimeout(() => setBlockedTimer(s => s - 1), 1000)
-    return () => clearTimeout(t)
-  }, [blockedTimer, screen, blockedExpired])
 
   function navigateTo(next) {
     setVisible(false)
@@ -431,9 +406,6 @@ export default function TooManyOTPAttempts() {
     attemptsRef.current = newAttempts
     setAttempts(newAttempts)
     if (newAttempts >= 5) {
-      setBlockedValues(filledValues)
-      setBlockedTimer(BLOCKED_SECS)
-      setBlockedExpired(false)
       navigateTo('blocked')
     } else {
       // Keep values visible (shown in error state) during shake, clear after
@@ -475,9 +447,6 @@ export default function TooManyOTPAttempts() {
       setShaking(false)
       setAttempts(0)
       setResendSeconds(59)
-      setBlockedTimer(BLOCKED_SECS)
-      setBlockedExpired(false)
-      setBlockedValues(Array(6).fill(''))
       setEmail('')
       setEmailFocused(false)
       setVisible(true)
@@ -557,18 +526,7 @@ export default function TooManyOTPAttempts() {
             )}
             {screen === 'blocked' && (
               <BlockedScreen
-                values={blockedValues}
-                blockedTimer={blockedTimer}
-                blockedExpired={blockedExpired}
                 onChangeEmail={() => navigateTo('change-email')}
-                onRequestNewCode={() => {
-                  attemptsRef.current = 0
-                  setAttempts(0)
-                  setValues(Array(6).fill(''))
-                  setShowError(false)
-                  setResendSeconds(59)
-                  navigateTo('entry')
-                }}
               />
             )}
             {screen === 'change-email' && (
