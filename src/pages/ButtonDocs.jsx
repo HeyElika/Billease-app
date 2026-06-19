@@ -397,7 +397,7 @@ function AppearanceTokensTable({ spec, activeVariant }) {
 }
 
 function SizeTokensTable({ spec }) {
-  const PROPERTY_KEYS = ['height', 'font-size', 'padding-left/right', 'gap', 'font-weight', 'border-radius']
+  const PROPERTY_KEYS = ['height', 'icon size', 'font-size', 'padding-left/right', 'gap', 'font-weight', 'border-radius']
 
   // Build a map: property → { lg: resolves, md: resolves, sm: resolves }
   const dataMap = {}

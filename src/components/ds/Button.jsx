@@ -31,6 +31,11 @@ const GAP = { filled: 8, ghost: 4 }
 // cornerRadius: 9999 for all filled types; ghost has no background so radius is irrelevant
 const RADIUS_FILLED = 'var(--radius-full)'  // 9999px
 
+// icon-placeholder size per button size (read from Figma node)
+// lg/md → size-[20px] → BilleaseIcon sm; sm → size-[16px] → BilleaseIcon xs
+const ICON_SIZE = { lg: 'sm', md: 'sm', sm: 'xs' }
+const ICON_SIZE_PX = { lg: 20, md: 20, sm: 16 }
+
 /**
  * Per-variant, per-state fill specs.
  * bg: base background (CSS background value — may be a gradient string or token)
@@ -269,7 +274,7 @@ export default function Button({
         onClick={onClick}
       >
         {iconLeft && !isLoading && (
-          <BilleaseIcon name="arrow-left" size="xs" color={spec.text} />
+          <BilleaseIcon name="arrow-left" size={ICON_SIZE[size]} color={spec.text} />
         )}
         {isLoading ? (
           platform === 'ios'
@@ -279,7 +284,7 @@ export default function Button({
           <span>{label}</span>
         )}
         {iconRight && !isLoading && (
-          <BilleaseIcon name="arrow-left" size="xs" color={spec.text} style={{ transform: 'rotate(180deg)' }} />
+          <BilleaseIcon name="arrow-left" size={ICON_SIZE[size]} color={spec.text} style={{ transform: 'rotate(180deg)' }} />
         )}
       </button>
     </>
@@ -299,6 +304,7 @@ export function getTokensForVariant(type, size, state) {
 
   const tokens = [
     { property: 'height',        value: `${HEIGHT[size]}px`,                       tokenPath: '—',                      resolves: `${HEIGHT[size]}px` },
+    { property: 'icon size',     value: ICON_SIZE[size],                            tokenPath: `icon/size/${ICON_SIZE[size]}`, resolves: `${ICON_SIZE_PX[size]}px` },
     { property: 'font-size',     value: FONT_SIZE_TOKEN[size],                      tokenPath: `typography/size/${size === 'sm' ? 'md' : 'lg'}`, resolves: `${FONT_SIZE[size]}px` },
     { property: 'font-weight',   value: `${FONT_WEIGHT_TOKEN}`,                    tokenPath: 'typography/weight/semibold', resolves: '600' },
     { property: 'gap',           value: `${isGhost ? GAP.ghost : GAP.filled}px`,  tokenPath: isGhost ? 'spacing/100' : 'spacing/200', resolves: isGhost ? '4px' : '8px' },
