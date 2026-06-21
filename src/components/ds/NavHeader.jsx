@@ -1,4 +1,6 @@
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
+import NavigationWatermark from './NavigationWatermark'
+import NavigationProgress from './NavigationProgress'
 
 /**
  * NavHeader — Billease Design System
@@ -15,41 +17,17 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
  *   w/subtitle        back arrow + title + subtitle (outer is button)
  *
  * Props:
- *   type         — variant name (see above)
- *   title        — header title text
- *   subtitle     — subtitle line (w/subtitle only)
- *   showBorder   — show 1px border-bottom (default false)
+ *   type          — variant name (see above)
+ *   title         — header title text
+ *   subtitle      — subtitle line (w/subtitle only)
+ *   showBorder    — show 1px border-bottom (default false)
  *   showWatermark — show colored dot watermark at top (default true, per Figma)
- *   showTitle    — show/hide title text (default true)
- *   onBack       — callback for back arrow press
- *   onClose      — callback for close icon press
- *   onHelp       — callback for Help link press
+ *   showTitle     — show/hide title text (default true)
+ *   progress      — NavigationProgress state: 'start' | 'mid' | 'end' (w/progress variant)
+ *   onBack        — callback for back arrow press
+ *   onClose       — callback for close icon press
+ *   onHelp        — callback for Help link press
  */
-
-// ─── Navigation watermark ─────────────────────────────────────────────────────
-// Figma node 16:1698 — 10 colored 4px dots, right-aligned at the top of each header.
-// Shows which DS component is being used. Present in all variants by default.
-const WATERMARK_COLORS = ['yellow', 'pink', 'green', 'black', '#f0f', '#8b4513', 'purple', 'orange', 'red', '#0ff']
-
-function NavigationWatermark() {
-  return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 20,
-      width: 320,
-      height: 4,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      gap: 2,
-    }}>
-      {WATERMARK_COLORS.map((color, i) => (
-        <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
-      ))}
-    </div>
-  )
-}
 
 // ─── Specs from Figma ────────────────────────────────────────────────────────
 // height: 44px  |  content row: left=20px, width=320px, height=40px
@@ -161,6 +139,7 @@ export default function NavHeader({
   showBorder = false,
   showWatermark = true,
   showTitle = true,
+  progress = 'start',
   onBack,
   onClose,
   onHelp,
@@ -212,9 +191,7 @@ export default function NavHeader({
       <>
         <EmptySlot />
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ width: 90, height: 4, backgroundColor: 'var(--bg-sunken)', borderRadius: 100, overflow: 'hidden' }}>
-            <div style={{ width: 30, height: 4, backgroundColor: 'var(--bg-secondary)', borderRadius: 100 }} />
-          </div>
+          <NavigationProgress state={progress} />
         </div>
         <CloseButton onClose={onClose} />
       </>

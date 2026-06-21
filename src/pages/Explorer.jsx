@@ -15,6 +15,7 @@ import TextareaInputDocs from './TextareaInputDocs'
 import ActionMenuDocs from './ActionMenuDocs'
 import QuickActionDocs from './QuickActionDocs'
 import LinkDocs from './LinkDocs'
+import NavHeaderDocs from './NavHeaderDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -128,9 +129,17 @@ const QUICK_ACTION_SECTION_DEFS = [
   { id: 'changelog',     label: 'Changelog'          },
 ]
 
+const NAV_HEADER_SECTION_DEFS = [
+  { id: 'variants',        label: 'Variants'        },
+  { id: 'sub-components',  label: 'Sub-components'  },
+  { id: 'props',           label: 'Props'           },
+  { id: 'changelog',       label: 'Changelog'       },
+]
+
 const ACTION_MENU_IDS  = new Set(['11079:3310'])
 const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 const LINK_IDS         = new Set(['190:3261'])
+const NAV_HEADER_IDS   = new Set(['50:3459'])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -629,6 +638,8 @@ export default function Explorer() {
       sections = QUICK_ACTION_SECTION_DEFS
     } else if (LINK_IDS.has(nodeId)) {
       sections = LINK_SECTION_DEFS
+    } else if (NAV_HEADER_IDS.has(nodeId)) {
+      sections = NAV_HEADER_SECTION_DEFS
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -665,7 +676,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -685,6 +696,8 @@ export default function Explorer() {
         <QuickActionDocs comp={comp} />
       ) : LINK_IDS.has(nodeId) ? (
         <LinkDocs comp={comp} />
+      ) : NAV_HEADER_IDS.has(nodeId) ? (
+        <NavHeaderDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
