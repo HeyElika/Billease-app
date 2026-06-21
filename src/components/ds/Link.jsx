@@ -53,10 +53,10 @@ export default function Link({
       {label}
       {showIcon && (
         <BilleaseIcon
-          name="arrow-left"
+          name="chevron-right"
           size="xs"
           color={color}
-          style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}
+          style={{ flexShrink: 0 }}
         />
       )}
     </button>
