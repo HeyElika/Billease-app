@@ -37,12 +37,14 @@ export default function PrototypesPage() {
   const Component = scenarioComponents[scenarioId]
   if (!Component) return <Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />
 
+  const TOC_W = 200
+
   return (
     <div style={{
       position: 'fixed',
       top: HEADER_HEIGHT,
       left: SIDEBAR_W,
-      right: 0,
+      right: TOC_W,
       bottom: 0,
       overflow: 'hidden',
       backgroundColor: '#fff',

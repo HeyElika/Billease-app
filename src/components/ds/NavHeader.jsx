@@ -48,7 +48,7 @@ const CONTENT_ROW = {
   top: '50%',
   transform: 'translateY(-50%)',
   left: 20,
-  width: 320,
+  right: 20,
   height: 40,
   display: 'flex',
   alignItems: 'center',
