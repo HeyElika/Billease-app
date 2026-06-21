@@ -640,9 +640,9 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
             flex: 1, display: 'flex', flexDirection: 'column',
             transition: 'opacity 0.18s ease',
             opacity: visible ? 1 : 0,
+            pointerEvents: inspect ? 'none' : undefined,
           }}>
             {screen === 'entry' && (
-              <div style={inspect ? { pointerEvents: 'none' } : undefined}>
               <EntryScreen
                 values={values}
                 focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
@@ -661,7 +661,6 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
                 onChangeEmail={() => navigateTo('change-email')}
                 onResend={handleResend}
               />
-              </div>
             )}
             {screen === 'blocked' && (
               <BlockedScreen
