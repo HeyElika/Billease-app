@@ -156,7 +156,7 @@ function EntryScreen({ values, focusedIndex, showError, showErrorMsg, shaking, o
   return (
     <>
       <StatusBar />
-      <NavHeader type="icon-left" title="Email verification" showBorder />
+      <NavHeader type="icon-left" title="Email verification" showBorder showWatermark={false} />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
 
         {/* Top section — gap 4px per Figma */}
@@ -226,7 +226,7 @@ function BlockedScreen({ lastValues, onChangeEmail }) {
   return (
     <>
       <StatusBar />
-      <NavHeader type="icon-left" title="Email verification" showBorder />
+      <NavHeader type="icon-left" title="Email verification" showBorder showWatermark={false} />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center' }}>
           <span style={{ fontSize: 16, fontWeight: 400, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
@@ -263,7 +263,7 @@ function ChangeEmailScreen({ email, emailFocused, onEmailChange, onFocus, onBlur
   return (
     <>
       <StatusBar />
-      <NavHeader type="icon-left" title="Change email" showBorder />
+      <NavHeader type="icon-left" title="Change email" showBorder showWatermark={false} />
       <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', gap: 20, overflow: 'hidden' }}>
         <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#5A6475', lineHeight: '21px' }}>
           Enter a different email address to receive a new verification code
@@ -495,11 +495,8 @@ export default function TooManyOTPAttempts() {
 
       <div ref={containerRef} style={{
         height: '100%',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: 16,
+        display: 'flex', flexDirection: 'column',
         backgroundColor: '#fff',
-        gap: 8,
         overflow: 'hidden',
       }}>
         {/* Toolbar */}
@@ -526,7 +523,8 @@ export default function TooManyOTPAttempts() {
           </button>
         </div>
 
-        {/* Phone */}
+        {/* Phone — centered in remaining space */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <PhoneMock scale={scale}>
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
@@ -579,6 +577,7 @@ export default function TooManyOTPAttempts() {
             )}
           </div>
         </PhoneMock>
+        </div>
       </div>
     </>
   )
