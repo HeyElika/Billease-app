@@ -159,6 +159,7 @@ function FoundationSidebar() {
       <SidebarNavLink to="/tokens">Design Tokens</SidebarNavLink>
       <SidebarNavLink to="/typography">Typography</SidebarNavLink>
       <SidebarNavLink to="/icons">Iconography</SidebarNavLink>
+      <SidebarNavLink to="/illustrations">Illustrations</SidebarNavLink>
     </div>
   )
 }
@@ -283,7 +284,7 @@ function PlaceholderSidebar({ label }) {
 export default function Sidebar() {
   const { pathname } = useLocation()
 
-  const isFoundation  = pathname.startsWith('/tokens') || pathname.startsWith('/icons') || pathname.startsWith('/typography')
+  const isFoundation  = pathname.startsWith('/tokens') || pathname.startsWith('/icons') || pathname.startsWith('/typography') || pathname.startsWith('/illustrations')
   const isComponents  = pathname.startsWith('/explorer')
   const isMotion      = pathname.startsWith('/motion')
   const isPrototypes  = pathname.startsWith('/prototypes')
