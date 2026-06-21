@@ -14,7 +14,7 @@ const CH = 820
 function StatusBar() {
   return (
     <div style={{
-      height: 28, backgroundColor: '#fff', flexShrink: 0,
+      height: 42, backgroundColor: '#fff', flexShrink: 0,
       display: 'flex', alignItems: 'center',
       justifyContent: 'space-between',
       paddingLeft: 20, paddingRight: 16,
@@ -149,42 +149,61 @@ function ChangeEmailLink({ onClick }) {
 }
 
 // ── Entry / Error screen ──────────────────────────────────────────────────────
-function EntryScreen({ values, focusedIndex, showError, shaking, onShakeEnd, resendSeconds, onDigit, onBackspace, onChangeEmail }) {
+function EntryScreen({ values, focusedIndex, showError, showErrorMsg, shaking, onShakeEnd, resendSeconds, onDigit, onBackspace, onChangeEmail, onResend }) {
+  // When in error-cleared state: cells show as default (no focus, no red borders)
+  const otpFocusedIndex = showErrorMsg ? undefined : focusedIndex
+
   return (
     <>
       <StatusBar />
       <NavHeader type="icon-left" title="Email verification" showBorder />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
+
+        {/* Top section — gap 4px per Figma */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center' }}>
+          <span style={{ fontSize: 16, fontWeight: 400, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
             Enter 6-digit code we sent to
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
             test@gmail.com
-          </div>
+          </span>
         </div>
-        <div
-          className={shaking ? 'otp-shake' : ''}
-          onAnimationEnd={onShakeEnd}
-        >
-          <OTPInput
-            type="OTP-email"
-            values={values}
-            focusedIndex={focusedIndex}
-            showError={showError}
-            errorMessage="Incorrect code. Try again."
-          />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <div style={{ textAlign: 'center', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
-            {resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : (
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', fontWeight: 600, padding: 0 }}>
-                Resend code
-              </button>
+
+        {/* OTP section — gap 24px between cells-group and resend */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+          {/* Cells + error message (gap 16px inside, matches OTPInput's internal gap) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div
+              className={shaking ? 'otp-shake' : ''}
+              onAnimationEnd={onShakeEnd}
+            >
+              <OTPInput
+                type="OTP-email"
+                values={values}
+                focusedIndex={otpFocusedIndex}
+                showError={showError}
+                errorMessage="Incorrect code. Try again."
+              />
+            </div>
+            {/* After shake: cells go to default but error message persists here */}
+            {showErrorMsg && !showError && (
+              <span style={{ fontSize: 14, fontWeight: 400, fontFamily: 'var(--font-family)', color: 'var(--text-error)', lineHeight: '21px', textAlign: 'center' }}>
+                Incorrect code. Try again.
+              </span>
             )}
           </div>
-          <ChangeEmailLink onClick={onChangeEmail} />
+
+          {/* Resend row */}
+          <div style={{ textAlign: 'center', fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
+            {resendSeconds > 0
+              ? <span style={{ fontSize: 16, fontWeight: 400 }}>{`Resend code in ${resendSeconds}s`}</span>
+              : <Link label="Resend code" size="sm" state="default" showIcon={false} onClick={onResend} />
+            }
+          </div>
         </div>
+
+        {/* Change email */}
+        <ChangeEmailLink onClick={onChangeEmail} />
       </div>
       <AndroidKeyboard onDigit={onDigit} onBackspace={onBackspace} />
     </>
@@ -209,13 +228,13 @@ function BlockedScreen({ lastValues, onChangeEmail }) {
       <StatusBar />
       <NavHeader type="icon-left" title="Email verification" showBorder />
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 14, fontFamily: 'var(--font-family)', color: '#1D2D40', lineHeight: '21px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center' }}>
+          <span style={{ fontSize: 16, fontWeight: 400, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
             Enter 6-digit code we sent to
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family)', color: '#1D2D40' }}>
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 600, fontFamily: 'var(--font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
             test@gmail.com
-          </div>
+          </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
           <OTPInput
@@ -355,6 +374,7 @@ export default function TooManyOTPAttempts() {
   const [screen, setScreen] = useState('entry')
   const [values, setValues] = useState(Array(6).fill(''))
   const [showError, setShowError] = useState(false)
+  const [showErrorMsg, setShowErrorMsg] = useState(false)
   const [shaking, setShaking] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resendSeconds, setResendSeconds] = useState(59)
@@ -409,12 +429,13 @@ export default function TooManyOTPAttempts() {
   }
 
   function handleDigit(d) {
+    if (showError) setShowError(false)
+    if (showErrorMsg) setShowErrorMsg(false)
     setValues(prev => {
       const idx = prev.findIndex(v => v === '')
       if (idx === -1) return prev
       const next = [...prev]
       next[idx] = d
-      if (showError) setShowError(false)
       // Auto-submit when last cell filled
       if (idx === 5) {
         setTimeout(() => submitCode(next), 300)
@@ -431,6 +452,11 @@ export default function TooManyOTPAttempts() {
     })
   }
 
+  function handleResend() {
+    setResendSeconds(59)
+    setShowErrorMsg(false)
+  }
+
   function handleRestart() {
     setVisible(false)
     setTimeout(() => {
@@ -438,6 +464,7 @@ export default function TooManyOTPAttempts() {
       setScreen('entry')
       setValues(Array(6).fill(''))
       setShowError(false)
+      setShowErrorMsg(false)
       setShaking(false)
       setAttempts(0)
       setResendSeconds(59)
@@ -511,12 +538,19 @@ export default function TooManyOTPAttempts() {
                 values={values}
                 focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
                 showError={showError}
+                showErrorMsg={showErrorMsg}
                 shaking={shaking}
-                onShakeEnd={() => { setShaking(false); setValues(Array(6).fill('')) }}
+                onShakeEnd={() => {
+                  setShaking(false)
+                  setShowError(false)
+                  setValues(Array(6).fill(''))
+                  setShowErrorMsg(true)
+                }}
                 resendSeconds={resendSeconds}
                 onDigit={handleDigit}
                 onBackspace={handleBackspace}
                 onChangeEmail={() => navigateTo('change-email')}
+                onResend={handleResend}
               />
             )}
             {screen === 'blocked' && (
@@ -536,6 +570,7 @@ export default function TooManyOTPAttempts() {
                   attemptsRef.current = 0
                   setValues(Array(6).fill(''))
                   setShowError(false)
+                  setShowErrorMsg(false)
                   setAttempts(0)
                   setResendSeconds(59)
                   navigateTo('entry')
