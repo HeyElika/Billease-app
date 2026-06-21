@@ -6,17 +6,54 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
  *
  * Variants (type prop):
  *   icon-left         ← (default) back arrow + title + empty right slot
- *   title-only        centered title only
+ *   title-only        centered title only, no side icons, gap 0
  *   icon-left-right   back arrow + title + close icon
  *   logo-only         back arrow + Billease logo
  *   icon-right        empty left + title + close icon
  *   help              back arrow + title + "Help" link
  *   w/progress        progress bar + close icon
- *   w/subtitle        back arrow + title + subtitle
+ *   w/subtitle        back arrow + title + subtitle (outer is button)
+ *
+ * Props:
+ *   type         — variant name (see above)
+ *   title        — header title text
+ *   subtitle     — subtitle line (w/subtitle only)
+ *   showBorder   — show 1px border-bottom (default false)
+ *   showWatermark — show colored dot watermark at top (default true, per Figma)
+ *   showTitle    — show/hide title text (default true)
+ *   onBack       — callback for back arrow press
+ *   onClose      — callback for close icon press
+ *   onHelp       — callback for Help link press
  */
 
+// ─── Navigation watermark ─────────────────────────────────────────────────────
+// Figma node 16:1698 — 10 colored 4px dots, right-aligned at the top of each header.
+// Shows which DS component is being used. Present in all variants by default.
+const WATERMARK_COLORS = ['yellow', 'pink', 'green', 'black', '#f0f', '#8b4513', 'purple', 'orange', 'red', '#0ff']
+
+function NavigationWatermark() {
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 20,
+      width: 320,
+      height: 4,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 2,
+    }}>
+      {WATERMARK_COLORS.map((color, i) => (
+        <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: color, flexShrink: 0 }} />
+      ))}
+    </div>
+  )
+}
+
 // ─── Specs from Figma ────────────────────────────────────────────────────────
-// height: 44px  |  content area: left=20px, width=320px, height=40px, gap=8px
+// height: 44px  |  content row: left=20px, width=320px, height=40px
+// gap=8px (all variants except title-only which uses gap=0)
 // title: var(--text-base), var(--text-xl)=20px, weight 600, lineHeight 1.25
 // icon slot: 24×24  |  icon inside: size sm (20px), padded 2px
 
@@ -67,7 +104,7 @@ const TITLE_TEXT = {
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  width: '100%',
+  width: 256,                        // matches Figma w-[256px] for title text
 }
 
 const SUBTITLE_TEXT = {
@@ -75,8 +112,9 @@ const SUBTITLE_TEXT = {
   fontSize: 'var(--text-sm)',        // 13px — typography/size/sm
   fontWeight: 400,
   lineHeight: 1.5,
-  color: 'var(--text-subtle)',
+  color: 'var(--text-base)',
   textAlign: 'center',
+  width: 256,
 }
 
 function IconSlot({ children }) {
@@ -84,25 +122,11 @@ function IconSlot({ children }) {
 }
 
 function EmptySlot() {
-  return <div style={{ ...ICON_SLOT, opacity: 0 }} />
+  return <div style={ICON_SLOT} />
 }
 
-
-// ─── NavHeader ────────────────────────────────────────────────────────────────
-
-export default function NavHeader({
-  type = 'icon-left',          // see variants above
-  title = '',
-  subtitle = '',               // used by w/subtitle
-  showBorder = false,
-  onBack,
-  onClose,
-}) {
-  const borderStyle = showBorder
-    ? { borderBottom: '1px solid var(--border-subtle)' }
-    : {}
-
-  const BackIcon = (
+function BackButton({ onBack }) {
+  return (
     <IconSlot>
       <button
         onClick={onBack}
@@ -112,8 +136,10 @@ export default function NavHeader({
       </button>
     </IconSlot>
   )
+}
 
-  const CloseIcon = (
+function CloseButton({ onClose }) {
+  return (
     <IconSlot>
       <button
         onClick={onClose}
@@ -123,82 +149,118 @@ export default function NavHeader({
       </button>
     </IconSlot>
   )
+}
 
-  const Title = (
+
+// ─── NavHeader ────────────────────────────────────────────────────────────────
+
+export default function NavHeader({
+  type = 'icon-left',
+  title = '',
+  subtitle = '',
+  showBorder = false,
+  showWatermark = true,
+  showTitle = true,
+  onBack,
+  onClose,
+  onHelp,
+}) {
+  const borderStyle = showBorder
+    ? { borderBottom: '1px solid var(--border-subtle)' }
+    : {}
+
+  const TitleEl = showTitle ? (
     <div style={TITLE_SLOT}>
       <span style={TITLE_TEXT}>{title}</span>
     </div>
+  ) : (
+    <div style={TITLE_SLOT} />
   )
 
   let content
+  let contentGap = 8
 
   if (type === 'title-only') {
-    content = <>{Title}</>
+    contentGap = 0
+    content = <>{TitleEl}</>
   } else if (type === 'icon-left-right') {
-    content = <>{BackIcon}{Title}{CloseIcon}</>
+    content = <><BackButton onBack={onBack} />{TitleEl}<CloseButton onClose={onClose} /></>
   } else if (type === 'icon-right') {
-    content = <>{EmptySlot()}{Title}{CloseIcon}</>
+    content = <><EmptySlot />{TitleEl}<CloseButton onClose={onClose} /></>
   } else if (type === 'help') {
     content = (
       <>
-        {BackIcon}
-        {Title}
-        <div style={{ ...ICON_SLOT, width: 'auto' }}>
-          <button style={{
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-            fontFamily: 'var(--ds-font-family)', fontSize: 'var(--text-md)', fontWeight: 600,
-            color: 'var(--text-base)', lineHeight: 1.5, textDecoration: 'underline',
-          }}>
+        <BackButton onBack={onBack} />
+        {TitleEl}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          <button
+            onClick={onHelp}
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+              color: 'var(--text-base)', lineHeight: 1.5,
+              textDecoration: 'underline', textDecorationSkipInk: 'none',
+            }}
+          >
             Help
           </button>
         </div>
       </>
     )
   } else if (type === 'w/progress') {
-    // progress bar: outer 90px, inner 30px (1/3 = start)
     content = (
       <>
         <EmptySlot />
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ width: 90, height: 4, backgroundColor: 'var(--bg-sunken)', borderRadius: 100, overflow: 'hidden' }}>
             <div style={{ width: 30, height: 4, backgroundColor: 'var(--bg-secondary)', borderRadius: 100 }} />
           </div>
         </div>
-        {CloseIcon}
+        <CloseButton onClose={onClose} />
       </>
     )
   } else if (type === 'w/subtitle') {
-    content = (
-      <>
-        {BackIcon}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-          <span style={{ ...TITLE_TEXT, fontSize: 'var(--text-lg)', lineHeight: 1.25 }}>{title}</span>
-          <span style={SUBTITLE_TEXT}>{subtitle}</span>
+    // outer is <button> in Figma (tappable row)
+    return (
+      <button
+        onClick={onBack}
+        style={{ ...CONTAINER, ...borderStyle, cursor: onBack ? 'pointer' : 'default', display: 'block', textAlign: 'left' }}
+      >
+        {showWatermark && <NavigationWatermark />}
+        <div style={{ ...CONTENT_ROW, gap: 8 }}>
+          <BackButton onBack={undefined} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+            {showTitle && (
+              <span style={{ ...TITLE_TEXT, fontSize: 'var(--text-lg)', lineHeight: 1.25 }}>{title}</span>
+            )}
+            <span style={SUBTITLE_TEXT}>{subtitle}</span>
+          </div>
+          <EmptySlot />
         </div>
-        <EmptySlot />
-      </>
+      </button>
     )
   } else if (type === 'logo-only') {
-    // ⚠ Billease logo asset not in icon library — render brand text fallback
+    // Billease logo — image assets not in icon library, render text fallback
     content = (
       <>
-        {BackIcon}
-        <div style={{ ...TITLE_SLOT }}>
-          <span style={{ fontFamily: 'var(--ds-font-family)', fontSize: 18, fontWeight: 700, color: 'var(--text-base)' }}>
+        <BackButton onBack={onBack} />
+        <div style={TITLE_SLOT}>
+          <span style={{ fontFamily: 'var(--ds-font-family)', fontSize: 18, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1 }}>
             bill<span style={{ color: 'var(--bg-primary)' }}>ease</span>
           </span>
         </div>
-        <EmptySlot />
+        <div style={{ ...ICON_SLOT, opacity: 0 }} />
       </>
     )
   } else {
     // icon-left (default)
-    content = <>{BackIcon}{Title}<EmptySlot /></>
+    content = <><BackButton onBack={onBack} />{TitleEl}<EmptySlot /></>
   }
 
   return (
     <div style={{ ...CONTAINER, ...borderStyle }}>
-      <div style={CONTENT_ROW}>
+      {showWatermark && <NavigationWatermark />}
+      <div style={{ ...CONTENT_ROW, gap: contentGap }}>
         {content}
       </div>
     </div>
