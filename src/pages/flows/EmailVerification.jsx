@@ -368,38 +368,125 @@ function PhoneMock({ children, scale = SCALE }) {
 const TOOLBAR_H = 44
 const FRAME_H = CH + P9_BORDER * 2
 const FRAME_W = CW + P9_BORDER * 2
+const INSPECT_W = 264
+
+// ── DS component registry for inspect panel ───────────────────────────────────
+const ALL_COMPONENTS = {
+  NavHeader:  { urlId: '50_3459',   desc: 'Top navigation bar with back arrow and title', category: 'Navigation' },
+  OTPInput:   { urlId: '188_2882',  desc: '6-cell email verification code input',          category: 'Input'      },
+  Link:       { urlId: '190_3261',  desc: 'Inline text link (Resend code, Change email)',  category: 'Action'     },
+  InputField: { urlId: '109_1161',  desc: 'Text input field for email address',            category: 'Input'      },
+  Button:     { urlId: '16_182',    desc: 'Primary action button',                         category: 'Action'     },
+}
+
+const SCREEN_COMPONENTS = {
+  entry:          ['NavHeader', 'OTPInput', 'Link'],
+  blocked:        ['NavHeader', 'OTPInput'],
+  'change-email': ['NavHeader', 'InputField', 'Button'],
+}
+
+// ── Inspect panel ─────────────────────────────────────────────────────────────
+function InspectPanel({ screen }) {
+  const names = SCREEN_COMPONENTS[screen] ?? []
+
+  return (
+    <div style={{
+      width: INSPECT_W,
+      flexShrink: 0,
+      borderLeft: '1px solid var(--border-subtle)',
+      backgroundColor: '#fff',
+      display: 'flex',
+      flexDirection: 'column',
+      overflowY: 'auto',
+    }}>
+      <div style={{
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--border-subtle)',
+        backgroundColor: 'var(--bg-subtle)',
+      }}>
+        <span style={{
+          fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-family)',
+          color: 'var(--text-disabled)', textTransform: 'uppercase', letterSpacing: '0.5px',
+        }}>
+          Components on this screen
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {names.map((name, i) => {
+          const c = ALL_COMPONENTS[name]
+          return (
+            <a
+              key={name}
+              href={`/explorer/${c.urlId}`}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                padding: '12px 16px',
+                borderBottom: '1px solid var(--border-subtle)',
+                textDecoration: 'none',
+                backgroundColor: '#fff',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-family)', color: 'var(--text-base)' }}>
+                  {name}
+                </span>
+                <span style={{ fontSize: 10, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', borderRadius: 4, padding: '1px 6px' }}>
+                  {c.category}
+                </span>
+              </div>
+              <span style={{ fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', lineHeight: 1.4 }}>
+                {c.desc}
+              </span>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-family)', color: 'var(--text-primary)', fontWeight: 600, marginTop: 2 }}>
+                View in DS →
+              </span>
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function TooManyOTPAttempts() {
+export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts' }) {
   const [screen, setScreen] = useState('entry')
   const [values, setValues] = useState(Array(6).fill(''))
   const [showError, setShowError] = useState(false)
   const [showErrorMsg, setShowErrorMsg] = useState(false)
   const [shaking, setShaking] = useState(false)
   const [attempts, setAttempts] = useState(0)
-  const [resendSeconds, setResendSeconds] = useState(59)
+  const [resendSeconds, setResendSeconds] = useState(scenarioId === 'expired-otp' ? 0 : 59)
   const [blockedValues, setBlockedValues] = useState(Array(6).fill(''))
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
   const [visible, setVisible] = useState(true)
   const [scale, setScale] = useState(SCALE)
+  const [inspect, setInspect] = useState(false)
   const containerRef = useRef(null)
   const attemptsRef = useRef(0)
+  const inspectRef = useRef(false)
 
-  // Dynamic phone scale
+  // Dynamic phone scale — re-runs when inspect panel opens/closes
   useEffect(() => {
     function computeScale() {
       if (!containerRef.current) return
       const { height, width } = containerRef.current.getBoundingClientRect()
       const availH = height - TOOLBAR_H - 24
-      const availW = width - 32
+      const availW = width - 32 - (inspectRef.current ? INSPECT_W : 0)
       setScale(Math.max(Math.min(availH / FRAME_H, availW / FRAME_W, 0.82), 0.4))
     }
+    inspectRef.current = inspect
     computeScale()
     const ro = new ResizeObserver(computeScale)
     if (containerRef.current) ro.observe(containerRef.current)
     return () => ro.disconnect()
-  }, [])
+  }, [inspect])
 
   // Resend countdown (entry screen)
   useEffect(() => {
@@ -508,22 +595,45 @@ export default function TooManyOTPAttempts() {
         }}>
           <BilleaseIcon name="activity-outline" size="xs" color="var(--bg-secondary)" />
           <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', fontWeight: 600, color: 'var(--text-base)' }}>
-            Interactive prototype
+            {inspect ? 'Inspect mode' : 'Interactive prototype'}
           </span>
-          <span style={{ fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)' }}>
-            {SCREEN_LABELS[screen]} · {attempts}/5 attempts
-          </span>
-          <button onClick={handleRestart} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 4,
-            fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)',
-          }}>
-            <BilleaseIcon name="auto-renew" size="xs" color="var(--text-subtle)" />
-            Restart
+          {!inspect && (
+            <span style={{ fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)' }}>
+              {SCREEN_LABELS[screen]} · {attempts}/5 attempts
+            </span>
+          )}
+          {!inspect && (
+            <button onClick={handleRestart} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 12, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)',
+            }}>
+              <BilleaseIcon name="auto-renew" size="xs" color="var(--text-subtle)" />
+              Restart
+            </button>
+          )}
+          {/* Inspect toggle — pushed to right */}
+          <button
+            onClick={() => setInspect(v => !v)}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '4px 12px', borderRadius: 100,
+              border: `1px solid ${inspect ? 'var(--border-primary)' : 'var(--border-subtle)'}`,
+              backgroundColor: inspect ? 'var(--bg-error-subtle)' : 'transparent',
+              color: inspect ? 'var(--text-primary)' : 'var(--text-subtle)',
+              fontSize: 12, fontWeight: inspect ? 600 : 400,
+              fontFamily: 'var(--font-family)', cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            <BilleaseIcon name={inspect ? 'show' : 'eye-off'} size="xs" color={inspect ? 'var(--text-primary)' : 'var(--text-subtle)'} />
+            Inspect
           </button>
         </div>
 
-        {/* Phone — centered in remaining space */}
+        {/* Stage — phone + optional inspect panel */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <PhoneMock scale={scale}>
           <div style={{
@@ -532,6 +642,7 @@ export default function TooManyOTPAttempts() {
             opacity: visible ? 1 : 0,
           }}>
             {screen === 'entry' && (
+              <div style={inspect ? { pointerEvents: 'none' } : undefined}>
               <EntryScreen
                 values={values}
                 focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
@@ -550,6 +661,7 @@ export default function TooManyOTPAttempts() {
                 onChangeEmail={() => navigateTo('change-email')}
                 onResend={handleResend}
               />
+              </div>
             )}
             {screen === 'blocked' && (
               <BlockedScreen
@@ -577,6 +689,8 @@ export default function TooManyOTPAttempts() {
             )}
           </div>
         </PhoneMock>
+        </div>
+        {inspect && <InspectPanel screen={screen} />}
         </div>
       </div>
     </>

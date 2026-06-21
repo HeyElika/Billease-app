@@ -4,6 +4,7 @@ export const PROTOTYPE_FLOWS = [
     label: 'Email Verification',
     scenarios: [
       { id: 'too-many-otp-attempts', label: 'Too many wrong OTP attempts' },
+      { id: 'expired-otp',           label: 'Expired OTP'                 },
     ],
   },
 ]

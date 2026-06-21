@@ -9,7 +9,8 @@ const SIDEBAR_W = 220
 
 const FLOW_COMPONENTS = {
   'email-verification': {
-    'too-many-otp-attempts': TooManyOTPAttempts,
+    'too-many-otp-attempts': (props) => <TooManyOTPAttempts {...props} scenarioId="too-many-otp-attempts" />,
+    'expired-otp':           (props) => <TooManyOTPAttempts {...props} scenarioId="expired-otp" />,
   },
 }
 
