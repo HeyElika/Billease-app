@@ -593,7 +593,6 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
           borderBottom: '1px solid var(--border-subtle)',
           width: '100%', paddingLeft: 24, paddingRight: 24,
         }}>
-          <BilleaseIcon name="activity-outline" size="xs" color="var(--bg-secondary)" />
           <span style={{ fontSize: 13, fontFamily: 'var(--font-family)', fontWeight: 600, color: 'var(--text-base)' }}>
             {inspect ? 'Inspect mode' : 'Interactive prototype'}
           </span>
@@ -617,18 +616,30 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
             onClick={() => setInspect(v => !v)}
             style={{
               marginLeft: 'auto',
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '4px 12px', borderRadius: 100,
-              border: `1px solid ${inspect ? 'var(--border-primary)' : 'var(--border-subtle)'}`,
-              backgroundColor: inspect ? 'var(--bg-error-subtle)' : 'transparent',
-              color: inspect ? 'var(--text-primary)' : 'var(--text-subtle)',
-              fontSize: 12, fontWeight: inspect ? 600 : 400,
-              fontFamily: 'var(--font-family)', cursor: 'pointer',
-              transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'none', border: 'none', padding: 0,
+              cursor: 'pointer', fontFamily: 'var(--font-family)',
+              fontSize: 12, color: inspect ? 'var(--text-base)' : 'var(--text-subtle)',
+              fontWeight: inspect ? 600 : 400,
             }}
           >
-            <BilleaseIcon name={inspect ? 'show' : 'eye-off'} size="xs" color={inspect ? 'var(--text-primary)' : 'var(--text-subtle)'} />
             Inspect
+            {/* Toggle track */}
+            <div style={{
+              width: 36, height: 20, borderRadius: 10, flexShrink: 0,
+              backgroundColor: inspect ? 'var(--bg-secondary)' : 'var(--bg-sunken)',
+              position: 'relative', transition: 'background-color 0.2s',
+            }}>
+              {/* Toggle thumb */}
+              <div style={{
+                position: 'absolute',
+                top: 2, left: inspect ? 16 : 2,
+                width: 16, height: 16, borderRadius: '50%',
+                backgroundColor: '#fff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                transition: 'left 0.2s',
+              }} />
+            </div>
           </button>
         </div>
 
