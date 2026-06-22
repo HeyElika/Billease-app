@@ -141,7 +141,7 @@ const ACTION_MENU_IDS  = new Set(['11079:3310'])
 const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 const LINK_IDS         = new Set(['190:3261'])
 const NAV_HEADER_IDS   = new Set(['50:3459'])
-const ALERT_IDS        = new Set(['228:11120', '11972:1657', '11972:1661', '11972:1665', '11972:1687'])
+const ALERT_IDS        = new Set(['228:11120', '228:11126', '11972:1657', '11972:1661', '11972:1665', '11972:1687'])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
