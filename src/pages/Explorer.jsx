@@ -644,11 +644,9 @@ export default function Explorer() {
       sections = NAV_HEADER_SECTION_DEFS
     } else if (ALERT_IDS.has(nodeId)) {
       sections = [
-        { id: 'variants',   label: 'Variants'   },
+        { id: 'appearance', label: 'Appearance' },
         { id: 'alignment',  label: 'Alignment'  },
-        { id: 'playground', label: 'Playground' },
         { id: 'props',      label: 'Props'      },
-        { id: 'usage',      label: 'Usage notes'},
         { id: 'changelog',  label: 'Changelog'  },
       ]
     } else if (spec) {
