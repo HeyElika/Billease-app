@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 export const HEADER_HEIGHT = 52
 
 const NAV_ITEMS = [
-  { label: 'Foundation',  matches: ['/tokens', '/typography', '/icons', '/illustrations'] },
+  { label: 'Foundation',  matches: ['/tokens', '/typography', '/icons', '/illustrations', '/grid'] },
   { label: 'Components',  matches: ['/explorer']           },
   { label: 'Motion',      matches: ['/motion']             },
   { label: 'Patterns',    matches: ['/patterns']           },

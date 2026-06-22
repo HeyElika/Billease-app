@@ -9,6 +9,7 @@ import Motion from './pages/Motion'
 import Patterns from './pages/Patterns'
 import Typography from './pages/Typography'
 import Illustrations from './pages/Illustrations'
+import Grid from './pages/Grid'
 import PrototypesPage from './pages/PrototypesPage'
 import { TocProvider } from './context/TocContext'
 
@@ -50,6 +51,7 @@ function Layout() {
               <Route path="/typography" element={<Typography />} />
               <Route path="/icons" element={<Iconography />} />
               <Route path="/illustrations" element={<Illustrations />} />
+              <Route path="/grid" element={<Grid />} />
               <Route path="/motion" element={<Motion />} />
               <Route path="/patterns" element={<Patterns />} />
               <Route path="/prototypes" element={<Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />} />
