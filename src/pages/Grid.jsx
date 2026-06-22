@@ -20,6 +20,7 @@ export const GRID_COL_W = (GRID_CONTENT_W - GRID.gutter * (GRID.columns - 1)) / 
 
 import { useEffect } from 'react'
 import { useToc } from '../context/TocContext'
+import { primitives } from '../tokens'
 
 const SECTIONS = [
   { id: 'base-unit',  label: 'Base Unit'  },
@@ -71,8 +72,7 @@ export default function Grid() {
   const { setSections } = useToc()
   useEffect(() => { setSections(SECTIONS); return () => setSections([]) }, [])
 
-  // Multiples of 4 up to 80
-  const scale = Array.from({ length: 20 }, (_, i) => (i + 1) * 4)
+  const scale = Object.entries(primitives.spacing)
 
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
@@ -88,10 +88,11 @@ export default function Grid() {
           The smallest increment is <strong style={{ color: 'var(--text-base)' }}>4px</strong>. All spacing, sizing, and layout values must be multiples of 4. This creates visual consistency and makes designs predictable across screens.
         </p>
         <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap', padding: '24px 0' }}>
-          {[4, 8, 12, 16, 20, 24, 32, 40, 48].map(v => (
-            <div key={v} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: v, height: v, backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.7 + v / 200 }} />
+          {Object.entries(primitives.spacing).map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: Math.min(v * 1.5, 60), height: Math.min(v * 1.5, 60), backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.5 + v / 100 }} />
               <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-subtle)' }}>{v}</span>
+              <span style={{ fontSize: 9, fontFamily: 'var(--font-family)', color: 'var(--text-disabled)' }}>{k}</span>
             </div>
           ))}
         </div>
@@ -177,15 +178,16 @@ export default function Grid() {
         <Card>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <TableHead cols={['Step', 'Value', 'Visual']} />
+              <TableHead cols={['Token', 'CSS Variable', 'Value', 'Visual']} />
             </thead>
             <tbody>
-              {scale.map((v, i) => (
-                <tr key={v} style={{ borderBottom: i < scale.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-                  <td style={{ padding: '8px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-subtle)' }}>{i + 1}</td>
+              {scale.map(([k, v], i) => (
+                <tr key={k} style={{ borderBottom: i < scale.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <td style={{ padding: '8px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-base)' }}>spacing/{k}</td>
+                  <td style={{ padding: '8px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-secondary)' }}>--spacing-{k}</td>
                   <td style={{ padding: '8px 16px', fontFamily: 'monospace', fontSize: 13, color: 'var(--text-base)', fontWeight: 600 }}>{v}px</td>
                   <td style={{ padding: '8px 16px' }}>
-                    <div style={{ width: Math.min(v * 2, 320), height: 12, backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.6 }} />
+                    <div style={{ width: Math.min(v * 4, 320), height: 12, backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.6 }} />
                   </td>
                 </tr>
               ))}
