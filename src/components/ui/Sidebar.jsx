@@ -46,32 +46,38 @@ function SectionLabel({ children }) {
   )
 }
 
-function SidebarNavLink({ to, children }) {
+function SidebarNavLink({ to, activePrefix, children }) {
+  const { pathname } = useLocation()
+  const prefixActive = activePrefix ? pathname.startsWith(activePrefix) : false
+
   return (
     <NavLink
       to={to}
-      style={({ isActive }) => ({
-        display: 'block',
-        padding: '7px 16px',
-        textDecoration: 'none',
-        fontFamily: 'var(--font-family)',
-        fontSize: 13,
-        color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
-        fontWeight: isActive ? 600 : 400,
-        borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
-        backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
-        transition: 'background-color 0.1s, color 0.1s',
-      })}
+      style={({ isActive }) => {
+        const active = prefixActive || isActive
+        return {
+          display: 'block',
+          padding: '7px 16px',
+          textDecoration: 'none',
+          fontFamily: 'var(--font-family)',
+          fontSize: 13,
+          color: active ? 'var(--text-base)' : 'var(--text-subtle)',
+          fontWeight: active ? 600 : 400,
+          borderLeft: active ? '2px solid var(--bg-secondary)' : '2px solid transparent',
+          backgroundColor: active ? 'var(--bg-info-subtle)' : 'transparent',
+          transition: 'background-color 0.1s, color 0.1s',
+        }
+      }}
       onMouseEnter={e => {
         const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-        if (!isCurrent) {
+        if (!isCurrent && !prefixActive) {
           e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
           e.currentTarget.style.color = 'var(--text-base)'
         }
       }}
       onMouseLeave={e => {
         const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
-        if (!isCurrent) {
+        if (!isCurrent && !prefixActive) {
           e.currentTarget.style.backgroundColor = 'transparent'
           e.currentTarget.style.color = 'var(--text-subtle)'
         }
@@ -255,7 +261,11 @@ function PrototypesSidebar() {
     <div style={{ paddingBottom: 24 }}>
       <SectionLabel>Flows</SectionLabel>
       {PROTOTYPE_FLOWS.map(flow => (
-        <SidebarNavLink key={flow.id} to={`/prototypes/${flow.id}/${flow.scenarios[0].id}`}>
+        <SidebarNavLink
+          key={flow.id}
+          to={`/prototypes/${flow.id}/${flow.scenarios[0].id}`}
+          activePrefix={`/prototypes/${flow.id}/`}
+        >
           {flow.label}
         </SidebarNavLink>
       ))}
