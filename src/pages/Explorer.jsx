@@ -16,6 +16,7 @@ import ActionMenuDocs from './ActionMenuDocs'
 import QuickActionDocs from './QuickActionDocs'
 import LinkDocs from './LinkDocs'
 import NavHeaderDocs from './NavHeaderDocs'
+import AlertDocs from './AlertDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ const ACTION_MENU_IDS  = new Set(['11079:3310'])
 const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 const LINK_IDS         = new Set(['190:3261'])
 const NAV_HEADER_IDS   = new Set(['50:3459'])
+const ALERT_IDS        = new Set(['228:11120', '11972:1657', '11972:1661', '11972:1665', '11972:1687'])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -640,6 +642,15 @@ export default function Explorer() {
       sections = LINK_SECTION_DEFS
     } else if (NAV_HEADER_IDS.has(nodeId)) {
       sections = NAV_HEADER_SECTION_DEFS
+    } else if (ALERT_IDS.has(nodeId)) {
+      sections = [
+        { id: 'variants',   label: 'Variants'   },
+        { id: 'alignment',  label: 'Alignment'  },
+        { id: 'playground', label: 'Playground' },
+        { id: 'props',      label: 'Props'      },
+        { id: 'usage',      label: 'Usage notes'},
+        { id: 'changelog',  label: 'Changelog'  },
+      ]
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -676,7 +687,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) && !ALERT_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -698,6 +709,8 @@ export default function Explorer() {
         <LinkDocs comp={comp} />
       ) : NAV_HEADER_IDS.has(nodeId) ? (
         <NavHeaderDocs comp={comp} />
+      ) : ALERT_IDS.has(nodeId) ? (
+        <AlertDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
