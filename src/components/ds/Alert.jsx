@@ -57,11 +57,11 @@ export default function Alert({ type = 'info', message, children }) {
       display: 'flex',
       alignItems: 'flex-start',
       gap: 8,
-      padding: 16,
-      borderRadius: 12,
+      padding: 16,                      // spacing/400
+      borderRadius: 'var(--radius-lg)', // radius_medium = 12px
       backgroundColor: cfg.bg,
     }}>
-      {/* Icon — top-align when multi-line, center when single-line */}
+      {/* Icon container: 20px × 20px with 2px inner padding → 16px effective icon */}
       <div style={{
         flexShrink: 0,
         display: 'flex',
@@ -69,10 +69,11 @@ export default function Alert({ type = 'info', message, children }) {
         justifyContent: 'center',
         width: 20,
         height: 20,
-        marginTop: multiLine ? 1 : 'auto',
+        padding: 2,                     // icon/padding/xs
+        boxSizing: 'border-box',
         alignSelf: multiLine ? 'flex-start' : 'center',
       }}>
-        <BilleaseIcon name={cfg.icon} size="sm" color={cfg.iconColor} />
+        <BilleaseIcon name={cfg.icon} size="xs" color={cfg.iconColor} />
       </div>
 
       {/* Text */}

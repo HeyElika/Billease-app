@@ -173,21 +173,33 @@ export default function Tokens() {
 
       {/* Border radius */}
       <Section id="border-radius" title="Border Radius">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          {Object.entries(primitives.radius).map(([k, v]) => (
-            <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <div style={{
-                width: 48,
-                height: 48,
-                backgroundColor: 'var(--bg-sunken)',
-                border: '1px solid var(--border-default)',
-                borderRadius: Math.min(v, 24),
-              }} />
-              <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-subtle)' }}>{v === 9999 ? 'full' : `${v}px`}</span>
-              <span style={{ fontSize: 10, fontFamily: 'var(--font-family)', color: 'var(--text-disabled)' }}>{k}</span>
-            </div>
-          ))}
-        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
+          <thead>
+            <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
+              {['Preview', 'Token', 'CSS Variable', 'Value'].map(h => (
+                <th key={h} style={{ padding: '6px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-disabled)', textTransform: 'uppercase', letterSpacing: '0.4px', borderBottom: '1px solid var(--border-subtle)', fontFamily: 'var(--font-family)' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(primitives.radius).map(([k, v], i, arr) => (
+              <tr key={k} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                <td style={{ padding: '10px 12px' }}>
+                  <div style={{
+                    width: 40, height: 40,
+                    backgroundColor: 'var(--bg-sunken)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: Math.min(v, 20),
+                    flexShrink: 0,
+                  }} />
+                </td>
+                <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-base)' }}>radius/{k}</td>
+                <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-secondary)' }}>--radius-{k}</td>
+                <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-subtle)' }}>{v === 9999 ? '9999px (full)' : `${v}px`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Section>
 
       <div style={{ height: 48 }} />
