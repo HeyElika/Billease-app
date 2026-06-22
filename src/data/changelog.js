@@ -1,5 +1,12 @@
 // Component changelog entries — keyed by Figma node ID
 export const CHANGELOGS = {
+  '35:1200': [
+    {
+      date: '2026-06-22',
+      type: 'added',
+      description: 'Added Notification Banner (Toast) component. Types: critical, success, error, info. Dynamic icon alignment: single-line = center, two-line = top-aligned. Text truncates at 2 lines.',
+    },
+  ],
   '16:182': [
     {
       date: '2026-06-09',

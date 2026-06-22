@@ -17,6 +17,7 @@ import QuickActionDocs from './QuickActionDocs'
 import LinkDocs from './LinkDocs'
 import NavHeaderDocs from './NavHeaderDocs'
 import AlertDocs from './AlertDocs'
+import ToastDocs from './ToastDocs'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -142,6 +143,7 @@ const QUICK_ACTION_IDS = new Set(['11079:851',  '11079:718' ])
 const LINK_IDS         = new Set(['190:3261'])
 const NAV_HEADER_IDS   = new Set(['50:3459'])
 const ALERT_IDS        = new Set(['228:11120', '228:11126', '11972:1657', '11972:1661', '11972:1665', '11972:1687'])
+const TOAST_IDS        = new Set(['35:1200', '10063:175'])
 
 // ─── Shared UI helpers ────────────────────────────────────────────────────────
 
@@ -649,6 +651,13 @@ export default function Explorer() {
         { id: 'props',      label: 'Props'      },
         { id: 'changelog',  label: 'Changelog'  },
       ]
+    } else if (TOAST_IDS.has(nodeId)) {
+      sections = [
+        { id: 'appearance', label: 'Appearance' },
+        { id: 'alignment',  label: 'Alignment'  },
+        { id: 'props',      label: 'Props'      },
+        { id: 'changelog',  label: 'Changelog'  },
+      ]
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -685,7 +694,7 @@ export default function Explorer() {
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
       {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) && !ALERT_IDS.has(nodeId) ? (
+      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) && !ALERT_IDS.has(nodeId) && !TOAST_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
@@ -709,6 +718,8 @@ export default function Explorer() {
         <NavHeaderDocs comp={comp} />
       ) : ALERT_IDS.has(nodeId) ? (
         <AlertDocs comp={comp} />
+      ) : TOAST_IDS.has(nodeId) ? (
+        <ToastDocs comp={comp} />
       ) : (
         <>
           {/* ── Anatomy ── */}
