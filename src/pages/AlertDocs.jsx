@@ -1,16 +1,47 @@
 import { useState } from 'react'
 import Alert from '../components/ds/Alert'
 
-const LABEL = { color: 'var(--text-subtle)', fontSize: 12, fontFamily: 'var(--ds-font-family)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }
-const SECTION_TITLE = { margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', fontFamily: 'var(--ds-font-family)' }
-const DIVIDER = { borderTop: '1px solid var(--border-subtle)', margin: '48px 0' }
-const PREVIEW_BOX = { padding: 24, backgroundColor: 'var(--bg-subtle)', borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 12 }
+// ─── Shared layout helpers (same pattern as LinkDocs, NavHeaderDocs) ──────────
 
-function Tag({ children, color = 'var(--bg-sunken)', text = 'var(--text-subtle)' }) {
+function DocSection({ id, title, children, description }) {
   return (
-    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 100, backgroundColor: color, fontSize: 11, fontWeight: 600, fontFamily: 'var(--ds-font-family)', color: text }}>
+    <section id={id} style={{ marginBottom: 56 }}>
+      <h2 style={{ fontFamily: 'var(--font-family)', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 20px' }}>
+        {title}
+      </h2>
+      {description && (
+        <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
+          {description}
+        </p>
+      )}
       {children}
-    </span>
+    </section>
+  )
+}
+
+function DocCard({ children, style }) {
+  return (
+    <div style={{ backgroundColor: '#fff', border: '1px solid var(--border-subtle)', borderRadius: 8, overflow: 'hidden', ...style }}>
+      {children}
+    </div>
+  )
+}
+
+function CardHeader({ label }) {
+  return (
+    <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-subtle)' }}>
+      <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function CardBody({ children, style }) {
+  return (
+    <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 16, backgroundColor: '#fff', ...style }}>
+      {children}
+    </div>
   )
 }
 
@@ -20,8 +51,16 @@ function PropRow({ name, type, def, desc }) {
       <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 13, color: 'var(--text-base)', borderBottom: '1px solid var(--border-subtle)' }}>{name}</td>
       <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-info, #265ce5)', borderBottom: '1px solid var(--border-subtle)' }}>{type}</td>
       <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontSize: 12, color: 'var(--text-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>{def}</td>
-      <td style={{ padding: '10px 16px', fontSize: 13, fontFamily: 'var(--ds-font-family)', color: 'var(--text-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>{desc}</td>
+      <td style={{ padding: '10px 16px', fontSize: 13, fontFamily: 'var(--font-family)', color: 'var(--text-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>{desc}</td>
     </tr>
+  )
+}
+
+function Tag({ children, color = 'var(--bg-sunken)', text = 'var(--text-subtle)' }) {
+  return (
+    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 100, backgroundColor: color, fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-family)', color: text }}>
+      {children}
+    </span>
   )
 }
 
@@ -30,88 +69,85 @@ export default function AlertDocs({ comp }) {
   const [liveMsg, setLiveMsg] = useState('Your session will expire in 5 minutes.')
 
   return (
-    <div style={{ fontFamily: 'var(--ds-font-family)' }}>
+    <div style={{ fontFamily: 'var(--font-family)' }}>
 
-      {/* Description */}
       <p style={{ margin: '0 0 40px', fontSize: 15, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
         Alert banners communicate non-blocking status messages — informational, successful, warning, or critical. They sit inline in a screen, not as toasts or modals.
       </p>
 
       {/* ── Variants ── */}
-      <section id="variants" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Variants</h2>
-        <div style={PREVIEW_BOX}>
-          <div><div style={LABEL}>Critical</div>
-            <Alert type="critical" message="Your account has been locked after too many failed attempts." />
-          </div>
-          <div><div style={LABEL}>Success</div>
-            <Alert type="success" message="Your email address has been verified successfully." />
-          </div>
-          <div><div style={LABEL}>Info</div>
-            <Alert type="info" message="Your application is under review. This usually takes 1–2 business days." />
-          </div>
-          <div><div style={LABEL}>Warning</div>
-            <Alert type="warning" message="Make sure your details are correct before submitting." />
-          </div>
-        </div>
-      </section>
+      <DocSection id="variants" title="Variants">
+        <DocCard>
+          <CardHeader label="Critical" />
+          <CardBody><Alert type="critical" message="Your account has been locked after too many failed attempts." /></CardBody>
+        </DocCard>
+        <DocCard style={{ marginTop: 8 }}>
+          <CardHeader label="Success" />
+          <CardBody><Alert type="success" message="Your email address has been verified successfully." /></CardBody>
+        </DocCard>
+        <DocCard style={{ marginTop: 8 }}>
+          <CardHeader label="Info" />
+          <CardBody><Alert type="info" message="Your application is under review. This usually takes 1–2 business days." /></CardBody>
+        </DocCard>
+        <DocCard style={{ marginTop: 8 }}>
+          <CardHeader label="Warning" />
+          <CardBody><Alert type="warning" message="Make sure your details are correct before submitting." /></CardBody>
+        </DocCard>
+      </DocSection>
 
-      {/* ── Alignment behavior ── */}
-      <section id="alignment" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Alignment</h2>
-        <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6 }}>
-          The icon automatically aligns based on text length. For single-line messages the icon is vertically centered. For two or more lines the icon locks to the top.
-        </p>
-        <div style={PREVIEW_BOX}>
-          <div>
-            <div style={LABEL}>Single line — icon centered</div>
-            <Alert type="info" message="Your code has been sent." />
-          </div>
-          <div style={{ marginTop: 4 }}>
-            <div style={LABEL}>Multi-line — icon top-aligned</div>
-            <Alert type="warning" message="Your verification code has expired. Please request a new one and make sure to use it within the next 5 minutes." />
-          </div>
-        </div>
-      </section>
+      {/* ── Alignment ── */}
+      <DocSection
+        id="alignment"
+        title="Alignment"
+        description="The icon automatically aligns based on text length. For single-line messages the icon is vertically centered. For two or more lines the icon locks to the top."
+      >
+        <DocCard>
+          <CardHeader label="Single line — icon centered" />
+          <CardBody><Alert type="info" message="Your code has been sent." /></CardBody>
+        </DocCard>
+        <DocCard style={{ marginTop: 8 }}>
+          <CardHeader label="Multi-line — icon top-aligned" />
+          <CardBody><Alert type="warning" message="Your verification code has expired. Please request a new one and make sure to use it within the next 5 minutes." /></CardBody>
+        </DocCard>
+      </DocSection>
 
       {/* ── Playground ── */}
-      <section id="playground" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Playground</h2>
-        <div style={{ padding: 24, border: '1px solid var(--border-subtle)', borderRadius: 12 }}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            {['critical', 'success', 'info', 'warning'].map(t => (
-              <button key={t} onClick={() => setLiveType(t)} style={{
-                padding: '4px 12px', borderRadius: 100, border: '1px solid',
-                borderColor: liveType === t ? 'var(--bg-secondary)' : 'var(--border-subtle)',
-                backgroundColor: liveType === t ? 'var(--bg-info-subtle)' : 'transparent',
-                color: liveType === t ? 'var(--text-base)' : 'var(--text-subtle)',
-                fontWeight: liveType === t ? 600 : 400,
-                fontSize: 12, fontFamily: 'var(--ds-font-family)', cursor: 'pointer',
-                textTransform: 'capitalize',
-              }}>
-                {t}
-              </button>
-            ))}
-          </div>
-          <textarea
-            value={liveMsg}
-            onChange={e => setLiveMsg(e.target.value)}
-            rows={2}
-            style={{
-              width: '100%', boxSizing: 'border-box',
-              marginBottom: 16, padding: '8px 12px',
-              borderRadius: 8, border: '1px solid var(--border-subtle)',
-              fontFamily: 'var(--ds-font-family)', fontSize: 13,
-              color: 'var(--text-base)', resize: 'vertical', outline: 'none',
-            }}
-          />
-          <Alert type={liveType} message={liveMsg} />
-        </div>
-      </section>
+      <DocSection id="playground" title="Playground">
+        <DocCard>
+          <CardHeader label="Live preview" />
+          <CardBody>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {['critical', 'success', 'info', 'warning'].map(t => (
+                <button key={t} onClick={() => setLiveType(t)} style={{
+                  padding: '4px 12px', borderRadius: 100, border: '1px solid',
+                  borderColor: liveType === t ? 'var(--bg-secondary)' : 'var(--border-subtle)',
+                  backgroundColor: liveType === t ? 'var(--bg-info-subtle)' : 'transparent',
+                  color: liveType === t ? 'var(--text-base)' : 'var(--text-subtle)',
+                  fontWeight: liveType === t ? 600 : 400,
+                  fontSize: 12, fontFamily: 'var(--font-family)', cursor: 'pointer', textTransform: 'capitalize',
+                }}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={liveMsg}
+              onChange={e => setLiveMsg(e.target.value)}
+              rows={2}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '8px 12px',
+                borderRadius: 8, border: '1px solid var(--border-subtle)',
+                fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-base)',
+                resize: 'vertical', outline: 'none',
+              }}
+            />
+            <Alert type={liveType} message={liveMsg} />
+          </CardBody>
+        </DocCard>
+      </DocSection>
 
       {/* ── Props ── */}
-      <section id="props" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Props</h2>
+      <DocSection id="props" title="Props">
         <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 480 }}>
             <thead>
@@ -128,49 +164,50 @@ export default function AlertDocs({ comp }) {
             </tbody>
           </table>
         </div>
-      </section>
+      </DocSection>
 
-      {/* ── Usage notes ── */}
-      <section id="usage" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Usage notes</h2>
-        <ul style={{ margin: 0, padding: '0 0 0 20px', fontSize: 14, lineHeight: 2, color: 'var(--text-subtle)' }}>
-          <li>Use <strong style={{ color: 'var(--text-base)' }}>critical</strong> only for blocking errors (locked account, payment failure).</li>
-          <li>Use <strong style={{ color: 'var(--text-base)' }}>warning</strong> for reversible or pre-action caution.</li>
-          <li>Use <strong style={{ color: 'var(--text-base)' }}>info</strong> for neutral guidance or processing states.</li>
-          <li>Use <strong style={{ color: 'var(--text-base)' }}>success</strong> to confirm a completed action.</li>
-          <li>Keep messages short — 1–2 sentences. Avoid repeating page titles.</li>
-        </ul>
-      </section>
+      {/* ── Usage ── */}
+      <DocSection id="usage" title="Usage notes">
+        <DocCard>
+          <CardBody style={{ gap: 8 }}>
+            <ul style={{ margin: 0, padding: '0 0 0 20px', fontSize: 14, lineHeight: 2, color: 'var(--text-subtle)' }}>
+              <li>Use <strong style={{ color: 'var(--text-base)' }}>critical</strong> only for blocking errors (locked account, payment failure).</li>
+              <li>Use <strong style={{ color: 'var(--text-base)' }}>warning</strong> for reversible or pre-action caution.</li>
+              <li>Use <strong style={{ color: 'var(--text-base)' }}>info</strong> for neutral guidance or processing states.</li>
+              <li>Use <strong style={{ color: 'var(--text-base)' }}>success</strong> to confirm a completed action.</li>
+              <li>Keep messages short — 1–2 sentences. Avoid repeating page titles.</li>
+            </ul>
+          </CardBody>
+        </DocCard>
+      </DocSection>
 
-      <div style={DIVIDER} />
+      <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '0 0 48px' }} />
 
       {/* ── Changelog ── */}
-      <section id="changelog" style={{ marginBottom: 48 }}>
-        <h2 style={SECTION_TITLE}>Changelog</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-subtle)', fontFamily: 'var(--ds-font-family)', minWidth: 90, paddingTop: 2 }}>v2 · current</div>
-            <div style={{ flex: 1 }}>
-              <Tag color="var(--bg-success-subtle)" text="var(--text-success, #2e7d32)">New</Tag>
-              <span style={{ fontSize: 13, color: 'var(--text-base)', marginLeft: 8 }}>
-                Added Warning variant. Icon size reduced to 20px (sm). Infomation alert background changed from bg-subtle to bg-info-subtle. Alignment rule added (single-line = center, multi-line = top-align).
-              </span>
+      <DocSection id="changelog" title="Changelog">
+        <DocCard>
+          <CardBody style={{ gap: 16 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+              <div style={{ fontSize: 12, color: 'var(--text-subtle)', fontFamily: 'var(--font-family)', minWidth: 90, paddingTop: 2 }}>v2 · current</div>
+              <div>
+                <Tag color="var(--bg-success-subtle)" text="var(--text-success, #2e7d32)">New</Tag>
+                <span style={{ fontSize: 13, color: 'var(--text-base)', marginLeft: 8 }}>
+                  Added Warning variant. Icon size reduced to 20 px. Info background changed from bg-subtle to bg-info-subtle. Dynamic icon alignment rule added.
+                </span>
+              </div>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-subtle)', fontFamily: 'var(--ds-font-family)', minWidth: 90, paddingTop: 2 }}>v1</div>
-            <div style={{ flex: 1 }}>
-              <Tag>Deprecated</Tag>
-              <span style={{ fontSize: 13, color: 'var(--text-subtle)', marginLeft: 8 }}>
-                Old variants: Critical, Success, Info only. Icon size 24px (md). Info background was bg-subtle. All icons center-aligned regardless of text length. Use v2 variants going forward.
-              </span>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+              <div style={{ fontSize: 12, color: 'var(--text-subtle)', fontFamily: 'var(--font-family)', minWidth: 90, paddingTop: 2 }}>v1</div>
+              <div>
+                <Tag>Deprecated</Tag>
+                <span style={{ fontSize: 13, color: 'var(--text-subtle)', marginLeft: 8 }}>
+                  Critical, Success, Info only. Icon size 24 px. Info background was bg-subtle. Icons always center-aligned. Use v2 going forward.
+                </span>
+              </div>
             </div>
-          </div>
-
-        </div>
-      </section>
+          </CardBody>
+        </DocCard>
+      </DocSection>
 
     </div>
   )
