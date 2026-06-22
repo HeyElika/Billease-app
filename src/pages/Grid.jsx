@@ -68,11 +68,12 @@ function TableHead({ cols }) {
   )
 }
 
+const SPACING_ORDER = ['050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+const scale = SPACING_ORDER.map(k => [k, primitives.spacing[k]])
+
 export default function Grid() {
   const { setSections } = useToc()
   useEffect(() => { setSections(SECTIONS); return () => setSections([]) }, [])
-
-  const scale = Object.entries(primitives.spacing)
 
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
@@ -88,13 +89,16 @@ export default function Grid() {
           The smallest increment is <strong style={{ color: 'var(--text-base)' }}>4px</strong>. All spacing, sizing, and layout values must be multiples of 4. This creates visual consistency and makes designs predictable across screens.
         </p>
         <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap', padding: '24px 0' }}>
-          {Object.entries(primitives.spacing).map(([k, v]) => (
-            <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: Math.min(v * 1.5, 60), height: Math.min(v * 1.5, 60), backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.5 + v / 100 }} />
-              <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-subtle)' }}>{v}</span>
-              <span style={{ fontSize: 9, fontFamily: 'var(--font-family)', color: 'var(--text-disabled)' }}>{k}</span>
-            </div>
-          ))}
+          {SPACING_ORDER.map(k => {
+            const v = primitives.spacing[k]
+            return (
+              <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: Math.min(v * 1.5, 60), height: Math.min(v * 1.5, 60), backgroundColor: 'var(--bg-secondary)', borderRadius: 2, opacity: 0.5 + v / 100 }} />
+                <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text-subtle)' }}>{v}</span>
+                <span style={{ fontSize: 9, fontFamily: 'var(--font-family)', color: 'var(--text-disabled)' }}>{k}</span>
+              </div>
+            )
+          })}
         </div>
       </Section>
 
