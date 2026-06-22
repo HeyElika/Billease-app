@@ -146,7 +146,9 @@ export default function AlertDocs({ comp }) {
           <DocCard>
             <CardHeader label="Multi-line — icon top-aligned" />
             <CardBody style={{ flexDirection: 'column', gap: 0 }}>
-              <Alert type="warning" message="Your verification code has expired. Please request a new one and make sure to use it within the next 5 minutes." />
+              <div style={{ maxWidth: 360 }}>
+                <Alert type="warning" message="Your verification code has expired. Please request a new one and make sure to use it within the next 5 minutes." />
+              </div>
             </CardBody>
           </DocCard>
         </div>
