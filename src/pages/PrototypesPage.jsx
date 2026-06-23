@@ -3,6 +3,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useToc } from '../context/TocContext'
 import { PROTOTYPE_FLOWS } from '../data/prototypeFlows'
 import TooManyOTPAttempts from './flows/EmailVerification'
+import SignUpFlow from './flows/SignUpFlow'
 import { HEADER_HEIGHT } from '../components/ui/Header'
 
 const SIDEBAR_W = 220
@@ -11,6 +12,10 @@ const FLOW_COMPONENTS = {
   'email-verification': {
     'too-many-otp-attempts': (props) => <TooManyOTPAttempts {...props} scenarioId="too-many-otp-attempts" />,
     'expired-otp':           (props) => <TooManyOTPAttempts {...props} scenarioId="expired-otp" />,
+  },
+  'sign-up': {
+    'happy-path':           (props) => <SignUpFlow {...props} scenarioId="happy-path" />,
+    'email-delivery-error': (props) => <SignUpFlow {...props} scenarioId="email-delivery-error" />,
   },
 }
 

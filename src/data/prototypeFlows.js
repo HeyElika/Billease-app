@@ -7,4 +7,12 @@ export const PROTOTYPE_FLOWS = [
       { id: 'expired-otp',           label: 'Expired OTP'                 },
     ],
   },
+  {
+    id: 'sign-up',
+    label: 'Sign Up',
+    scenarios: [
+      { id: 'happy-path',           label: 'Happy path'           },
+      { id: 'email-delivery-error', label: 'Email delivery error' },
+    ],
+  },
 ]
