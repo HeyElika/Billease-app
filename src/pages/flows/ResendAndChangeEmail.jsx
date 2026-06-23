@@ -165,6 +165,8 @@ function AndroidQWERTY({ onChar, onBackspace }) {
   const txt = (t, size = 16) => (
     <span style={{ fontSize: size, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)', userSelect: 'none' }}>{t}</span>
   )
+  // Prevent button clicks from stealing focus from the input
+  const nd = (e) => e.preventDefault()
 
   return (
     <div style={{ flexShrink: 0 }}>
@@ -176,26 +178,26 @@ function AndroidQWERTY({ onChar, onBackspace }) {
         {/* Row 1: Q-P */}
         <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
           {QWERTY_ROWS[0].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
+            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
         </div>
         {/* Row 2: A-L (inset) */}
         <div style={{ display: 'flex', gap: 6, paddingLeft: 18, paddingRight: 18 }}>
           {QWERTY_ROWS[1].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
+            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
         </div>
         {/* Row 3: shift + Z-M + backspace */}
         <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
-          <button style={{ ...sk, width: 42 }}>
+          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z" fill="#1D2D40"/>
             </svg>
           </button>
           {QWERTY_ROWS[2].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
+            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
-          <button onClick={onBackspace} style={{ ...sk, width: 42 }}>
+          <button onMouseDown={nd} onClick={onBackspace} style={{ ...sk, width: 42 }}>
             <svg width="22" height="17" viewBox="0 0 28 20" fill="none">
               <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
               <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
@@ -204,13 +206,13 @@ function AndroidQWERTY({ onChar, onBackspace }) {
         </div>
         {/* Row 4 (email): ?123 | @ | space | . | done */}
         <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
-          <button style={{ ...sk, width: 42 }}>{txt('?123', 13)}</button>
-          <button onClick={() => onChar('@')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('@', 18)}</button>
-          <button onClick={() => onChar(' ')} style={{ ...lk }}>
+          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>{txt('?123', 13)}</button>
+          <button onMouseDown={nd} onClick={() => onChar('@')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('@', 18)}</button>
+          <button onMouseDown={nd} onClick={() => onChar(' ')} style={{ ...lk }}>
             {txt('space', 13)}
           </button>
-          <button onClick={() => onChar('.')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('.', 20)}</button>
-          <button style={{ ...sk, width: 42 }}>
+          <button onMouseDown={nd} onClick={() => onChar('.')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('.', 20)}</button>
+          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>
             <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
               <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -281,12 +283,19 @@ function VerifyScreen({
 // ── Change email screen ───────────────────────────────────────────────────────
 function ChangeEmailScreen({ email, onEmailChange, onSubmit, onBack }) {
   const inputState = email ? 'typing' : 'focused'
+  const wrapRef = useRef(null)
+
+  // Focus the native input on mount so cursor blinks immediately
+  useEffect(() => {
+    const input = wrapRef.current?.querySelector('input')
+    if (input) input.focus()
+  }, [])
 
   function handleChar(char) { onEmailChange(prev => prev + char) }
   function handleBackspace() { onEmailChange(prev => prev.slice(0, -1)) }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <div ref={wrapRef} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <StatusBar />
       <NavHeader type="icon-left" title="Change email" showBorder={false} showWatermark={false} onBack={onBack} />
 
