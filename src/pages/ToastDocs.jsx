@@ -1,4 +1,4 @@
-import Toast from '../components/ds/Toast'
+import Toast, { ScreenBanner } from '../components/ds/Toast'
 import { CHANGELOGS } from '../data/changelog'
 
 function DocSection({ id, title, children }) {
@@ -158,6 +158,44 @@ export default function ToastDocs({ comp }) {
               </div>
             </CardBody>
           </DocCard>
+        </div>
+      </DocSection>
+
+      {/* ── Prototype overlay ── */}
+      <DocSection id="prototype-overlay" title="Prototype overlay">
+        <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
+          When displaying a banner on a prototype screen, use <code style={{ fontFamily: 'monospace', fontSize: 13, background: 'var(--bg-subtle)', padding: '1px 5px', borderRadius: 4 }}>ScreenBanner</code> instead of <code style={{ fontFamily: 'monospace', fontSize: 13, background: 'var(--bg-subtle)', padding: '1px 5px', borderRadius: 4 }}>Toast</code>. It positions itself absolutely at the top of the phone screen with the correct spacings from Figma (54 px top to clear the status bar, 20 px horizontal inset).
+        </p>
+        <DocCard>
+          <CardHeader label="Screen overlay — 54 px top · 20 px sides" />
+          <CardBody style={{ flexDirection: 'column', gap: 0 }}>
+            {/* Simulate a phone screen container */}
+            <div style={{ width: 320, height: 180, backgroundColor: 'var(--bg-subtle)', borderRadius: 8, border: '1px solid var(--border-subtle)', position: 'relative', overflow: 'hidden' }}>
+              {/* Fake status bar */}
+              <div style={{ height: 42, backgroundColor: '#fff', borderBottom: '1px solid var(--border-subtle)' }} />
+              {/* Fake content */}
+              <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[80, 60, 48].map((w, i) => (
+                  <div key={i} style={{ height: 12, width: `${w}%`, backgroundColor: '#e5e7eb', borderRadius: 4 }} />
+                ))}
+              </div>
+              {/* Banner overlays everything */}
+              <ScreenBanner type="success" message="Your payment was submitted successfully." />
+            </div>
+          </CardBody>
+        </DocCard>
+        <div style={{
+          marginTop: 12,
+          padding: '12px 16px',
+          backgroundColor: 'var(--bg-subtle)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 8,
+          fontFamily: 'monospace',
+          fontSize: 12,
+          color: 'var(--text-base)',
+          lineHeight: 1.6,
+        }}>
+          {`import Toast, { ScreenBanner } from '../components/ds/Toast'\n\n// Inside a prototype screen (phone screen div must be position: relative/absolute):\n<ScreenBanner type="success" message="Your payment was submitted." onClose={() => {}} />`}
         </div>
       </DocSection>
 

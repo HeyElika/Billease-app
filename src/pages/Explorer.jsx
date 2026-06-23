@@ -653,10 +653,11 @@ export default function Explorer() {
       ]
     } else if (TOAST_IDS.has(nodeId)) {
       sections = [
-        { id: 'appearance', label: 'Appearance' },
-        { id: 'alignment',  label: 'Alignment'  },
-        { id: 'props',      label: 'Props'      },
-        { id: 'changelog',  label: 'Changelog'  },
+        { id: 'appearance',        label: 'Appearance'        },
+        { id: 'alignment',         label: 'Alignment'         },
+        { id: 'prototype-overlay', label: 'Prototype overlay' },
+        { id: 'props',             label: 'Props'             },
+        { id: 'changelog',         label: 'Changelog'         },
       ]
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])

@@ -33,6 +33,26 @@ const CONFIG = {
   },
 }
 
+// Use inside prototype phone screens — positions the banner as a fixed overlay at the top.
+// Spacing from Figma node 10063:175: pt=54 (clears status bar), px=20, pb=8.
+export function ScreenBanner({ type, message, onClose }) {
+  return (
+    <div style={{
+      position: 'absolute',
+      top:    0,
+      left:   0,
+      right:  0,
+      paddingTop:    54,
+      paddingLeft:   20,
+      paddingRight:  20,
+      paddingBottom: 8,
+      zIndex: 10,
+    }}>
+      <Toast type={type} message={message} onClose={onClose} />
+    </div>
+  )
+}
+
 export default function Toast({ type = 'info', message, children, onClose }) {
   const cfg = CONFIG[type] ?? CONFIG.info
   const textRef = useRef(null)
