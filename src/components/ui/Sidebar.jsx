@@ -7,7 +7,7 @@ import { HEADER_HEIGHT } from './Header'
 const SHOWN_CATEGORIES = [
   'Accordion', 'Alert', 'Badge', 'Banners', 'Buttons', 'Cards',
   'Checkbox', 'Dropdown', 'Empty state', 'Hero', 'Input', 'List',
-  'Loans', 'Modal', 'Navigation', 'Pay now', 'Payment', 'Radio button',
+  'Loans', 'Modal', 'Navigation', 'Notification banner', 'Pay now', 'Payment', 'Radio button',
   'Search', 'Slider', 'Tabs',
 ]
 
