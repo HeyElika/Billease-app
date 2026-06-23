@@ -65,156 +65,76 @@ function StatusBar() {
   )
 }
 
-// ── Android nav bar — white per Figma ─────────────────────────────────────────
+// ── Android nav bar ───────────────────────────────────────────────────────────
 function AndroidNavBar() {
   return (
     <div style={{
-      height: 44, backgroundColor: 'var(--bg-base, #fff)', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 55, padding: 10,
+      height: 44, backgroundColor: '#000', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-evenly',
     }}>
-      {/* back */}
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#444"/>
-      </svg>
-      {/* home circle */}
-      <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="9" stroke="#444" strokeWidth="1.6"/>
-      </svg>
-      {/* tasks square */}
-      <div style={{ width: 14, height: 14, border: '1.6px solid #666', borderRadius: 1.5 }} />
+      <span style={{ color: '#fff', fontSize: 14 }}>◄</span>
+      <span style={{ color: '#fff', fontSize: 18 }}>⬤</span>
+      <span style={{ color: '#fff', fontSize: 12 }}>■</span>
     </div>
   )
 }
 
-// ── GBoard numeric keyboard (OTP entry) ───────────────────────────────────────
-const KEY_BASE = {
-  height: 42,
-  border: 'none',
-  cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  borderRadius: 5.76,
-  flexShrink: 0,
-}
+// ── Android numeric keyboard (phone-dialer style, 3 cols × 4 rows) ────────────
+const KEYPAD_ROWS = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['__back', '0', '__done'],
+]
+const SUB = { '2':'ABC','3':'DEF','4':'GHI','5':'JKL','6':'MNO','7':'PQRS','8':'TUV','9':'WXYZ','0':'+' }
+const KEY_H = 56
 
-function GBoardNumeric({ onDigit, onBackspace }) {
-  const whiteKey = { ...KEY_BASE, flex: 1, backgroundColor: '#fff', boxShadow: '0 0.96px 0 rgba(0,0,0,0.27)' }
-  const grayKey  = { ...KEY_BASE, flex: 1, backgroundColor: '#ccced5', boxShadow: '0 0.96px 0 rgba(0,0,0,0.27)' }
-  const blueKey  = { ...KEY_BASE, flex: 1, backgroundColor: '#1a73e8', boxShadow: '0 0.96px 0 rgba(0,0,0,0.27)' }
-
-  const numLabel = (d) => (
-    <span style={{ fontSize: 22, fontWeight: 400, color: '#000', fontFamily: 'var(--font-family)' }}>{d}</span>
-  )
-
-  return (
-    <div style={{ flexShrink: 0 }}>
-      <div style={{ backgroundColor: '#e8eaed', padding: 4, display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {[['1','2','3'],['4','5','6'],['7','8','9']].map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: 5 }}>
-            {row.map(d => (
-              <button key={d} onClick={() => onDigit(d)} style={whiteKey}>{numLabel(d)}</button>
-            ))}
-          </div>
-        ))}
-        <div style={{ display: 'flex', gap: 5 }}>
-          <button onClick={onBackspace} style={grayKey}>
-            <svg width="22" height="17" viewBox="0 0 28 20" fill="none">
-              <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#555" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M15 7l6 6M21 7l-6 6" stroke="#555" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </button>
-          <button onClick={() => onDigit('0')} style={whiteKey}>{numLabel('0')}</button>
-          <button style={blueKey}>
-            <svg width="20" height="18" viewBox="0 0 24 22" fill="none">
-              <path d="M20 9H7.83l5.59-5.59L12 2l-8 8 8 8 1.41-1.41L7.83 11H20V9z" fill="white"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <AndroidNavBar />
-    </div>
-  )
-}
-
-// ── GBoard QWERTY keyboard (email entry) ──────────────────────────────────────
-function GBoardQWERTY() {
-  const wk = { flex: 1, minWidth: 0, height: 39, backgroundColor: '#fff', border: 'none', borderRadius: 6, boxShadow: '0 0.96px 0 rgba(0,0,0,0.27)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }
-  const sp = { ...wk, backgroundColor: '#ccced5' }
-  const label = (t, size = 20) => <span style={{ fontSize: size, color: '#000', fontFamily: 'var(--font-family)', userSelect: 'none', lineHeight: 1 }}>{t}</span>
+function AndroidKeyboard({ onDigit, onBackspace }) {
+  function Key({ k }) {
+    if (k === '__back') {
+      return (
+        <button onClick={onBackspace} style={{
+          flex: 1, height: KEY_H, background: '#D1D3DA', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="24" height="18" viewBox="0 0 28 20" fill="none">
+            <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </button>
+      )
+    }
+    if (k === '__done') {
+      return (
+        <button style={{
+          flex: 1, height: KEY_H, background: '#D1D3DA', border: 'none', cursor: 'default',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
+            <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )
+    }
+    return (
+      <button onClick={() => onDigit(k)} style={{
+        flex: 1, height: KEY_H, background: '#FAFAFA', border: 'none', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+      }}>
+        <span style={{ fontSize: 28, fontWeight: 300, color: '#1D2D40', lineHeight: '32px', fontFamily: 'var(--font-family)' }}>{k}</span>
+        {SUB[k] && <span style={{ fontSize: 9, color: '#606C79', letterSpacing: '1.8px', fontFamily: 'var(--font-family)' }}>{SUB[k]}</span>}
+      </button>
+    )
+  }
 
   return (
     <div style={{ flexShrink: 0 }}>
-      {/* Toolbar */}
-      <div style={{ height: 42, backgroundColor: '#e8eaed', display: 'flex', alignItems: 'center', paddingLeft: 12, paddingRight: 7, gap: 4 }}>
-        <div style={{ width: 29, height: 29, borderRadius: 30, backgroundColor: '#fff', boxShadow: '0 0.96px 1.92px rgba(0,0,0,0.27)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#444"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </div>
-        {[
-          <svg key="s" width="17" height="17" viewBox="0 0 24 24" fill="#555"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2z"/></svg>,
-          <svg key="g" width="17" height="17" viewBox="0 0 24 24" fill="#555"><path d="M11.5 2.75c-4.83 0-8.75 3.92-8.75 8.75s3.92 8.75 8.75 8.75 8.75-3.92 8.75-8.75S16.33 2.75 11.5 2.75zM8 14.5h-1v-5h1v5zm1.5 0H8v-5h1.5c1.38 0 2.5 1.12 2.5 2.5S10.88 14.5 9.5 14.5zm7.5 0h-3v-5h3v1h-2v1h2v1h-2v1h2v1z"/></svg>,
-          <svg key="c" width="17" height="17" viewBox="0 0 24 24" fill="#555"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>,
-          <svg key="st" width="17" height="17" viewBox="0 0 24 24" fill="#555"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>,
-        ].map((icon, i) => (
-          <div key={i} style={{ width: 29, height: 29, borderRadius: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+      <div style={{ backgroundColor: '#C8CAD0', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {KEYPAD_ROWS.map((row, ri) => (
+          <div key={ri} style={{ display: 'flex', gap: 1 }}>
+            {row.map(k => <Key key={k} k={k} />)}
+          </div>
         ))}
-        <div style={{ width: 0.5, height: 22, backgroundColor: '#aaa', margin: '0 2px' }} />
-        {[
-          <svg key="m" width="17" height="17" viewBox="0 0 24 24" fill="#555"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>,
-          <svg key="mic" width="17" height="17" viewBox="0 0 24 24" fill="#555"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>,
-        ].map((icon, i) => (
-          <div key={i} style={{ width: 29, height: 29, borderRadius: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
-        ))}
-      </div>
-
-      {/* Keys */}
-      <div style={{ backgroundColor: '#e8eaed', padding: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Row 1: Q-P */}
-        <div style={{ display: 'flex', gap: 4 }}>
-          {['Q','W','E','R','T','Y','U','I','O','P'].map(k => (
-            <div key={k} style={wk}>{label(k)}</div>
-          ))}
-        </div>
-        {/* Row 2: A-L (centered) */}
-        <div style={{ display: 'flex', gap: 4, paddingLeft: 17, paddingRight: 17 }}>
-          {['A','S','D','F','G','H','J','K','L'].map(k => (
-            <div key={k} style={wk}>{label(k)}</div>
-          ))}
-        </div>
-        {/* Row 3: shift + Z-M + backspace */}
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          <div style={{ ...sp, flex: 'none', width: 44 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#555"><path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z"/></svg>
-          </div>
-          {['Z','X','C','V','B','N','M'].map(k => (
-            <div key={k} style={wk}>{label(k)}</div>
-          ))}
-          <div style={{ ...sp, flex: 'none', width: 44 }}>
-            <svg width="20" height="16" viewBox="0 0 28 20" fill="none">
-              <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#555" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M15 7l6 6M21 7l-6 6" stroke="#555" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </div>
-        </div>
-        {/* Row 4: ?123 | , | globe | spacebar | . | done(blue) */}
-        <div style={{ display: 'flex', gap: 4, height: 38 }}>
-          <div style={{ ...sp, flex: 'none', width: 50 }}>
-            <span style={{ fontSize: 14, color: '#3d3d3f', fontWeight: 500, fontFamily: 'var(--font-family)' }}>?123</span>
-          </div>
-          <div style={{ ...sp, flex: 'none', width: 29, position: 'relative' }}>
-            <span style={{ fontSize: 18, color: '#000', position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)' }}>,</span>
-            <svg style={{ position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)' }} width="12" height="12" viewBox="0 0 24 24" fill="#555"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2z"/></svg>
-          </div>
-          <div style={{ ...wk, flex: 'none', width: 29 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#555"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-          </div>
-          <div style={{ ...wk, flex: 1 }}>{label('English', 12)}</div>
-          <div style={{ ...sp, flex: 'none', width: 29 }}>{label('.', 22)}</div>
-          <div style={{ ...sp, flex: 'none', width: 44, backgroundColor: '#1a73e8' }}>
-            <svg width="22" height="18" viewBox="0 0 28 22" fill="none">
-              <path d="M24 4H10v4H6l8 8 8-8h-4V6h6V4z" fill="white"/>
-              <path d="M24 13v5H6v-5" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </div>
-        </div>
       </div>
       <AndroidNavBar />
     </div>
@@ -272,7 +192,7 @@ function VerifyScreen({
         </div>
       </div>
 
-      <GBoardNumeric onDigit={onDigit} onBackspace={onBackspace} />
+      <AndroidKeyboard onDigit={onDigit} onBackspace={onBackspace} />
     </div>
   )
 }
@@ -301,12 +221,7 @@ function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
         />
       </div>
 
-      {/* Action bar above keyboard */}
-      <div style={{
-        backgroundColor: 'var(--bg-base, #fff)',
-        padding: '12px 20px 20px',
-        display: 'flex', flexDirection: 'column', gap: 12,
-      }}>
+      <div style={{ padding: '12px 20px 20px', flexShrink: 0 }}>
         <Button
           type="primary"
           size="lg"
@@ -317,7 +232,7 @@ function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
         />
       </div>
 
-      <GBoardQWERTY />
+      <AndroidNavBar />
     </div>
   )
 }
