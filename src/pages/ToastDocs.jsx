@@ -148,18 +148,13 @@ export default function ToastDocs({ comp }) {
             </CardBody>
           </DocCard>
           <DocCard>
-            <CardHeader label="Two lines — icon top-aligned" />
-            <CardBody style={{ flexDirection: 'column', gap: 0 }}>
+            <CardHeader label="2+ lines — icon and close button both top-aligned" />
+            <CardBody style={{ flexDirection: 'column', gap: 8 }}>
               <div style={{ maxWidth: 320 }}>
                 <Toast type="info" message="Your application is currently under review. This usually takes 1–2 business days to complete." />
               </div>
-            </CardBody>
-          </DocCard>
-          <DocCard>
-            <CardHeader label="Overflow — truncated at 2 lines" />
-            <CardBody style={{ flexDirection: 'column', gap: 0 }}>
               <div style={{ maxWidth: 320 }}>
-                <Toast type="error" message="An unexpected error occurred while processing your request. Please try again or contact support if the issue persists across multiple attempts." />
+                <Toast type="error" message="Something went wrong while processing your payment. Please check your details and try again." />
               </div>
             </CardBody>
           </DocCard>

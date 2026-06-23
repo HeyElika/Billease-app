@@ -111,6 +111,7 @@ export default function Toast({ type = 'info', message, children, onClose }) {
           onClick={onClose}
           style={{
             flexShrink:     0,
+            alignSelf:      multiLine ? 'flex-start' : 'center',
             width:          16,
             height:         16,
             background:     'none',
