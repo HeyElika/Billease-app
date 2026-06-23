@@ -264,7 +264,7 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
   const [blockedValues, setBlockedValues] = useState(Array(6).fill(''))
   const [email, setEmail] = useState('')
   const [emailFocused, setEmailFocused] = useState(false)
-  const [visible, setVisible] = useState(true)
+  const [animClass, setAnimClass] = useState('')
   const [scale, setScale] = useState(SCALE)
   const [inspect, setInspect] = useState(false)
   const containerRef = useRef(null)
@@ -295,9 +295,13 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
   }, [resendSeconds, screen])
 
 
-  function navigateTo(next) {
-    setVisible(false)
-    setTimeout(() => { setScreen(next); setVisible(true) }, 180)
+  function navigateTo(next, dir = 'forward') {
+    setAnimClass(dir === 'forward' ? 'screen-exit-left' : 'screen-exit-right')
+    setTimeout(() => {
+      setScreen(next)
+      setAnimClass(dir === 'forward' ? 'screen-enter-right' : 'screen-enter-left')
+      setTimeout(() => setAnimClass(''), 280)
+    }, 200)
   }
 
   function submitCode(filledValues) {
@@ -344,7 +348,7 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
   }
 
   function handleRestart() {
-    setVisible(false)
+    setAnimClass('screen-exit-right')
     setTimeout(() => {
       attemptsRef.current = 0
       setScreen('entry')
@@ -357,8 +361,9 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
       setBlockedValues(Array(6).fill(''))
       setEmail('')
       setEmailFocused(false)
-      setVisible(true)
-    }, 180)
+      setAnimClass('screen-enter-left')
+      setTimeout(() => setAnimClass(''), 280)
+    }, 200)
   }
 
   const focusedIndex = values.findIndex(v => v === '')
@@ -377,6 +382,14 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
           75%      { transform: translateX(3px); }
         }
         .otp-shake { animation: otpShake 0.5s ease; }
+        @keyframes screenExitLeft  { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(-18%); opacity: 0; } }
+        @keyframes screenExitRight { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(18%);  opacity: 0; } }
+        @keyframes screenEnterRight{ from { transform: translateX(18%);  opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
+        @keyframes screenEnterLeft { from { transform: translateX(-18%); opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
+        .screen-exit-left  { animation: screenExitLeft  0.2s ease forwards; }
+        .screen-exit-right { animation: screenExitRight 0.2s ease forwards; }
+        .screen-enter-right{ animation: screenEnterRight 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .screen-enter-left { animation: screenEnterLeft  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
       `}</style>
 
       <div ref={containerRef} style={{
@@ -446,12 +459,10 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
         <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         <PhoneMock scale={scale}>
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            transition: 'opacity 0.18s ease',
-            opacity: visible ? 1 : 0,
-            pointerEvents: inspect ? 'none' : undefined,
-          }}>
+          <div
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', pointerEvents: inspect ? 'none' : undefined }}
+            className={animClass}
+          >
             {screen === 'entry' && (
               <EntryScreen
                 values={values}
@@ -492,7 +503,7 @@ export default function TooManyOTPAttempts({ scenarioId = 'too-many-otp-attempts
                   setShowErrorMsg(false)
                   setAttempts(0)
                   setResendSeconds(59)
-                  navigateTo('entry')
+                  navigateTo('entry', 'back')
                 }}
               />
             )}

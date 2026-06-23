@@ -258,7 +258,7 @@ export default function ResendAndChangeEmail() {
   const [showBanner, setShowBanner]   = useState(false)
   const [values, setValues]           = useState(Array(6).fill(''))
   const [email, setEmail]             = useState('')
-  const [visible, setVisible]         = useState(true)
+  const [animClass, setAnimClass]      = useState('')
   const [scale, setScale]             = useState(SCALE)
   const [inspect, setInspect]         = useState(false)
 
@@ -289,9 +289,13 @@ export default function ResendAndChangeEmail() {
     return () => clearTimeout(t)
   }, [timer, screen])
 
-  function navigateTo(next) {
-    setVisible(false)
-    setTimeout(() => { setScreen(next); setVisible(true) }, 180)
+  function navigateTo(next, dir = 'forward') {
+    setAnimClass(dir === 'forward' ? 'screen-exit-left' : 'screen-exit-right')
+    setTimeout(() => {
+      setScreen(next)
+      setAnimClass(dir === 'forward' ? 'screen-enter-right' : 'screen-enter-left')
+      setTimeout(() => setAnimClass(''), 280)
+    }, 200)
   }
 
   function handleResend() {
@@ -323,7 +327,7 @@ export default function ResendAndChangeEmail() {
 
   function handleRestart() {
     clearTimeout(bannerTimer.current)
-    setVisible(false)
+    setAnimClass('screen-exit-right')
     setTimeout(() => {
       setScreen('verify')
       setResendCount(0)
@@ -331,14 +335,26 @@ export default function ResendAndChangeEmail() {
       setShowBanner(false)
       setValues(Array(6).fill(''))
       setEmail('')
-      setVisible(true)
-    }, 180)
+      setAnimClass('screen-enter-left')
+      setTimeout(() => setAnimClass(''), 280)
+    }, 200)
   }
 
   const focusedIndex = values.findIndex(v => v === '')
   const SCREEN_LABELS = { verify: 'Verify email', 'change-email': 'Change email' }
 
   return (
+    <>
+    <style>{`
+      @keyframes screenExitLeft  { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(-18%); opacity: 0; } }
+      @keyframes screenExitRight { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(18%);  opacity: 0; } }
+      @keyframes screenEnterRight{ from { transform: translateX(18%);  opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
+      @keyframes screenEnterLeft { from { transform: translateX(-18%); opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
+      .screen-exit-left  { animation: screenExitLeft  0.2s ease forwards; }
+      .screen-exit-right { animation: screenExitRight 0.2s ease forwards; }
+      .screen-enter-right{ animation: screenEnterRight 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+      .screen-enter-left { animation: screenEnterLeft  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    `}</style>
     <div ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', overflow: 'hidden' }}>
       {/* Toolbar */}
       <div style={{ height: TOOLBAR_H, display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, borderBottom: '1px solid var(--border-subtle)', paddingLeft: 24, paddingRight: 24 }}>
@@ -368,7 +384,7 @@ export default function ResendAndChangeEmail() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           <PhoneMock scale={scale}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', transition: 'opacity 0.18s ease', opacity: visible ? 1 : 0, pointerEvents: inspect ? 'none' : undefined }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', pointerEvents: inspect ? 'none' : undefined }} className={animClass}>
               {screen === 'verify' && (
                 <VerifyScreen
                   showBanner={showBanner}
@@ -386,7 +402,7 @@ export default function ResendAndChangeEmail() {
                 <ChangeEmailScreen
                   email={email}
                   onEmailChange={setEmail}
-                  onBack={() => navigateTo('verify')}
+                  onBack={() => navigateTo('verify', 'back')}
                   onSubmit={() => {
                     setResendCount(0)
                     setTimer(59)
@@ -395,7 +411,7 @@ export default function ResendAndChangeEmail() {
                     setShowBanner(true)
                     clearTimeout(bannerTimer.current)
                     bannerTimer.current = setTimeout(() => setShowBanner(false), BANNER_TTL)
-                    navigateTo('verify')
+                    navigateTo('verify', 'back')
                   }}
                 />
               )}
@@ -405,5 +421,6 @@ export default function ResendAndChangeEmail() {
         {inspect && <InspectPanel screen={screen} />}
       </div>
     </div>
+    </>
   )
 }
