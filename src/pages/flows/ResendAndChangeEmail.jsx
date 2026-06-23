@@ -141,6 +141,75 @@ function AndroidKeyboard({ onDigit, onBackspace }) {
   )
 }
 
+// ── Android QWERTY keyboard (email entry) ─────────────────────────────────────
+const QWERTY_ROWS = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['Z','X','C','V','B','N','M'],
+]
+
+function AndroidQWERTY() {
+  const lk = { height: 42, background: '#FAFAFA', border: 'none', borderRadius: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'default', flex: 1 }
+  const sk = { ...lk, background: '#D1D3DA', flex: 'none' }
+
+  return (
+    <div style={{ flexShrink: 0 }}>
+      <div style={{ backgroundColor: '#C8CAD0', display: 'flex', flexDirection: 'column', gap: 1, paddingTop: 1 }}>
+        {/* Row 1: Q-P */}
+        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
+          {QWERTY_ROWS[0].map(k => (
+            <div key={k} style={lk}>
+              <span style={{ fontSize: 16, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)' }}>{k}</span>
+            </div>
+          ))}
+        </div>
+        {/* Row 2: A-L (inset) */}
+        <div style={{ display: 'flex', gap: 1, padding: '0 18px' }}>
+          {QWERTY_ROWS[1].map(k => (
+            <div key={k} style={lk}>
+              <span style={{ fontSize: 16, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)' }}>{k}</span>
+            </div>
+          ))}
+        </div>
+        {/* Row 3: shift + Z-M + backspace */}
+        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
+          <div style={{ ...sk, width: 40 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z" fill="#1D2D40"/>
+            </svg>
+          </div>
+          {QWERTY_ROWS[2].map(k => (
+            <div key={k} style={lk}>
+              <span style={{ fontSize: 16, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)' }}>{k}</span>
+            </div>
+          ))}
+          <div style={{ ...sk, width: 40 }}>
+            <svg width="20" height="15" viewBox="0 0 28 20" fill="none">
+              <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
+              <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </div>
+        </div>
+        {/* Row 4: ?123 | space | return */}
+        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
+          <div style={{ ...sk, width: 50 }}>
+            <span style={{ fontSize: 13, color: '#1D2D40', fontWeight: 500, fontFamily: 'var(--font-family)' }}>?123</span>
+          </div>
+          <div style={{ ...lk }}>
+            <span style={{ fontSize: 13, color: '#606C79', fontFamily: 'var(--font-family)' }}>space</span>
+          </div>
+          <div style={{ ...sk, width: 50 }}>
+            <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
+              <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <AndroidNavBar />
+    </div>
+  )
+}
+
 // ── Verify email screen ───────────────────────────────────────────────────────
 function VerifyScreen({
   showBanner, resendCount, timer, values, focusedIndex,
@@ -155,7 +224,7 @@ function VerifyScreen({
         <ScreenBanner type="success" message="Verification code has been sent" />
       )}
       <StatusBar />
-      <NavHeader type="icon-left" title="Verify email" showBorder={false} />
+      <NavHeader type="icon-left" title="Verify email" showBorder={false} showWatermark={false} />
 
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'hidden' }}>
         {/* Heading */}
@@ -204,7 +273,7 @@ function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <StatusBar />
-      <NavHeader type="icon-left" title="Change email" showBorder={false} />
+      <NavHeader type="icon-left" title="Change email" showBorder={false} showWatermark={false} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 24, padding: '24px 20px 0', overflow: 'hidden' }}>
         <p style={{ margin: 0, fontSize: 16, fontFamily: 'var(--ds-font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
@@ -215,24 +284,26 @@ function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
           size="md"
           state={inputState}
           label=""
+          showLabel={false}
+          showIcon={false}
           placeholder="Enter new email"
           value={email}
           onChange={onEmailChange}
         />
       </div>
 
-      <div style={{ padding: '12px 20px 20px', flexShrink: 0 }}>
+      <div style={{ padding: '12px 20px 16px', flexShrink: 0 }}>
         <Button
           type="primary"
           size="lg"
-          state={email ? 'default' : 'disabled'}
+          state="default"
           label="Get verification code"
           fullWidth
-          onClick={email ? onSubmit : undefined}
+          onClick={onSubmit}
         />
       </div>
 
-      <AndroidNavBar />
+      <AndroidQWERTY />
     </div>
   )
 }
