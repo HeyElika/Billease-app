@@ -141,57 +141,76 @@ function AndroidKeyboard({ onDigit, onBackspace }) {
   )
 }
 
-// ── Android QWERTY keyboard (email entry) ─────────────────────────────────────
+// ── GBoard-style QWERTY keyboard (email entry) ────────────────────────────────
 const QWERTY_ROWS = [
   ['Q','W','E','R','T','Y','U','I','O','P'],
   ['A','S','D','F','G','H','J','K','L'],
   ['Z','X','C','V','B','N','M'],
 ]
 
+// GBoard palette
+const GB_BG   = '#d1d3d9'
+const GB_KEY  = '#ffffff'
+const GB_SPEC = '#adb5bd'
+const GB_SHAD = '0 1px 0 rgba(0,0,0,0.35)'
+
 function AndroidQWERTY({ onChar, onBackspace }) {
-  const lk = { height: 42, background: '#FAFAFA', border: 'none', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flex: 1, padding: 0 }
-  const sk = { ...lk, background: '#D1D3DA', flex: 'none', cursor: 'default' }
-  const label = (t) => <span style={{ fontSize: 16, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)', userSelect: 'none' }}>{t}</span>
+  const lk = {
+    height: 43, background: GB_KEY, border: 'none',
+    borderRadius: 5, boxShadow: GB_SHAD,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', flex: 1, padding: 0,
+  }
+  const sk = { ...lk, background: GB_SPEC, cursor: 'pointer', flex: 'none' }
+  const txt = (t, size = 16) => (
+    <span style={{ fontSize: size, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)', userSelect: 'none' }}>{t}</span>
+  )
 
   return (
     <div style={{ flexShrink: 0 }}>
-      <div style={{ backgroundColor: '#C8CAD0', display: 'flex', flexDirection: 'column', gap: 1, paddingTop: 1 }}>
+      <div style={{
+        backgroundColor: GB_BG,
+        display: 'flex', flexDirection: 'column', gap: 8,
+        padding: '10px 4px 4px',
+      }}>
         {/* Row 1: Q-P */}
-        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
+        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
           {QWERTY_ROWS[0].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{label(k)}</button>
+            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
         </div>
         {/* Row 2: A-L (inset) */}
-        <div style={{ display: 'flex', gap: 1, padding: '0 18px' }}>
+        <div style={{ display: 'flex', gap: 6, paddingLeft: 18, paddingRight: 18 }}>
           {QWERTY_ROWS[1].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{label(k)}</button>
+            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
         </div>
         {/* Row 3: shift + Z-M + backspace */}
-        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
-          <button style={{ ...sk, width: 40 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z" fill="#1D2D40"/></svg>
+        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
+          <button style={{ ...sk, width: 42 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z" fill="#1D2D40"/>
+            </svg>
           </button>
           {QWERTY_ROWS[2].map(k => (
-            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{label(k)}</button>
+            <button key={k} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
           ))}
-          <button onClick={onBackspace} style={{ ...sk, width: 40, cursor: 'pointer' }}>
-            <svg width="20" height="15" viewBox="0 0 28 20" fill="none">
+          <button onClick={onBackspace} style={{ ...sk, width: 42 }}>
+            <svg width="22" height="17" viewBox="0 0 28 20" fill="none">
               <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
               <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
-        {/* Row 4: ?123 | space | done */}
-        <div style={{ display: 'flex', gap: 1, padding: '0 2px' }}>
-          <button style={{ ...sk, width: 50 }}>
-            <span style={{ fontSize: 13, color: '#1D2D40', fontWeight: 500, fontFamily: 'var(--font-family)', userSelect: 'none' }}>?123</span>
+        {/* Row 4 (email): ?123 | @ | space | . | done */}
+        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
+          <button style={{ ...sk, width: 42 }}>{txt('?123', 13)}</button>
+          <button onClick={() => onChar('@')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('@', 18)}</button>
+          <button onClick={() => onChar(' ')} style={{ ...lk }}>
+            {txt('space', 13)}
           </button>
-          <button onClick={() => onChar(' ')} style={lk}>
-            <span style={{ fontSize: 13, color: '#606C79', fontFamily: 'var(--font-family)', userSelect: 'none' }}>space</span>
-          </button>
-          <button style={{ ...sk, width: 50 }}>
+          <button onClick={() => onChar('.')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('.', 20)}</button>
+          <button style={{ ...sk, width: 42 }}>
             <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
               <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -260,7 +279,7 @@ function VerifyScreen({
 }
 
 // ── Change email screen ───────────────────────────────────────────────────────
-function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
+function ChangeEmailScreen({ email, onEmailChange, onSubmit, onBack }) {
   const inputState = email ? 'typing' : 'focused'
 
   function handleChar(char) { onEmailChange(prev => prev + char) }
@@ -269,7 +288,7 @@ function ChangeEmailScreen({ email, onEmailChange, onSubmit }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <StatusBar />
-      <NavHeader type="icon-left" title="Change email" showBorder={false} showWatermark={false} />
+      <NavHeader type="icon-left" title="Change email" showBorder={false} showWatermark={false} onBack={onBack} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 24, padding: '24px 20px 0', overflow: 'hidden' }}>
         <p style={{ margin: 0, fontSize: 16, fontFamily: 'var(--ds-font-family)', color: 'var(--text-base)', lineHeight: 1.5 }}>
@@ -520,6 +539,7 @@ export default function ResendAndChangeEmail() {
                 <ChangeEmailScreen
                   email={email}
                   onEmailChange={setEmail}
+                  onBack={() => navigateTo('verify')}
                   onSubmit={() => {
                     setResendCount(0)
                     setTimer(59)
