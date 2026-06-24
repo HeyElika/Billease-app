@@ -259,6 +259,7 @@ export default function ResendAndChangeEmail() {
   const [values, setValues]           = useState(Array(6).fill(''))
   const [email, setEmail]             = useState('')
   const [overlay, setOverlay]          = useState(null) // { screen, phase: 'enter'|'exit' }
+  const [baseAnim, setBaseAnim]        = useState(false)
   const [scale, setScale]             = useState(SCALE)
   const [inspect, setInspect]         = useState(false)
 
@@ -291,13 +292,14 @@ export default function ResendAndChangeEmail() {
 
   function navigateTo(next, dir = 'forward') {
     if (dir === 'forward') {
+      setBaseAnim(true)
       setOverlay({ screen: next, phase: 'enter' })
-      setTimeout(() => { setScreen(next); setOverlay(null) }, 360)
+      setTimeout(() => { setScreen(next); setOverlay(null); setBaseAnim(false) }, 320)
     } else {
       const prev = screen
       setScreen(next)
       setOverlay({ screen: prev, phase: 'exit' })
-      setTimeout(() => setOverlay(null), 360)
+      setTimeout(() => setOverlay(null), 320)
     }
   }
 
@@ -338,7 +340,7 @@ export default function ResendAndChangeEmail() {
     setValues(Array(6).fill(''))
     setEmail('')
     setOverlay({ screen: prev, phase: 'exit' })
-    setTimeout(() => setOverlay(null), 360)
+    setTimeout(() => setOverlay(null), 320)
   }
 
   const focusedIndex = values.findIndex(v => v === '')
@@ -347,10 +349,11 @@ export default function ResendAndChangeEmail() {
   return (
     <>
     <style>{`
-      @keyframes slideUpEnter  { from { transform: translateY(100%); } to { transform: translateY(0); } }
-      @keyframes slideDownExit { from { transform: translateY(0); } to { transform: translateY(100%); } }
-      @keyframes dimIn  { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes dimOut { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes slideInFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      @keyframes slideOutToRight  { from { transform: translateX(0); } to { transform: translateX(100%); } }
+      @keyframes pushLeft         { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+      @keyframes dimIn            { from { opacity: 0; } to { opacity: 0.3; } }
+      @keyframes dimOut           { from { opacity: 0.3; } to { opacity: 0; } }
     `}</style>
     <div ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', overflow: 'hidden' }}>
       {/* Toolbar */}
@@ -383,7 +386,7 @@ export default function ResendAndChangeEmail() {
           <PhoneMock scale={scale}>
             <div style={{ position: 'relative', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', pointerEvents: inspect ? 'none' : undefined }}>
               {/* Base (settled) screen */}
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', animation: baseAnim ? 'pushLeft 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards' : undefined }}>
                 {screen === 'verify'
                   ? <VerifyScreen
                       showBanner={showBanner} resendCount={resendCount} timer={timer}
@@ -404,20 +407,20 @@ export default function ResendAndChangeEmail() {
                     />
                 }
               </div>
-              {/* Dim overlay */}
+              {/* Dim overlay — sits over base, dims outgoing content */}
               {overlay && (
                 <div style={{
                   position: 'absolute', inset: 0, zIndex: 1,
-                  backgroundColor: 'rgba(0,0,0,0.4)',
-                  animation: `${overlay.phase === 'enter' ? 'dimIn' : 'dimOut'} 360ms ease forwards`,
+                  backgroundColor: '#000',
+                  animation: `${overlay.phase === 'enter' ? 'dimIn' : 'dimOut'} 320ms ease forwards`,
                 }} />
               )}
-              {/* Transitioning screen (slides up on enter, slides down on exit) */}
+              {/* Transitioning screen — slides in from right (enter) or out to right (exit) */}
               {overlay && (
                 <div style={{
                   position: 'absolute', inset: 0, zIndex: 2,
                   display: 'flex', flexDirection: 'column',
-                  animation: `${overlay.phase === 'enter' ? 'slideUpEnter' : 'slideDownExit'} 360ms cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                  animation: `${overlay.phase === 'enter' ? 'slideInFromRight' : 'slideOutToRight'} 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards`,
                   pointerEvents: overlay.phase === 'exit' ? 'none' : undefined,
                 }}>
                   {overlay.screen === 'verify'
