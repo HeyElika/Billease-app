@@ -111,7 +111,7 @@ function VerifyScreen({
         <ScreenBanner type="success" message="Verification code has been sent" />
       )}
       <StatusBar />
-      <NavHeader type="icon-left" title="Verify email" showBorder={false} showWatermark={false} />
+      <NavHeader type="icon-left" title="Email verification" showBorder={false} showWatermark={false} />
 
       <div style={{ flex: 1, padding: '24px 20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, overflowY: 'hidden' }}>
         {/* Heading */}
@@ -258,7 +258,7 @@ export default function ResendAndChangeEmail() {
   const [showBanner, setShowBanner]   = useState(false)
   const [values, setValues]           = useState(Array(6).fill(''))
   const [email, setEmail]             = useState('')
-  const [animClass, setAnimClass]      = useState('')
+  const [overlay, setOverlay]          = useState(null) // { screen, phase: 'enter'|'exit' }
   const [scale, setScale]             = useState(SCALE)
   const [inspect, setInspect]         = useState(false)
 
@@ -290,12 +290,15 @@ export default function ResendAndChangeEmail() {
   }, [timer, screen])
 
   function navigateTo(next, dir = 'forward') {
-    setAnimClass(dir === 'forward' ? 'screen-exit-left' : 'screen-exit-right')
-    setTimeout(() => {
+    if (dir === 'forward') {
+      setOverlay({ screen: next, phase: 'enter' })
+      setTimeout(() => { setScreen(next); setOverlay(null) }, 360)
+    } else {
+      const prev = screen
       setScreen(next)
-      setAnimClass(dir === 'forward' ? 'screen-enter-right' : 'screen-enter-left')
-      setTimeout(() => setAnimClass(''), 280)
-    }, 200)
+      setOverlay({ screen: prev, phase: 'exit' })
+      setTimeout(() => setOverlay(null), 360)
+    }
   }
 
   function handleResend() {
@@ -327,17 +330,15 @@ export default function ResendAndChangeEmail() {
 
   function handleRestart() {
     clearTimeout(bannerTimer.current)
-    setAnimClass('screen-exit-right')
-    setTimeout(() => {
-      setScreen('verify')
-      setResendCount(0)
-      setTimer(59)
-      setShowBanner(false)
-      setValues(Array(6).fill(''))
-      setEmail('')
-      setAnimClass('screen-enter-left')
-      setTimeout(() => setAnimClass(''), 280)
-    }, 200)
+    const prev = screen
+    setScreen('verify')
+    setResendCount(0)
+    setTimer(59)
+    setShowBanner(false)
+    setValues(Array(6).fill(''))
+    setEmail('')
+    setOverlay({ screen: prev, phase: 'exit' })
+    setTimeout(() => setOverlay(null), 360)
   }
 
   const focusedIndex = values.findIndex(v => v === '')
@@ -346,14 +347,10 @@ export default function ResendAndChangeEmail() {
   return (
     <>
     <style>{`
-      @keyframes screenExitLeft  { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(-18%); opacity: 0; } }
-      @keyframes screenExitRight { from { transform: translateX(0);    opacity: 1; } to { transform: translateX(18%);  opacity: 0; } }
-      @keyframes screenEnterRight{ from { transform: translateX(18%);  opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
-      @keyframes screenEnterLeft { from { transform: translateX(-18%); opacity: 0; } to { transform: translateX(0);   opacity: 1; } }
-      .screen-exit-left  { animation: screenExitLeft  0.2s ease forwards; }
-      .screen-exit-right { animation: screenExitRight 0.2s ease forwards; }
-      .screen-enter-right{ animation: screenEnterRight 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-      .screen-enter-left { animation: screenEnterLeft  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+      @keyframes slideUpEnter  { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      @keyframes slideDownExit { from { transform: translateY(0); } to { transform: translateY(100%); } }
+      @keyframes dimIn  { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes dimOut { from { opacity: 1; } to { opacity: 0; } }
     `}</style>
     <div ref={containerRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', overflow: 'hidden' }}>
       {/* Toolbar */}
@@ -384,36 +381,65 @@ export default function ResendAndChangeEmail() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           <PhoneMock scale={scale}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', pointerEvents: inspect ? 'none' : undefined }} className={animClass}>
-              {screen === 'verify' && (
-                <VerifyScreen
-                  showBanner={showBanner}
-                  resendCount={resendCount}
-                  timer={timer}
-                  values={values}
-                  focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
-                  onDigit={handleDigit}
-                  onBackspace={handleBackspace}
-                  onResend={handleResend}
-                  onChangeEmail={() => navigateTo('change-email')}
-                />
+            <div style={{ position: 'relative', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', pointerEvents: inspect ? 'none' : undefined }}>
+              {/* Base (settled) screen */}
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+                {screen === 'verify'
+                  ? <VerifyScreen
+                      showBanner={showBanner} resendCount={resendCount} timer={timer}
+                      values={values} focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
+                      onDigit={handleDigit} onBackspace={handleBackspace}
+                      onResend={handleResend} onChangeEmail={() => navigateTo('change-email')}
+                    />
+                  : <ChangeEmailScreen
+                      email={email} onEmailChange={setEmail}
+                      onBack={() => navigateTo('verify', 'back')}
+                      onSubmit={() => {
+                        setResendCount(0); setTimer(59); setValues(Array(6).fill(''))
+                        setEmail(''); setShowBanner(true)
+                        clearTimeout(bannerTimer.current)
+                        bannerTimer.current = setTimeout(() => setShowBanner(false), BANNER_TTL)
+                        navigateTo('verify', 'back')
+                      }}
+                    />
+                }
+              </div>
+              {/* Dim overlay */}
+              {overlay && (
+                <div style={{
+                  position: 'absolute', inset: 0, zIndex: 1,
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  animation: `${overlay.phase === 'enter' ? 'dimIn' : 'dimOut'} 360ms ease forwards`,
+                }} />
               )}
-              {screen === 'change-email' && (
-                <ChangeEmailScreen
-                  email={email}
-                  onEmailChange={setEmail}
-                  onBack={() => navigateTo('verify', 'back')}
-                  onSubmit={() => {
-                    setResendCount(0)
-                    setTimer(59)
-                    setValues(Array(6).fill(''))
-                    setEmail('')
-                    setShowBanner(true)
-                    clearTimeout(bannerTimer.current)
-                    bannerTimer.current = setTimeout(() => setShowBanner(false), BANNER_TTL)
-                    navigateTo('verify', 'back')
-                  }}
-                />
+              {/* Transitioning screen (slides up on enter, slides down on exit) */}
+              {overlay && (
+                <div style={{
+                  position: 'absolute', inset: 0, zIndex: 2,
+                  display: 'flex', flexDirection: 'column',
+                  animation: `${overlay.phase === 'enter' ? 'slideUpEnter' : 'slideDownExit'} 360ms cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                  pointerEvents: overlay.phase === 'exit' ? 'none' : undefined,
+                }}>
+                  {overlay.screen === 'verify'
+                    ? <VerifyScreen
+                        showBanner={showBanner} resendCount={resendCount} timer={timer}
+                        values={values} focusedIndex={focusedIndex === -1 ? undefined : focusedIndex}
+                        onDigit={handleDigit} onBackspace={handleBackspace}
+                        onResend={handleResend} onChangeEmail={() => navigateTo('change-email')}
+                      />
+                    : <ChangeEmailScreen
+                        email={email} onEmailChange={setEmail}
+                        onBack={() => navigateTo('verify', 'back')}
+                        onSubmit={() => {
+                          setResendCount(0); setTimer(59); setValues(Array(6).fill(''))
+                          setEmail(''); setShowBanner(true)
+                          clearTimeout(bannerTimer.current)
+                          bannerTimer.current = setTimeout(() => setShowBanner(false), BANNER_TTL)
+                          navigateTo('verify', 'back')
+                        }}
+                      />
+                  }
+                </div>
               )}
             </div>
           </PhoneMock>
