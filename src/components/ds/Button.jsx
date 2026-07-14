@@ -43,13 +43,13 @@ const ICON_SIZE_PX = { lg: 20, md: 20, sm: 16 }
  * textColor: exact text fill color read from Figma text child
  *
  * Figma fill reads (rgba exact):
- *   #F84040 → var(--bg-primary)         [red 500]
- *   #EAEDF0 → var(--bg-sunken)          [neutral 200]
+ *   #E7161A → var(--bg-primary)         [red 500]
+ *   #E0E0E0 → var(--bg-sunken)          [neutral 200]
  *   #FFFFFF → var(--text-on-dark)       [white]
- *   #1D2D40 → var(--text-base)          [neutral 800]
- *   #606C79 → var(--text-subtle)        [neutral 600]
- *   #B4BDC5 → var(--text-disabled)      [neutral 400]
- *   #FA7B6F → var(--red-400)            [gradient start]
+ *   #1A1A1A → var(--text-base)          [neutral 900]
+ *   #545454 → var(--text-subtle)        [neutral 700]
+ *   #B0B0B0 → var(--text-disabled)      [neutral 400]
+ *   #EF5255 → var(--red-400)            [gradient start]
  *   rgba(255,255,255,0.5) → on-dark disabled text
  *
  * Overlay fills (state layers):
@@ -317,8 +317,8 @@ export function getTokensForVariant(type, size, state) {
   }
 
   const bgTokenMap = {
-    'var(--bg-primary)': { tokenPath: 'bg/primary',  resolves: '#F84040'    },
-    'var(--bg-sunken)':  { tokenPath: 'bg/sunken',   resolves: '#EAEDF0'    },
+    'var(--bg-primary)': { tokenPath: 'bg/primary',  resolves: '#E7161A'    },
+    'var(--bg-sunken)':  { tokenPath: 'bg/sunken',   resolves: '#E0E0E0'    },
     'transparent':       { tokenPath: '—',            resolves: 'transparent' },
   }
   const bgInfo = bgTokenMap[spec.bg] || { tokenPath: spec.bg, resolves: spec.bg }
@@ -330,10 +330,10 @@ export function getTokensForVariant(type, size, state) {
 
   const textTokenMap = {
     'var(--text-on-dark)':   { tokenPath: 'text/on-dark',  resolves: '#FFFFFF' },
-    'var(--text-base)':      { tokenPath: 'text/base',     resolves: '#1D2D40' },
-    'var(--text-subtle)':    { tokenPath: 'text/subtle',   resolves: '#606C79' },
-    'var(--text-disabled)':  { tokenPath: 'text/disabled', resolves: '#B4BDC5' },
-    'var(--text-primary)':   { tokenPath: 'text/primary',  resolves: '#F84040' },
+    'var(--text-base)':      { tokenPath: 'text/base',     resolves: '#1A1A1A' },
+    'var(--text-subtle)':    { tokenPath: 'text/subtle',   resolves: '#545454' },
+    'var(--text-disabled)':  { tokenPath: 'text/disabled', resolves: '#B0B0B0' },
+    'var(--text-primary)':   { tokenPath: 'text/primary',  resolves: '#E7161A' },
     'rgba(255,255,255,0.5)': { tokenPath: 'text/on-dark-disabled', resolves: 'rgba(255,255,255,0.5)' },
   }
   const textInfo = textTokenMap[spec.text] || { tokenPath: spec.text, resolves: spec.text }

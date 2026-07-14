@@ -315,12 +315,12 @@ export function getTokensForInput(size, state) {
     { property: 'padding-left/right',  value: `${PADDING_H}px`,         tokenPath: '—',               resolves: `${PADDING_H}px` },
     { property: 'border-radius',       value: `${RADIUS}px`,            tokenPath: '—',               resolves: `${RADIUS}px` },
     { property: 'gap (inner)',         value: `${INNER_GAP}px`,         tokenPath: 'spacing/200',     resolves: '8px' },
-    { property: 'background',          value: box.bg,                   tokenPath: box.bg === 'var(--bg-sunken)' ? 'bg/sunken' : 'bg/base', resolves: box.bg === 'var(--bg-sunken)' ? '#EAEDF0' : '#FFFFFF' },
-    { property: 'border',              value: box.border,               tokenPath: box.border.includes('bg-secondary') ? 'bg/secondary' : box.border.includes('text-error') ? 'text/error' : '—', resolves: box.border.includes('bg-secondary') ? '#265CE5' : box.border.includes('text-error') ? '#DD0C0C' : 'none' },
+    { property: 'background',          value: box.bg,                   tokenPath: box.bg === 'var(--bg-sunken)' ? 'bg/sunken' : 'bg/base', resolves: box.bg === 'var(--bg-sunken)' ? '#E0E0E0' : '#FFFFFF' },
+    { property: 'border',              value: box.border,               tokenPath: box.border.includes('bg-secondary') ? 'bg/secondary' : box.border.includes('text-error') ? 'text/error' : '—', resolves: box.border.includes('bg-secondary') ? '#265CE5' : box.border.includes('text-error') ? '#CD3642' : 'none' },
     { property: 'label font-size',     value: '16px',                   tokenPath: 'typography/size/lg', resolves: '16px' },
-    { property: 'label color',         value: 'var(--text-base)',       tokenPath: 'text/base',       resolves: '#1D2D40' },
+    { property: 'label color',         value: 'var(--text-base)',       tokenPath: 'text/base',       resolves: '#1A1A1A' },
     { property: 'input font-size',     value: '16px',                   tokenPath: 'typography/size/lg', resolves: '16px' },
-    { property: 'input color',         value: isValueState ? 'var(--text-base)' : isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)', tokenPath: isValueState ? 'text/base' : isDisabled ? 'text/disabled' : 'text/subtle', resolves: isValueState ? '#1D2D40' : isDisabled ? '#B4BDC5' : '#606C79' },
-    ...(hasError ? [{ property: 'error color', value: 'var(--text-primary)', tokenPath: 'text/primary', resolves: '#F84040' }] : []),
+    { property: 'input color',         value: isValueState ? 'var(--text-base)' : isDisabled ? 'var(--text-disabled)' : 'var(--text-subtle)', tokenPath: isValueState ? 'text/base' : isDisabled ? 'text/disabled' : 'text/subtle', resolves: isValueState ? '#1A1A1A' : isDisabled ? '#B0B0B0' : '#545454' },
+    ...(hasError ? [{ property: 'error color', value: 'var(--text-primary)', tokenPath: 'text/primary', resolves: '#E7161A' }] : []),
   ]
 }
