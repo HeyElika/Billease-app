@@ -1,15 +1,13 @@
 /**
  * Motion — Billease Design System portal
  *
- * Skeleton shimmer + wipe reveal, demonstrated on the real
- * card/payment-review component (Figma qESeTFW1GEEosrYnm4Hu3b, node 6569:445).
+ * Skeleton loader: the shimmer applied to placeholder content while a screen
+ * waits on data, and the wipe that reveals the real content once it arrives.
+ * Demonstrated on card/payment-review (Figma qESeTFW1GEEosrYnm4Hu3b, 6569:445).
  *
- * Technique is from the Motion for React "Skeleton Shimmer" example
- * (https://motion.dev/examples/react-skeleton-shimmer), read from that example's
- * own source bundle. Motion's timing values are NOT used — see TIMING below.
- *
- * The reveal uses the native View Transitions API. The original depends on
- * AnimateView from motion-plus, which is paid, and the effect does not need it.
+ * The reveal uses the native View Transitions API, so it needs no animation
+ * library. Where the API is unavailable the state still swaps, just without
+ * the wipe, and the same applies under prefers-reduced-motion.
  *
  * Colours are neutrals only, from Desktop/variables2.json:
  *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 500 #919191
@@ -17,7 +15,7 @@
  * All are already bound in src/index.css, so this file references the tokens.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useToc } from '../context/TocContext'
 import Button from '../components/ds/Button'
@@ -26,21 +24,16 @@ import merchantLogo from '../assets/merchants/pancake-house.png'
 const SECTIONS = [
   { id: 'demo',      label: 'Skeleton loader' },
   { id: 'spec',      label: 'Specification'   },
-  { id: 'measured',  label: 'Measured source'  },
-  { id: 'rationale', label: 'Why these values'},
+  { id: 'behaviour', label: 'Behaviour'       },
   { id: 'mechanics', label: 'Mechanics'       },
 ]
 
 /* ───────────────────────────────────────────────────────────────────────────
-   TIMING — fixed. Not configurable at runtime, by design.
-
-   Neither variables2.json nor the Motion design file carries duration or easing
-   tokens, and the "General Skeleton Behaviour" frame (P4kziTuTniQFQen8RQUIuy,
-   567:25575) has no keyframe data on it. These values are a decision, not an
-   extraction, and the reasoning for each is in the "Why these values" section.
+   TIMING — fixed. Not configurable at runtime, by design. Every screen that
+   uses the skeleton loader uses these exact values.
    ─────────────────────────────────────────────────────────────────────────── */
 
-const SHIMMER_CYCLE  = 1000   // ms, one full sweep (measured off LinkedIn)
+const SHIMMER_CYCLE  = 1000   // ms, one full pass of the band
 const SHIMMER_EASING = 'linear'
 const SKELETON_HOLD  = 3000   // ms, exactly three cycles, so the reveal lands on a seam
 const WIPE_DURATION  = 400    // ms
@@ -67,10 +60,9 @@ const MOTION_CSS = `
     to   { --ds-wipe: -100%; }
   }
 
-  /* Measured off the LinkedIn feed skeleton (see the Measurement section).
-     Bone sits at neutral 200. A soft band exactly one bone-width wide passes
-     over it, peaking at neutral 100. The band is sized in percentages, so a
-     narrow bone and a wide one complete their pass in the same 1000ms. */
+  /* The bone sits at neutral 200. A soft band exactly one bone-width wide
+     passes over it, peaking at neutral 100. The band is sized in percentages,
+     so a narrow bone and a wide one complete their pass in the same 1000ms. */
   .ds-shimmer {
     position: relative;
     overflow: hidden;
@@ -159,6 +151,79 @@ function Bone({ size, radius }) {
   )
 }
 
+/**
+ * ParagraphBone — one bone per rendered line of a wrapping paragraph.
+ *
+ * Where TextBone measures a single string, this measures the real line boxes at
+ * runtime with Range.getClientRects(), then draws a bone over each. So the bones
+ * follow the actual wrap rather than a hardcoded set of line widths, and the
+ * last line is short because the real last line is short, not because a preset
+ * said so. Rects are merged by line, since inline spans split a line into
+ * several rects.
+ */
+function ParagraphBone({ fontSize = 14, children }) {
+  const ref = useRef(null)
+  const [lines, setLines] = useState([])
+
+  useLayoutEffect(() => {
+    let cancelled = false
+
+    const measure = () => {
+      const el = ref.current
+      if (!el || cancelled) return
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const base = el.getBoundingClientRect()
+      const byLine = new Map()
+      for (const r of range.getClientRects()) {
+        if (r.width === 0 || r.height === 0) continue
+        const key = Math.round(r.top - base.top)
+        const left = r.left - base.left
+        const right = r.right - base.left
+        const cur = byLine.get(key)
+        if (cur) {
+          cur.left = Math.min(cur.left, left)
+          cur.right = Math.max(cur.right, right)
+        } else {
+          byLine.set(key, { top: r.top - base.top, height: r.height, left, right })
+        }
+      }
+      setLines([...byLine.values()].sort((a, b) => a.top - b.top))
+    }
+
+    measure()
+    // Re-measure once webfonts settle, since Source Sans Pro changes the wrap.
+    if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    if (ro && ref.current) ro.observe(ref.current)
+    return () => { cancelled = true; ro?.disconnect() }
+  }, [children, fontSize])
+
+  const boneHeight = Math.round(fontSize * 0.75)
+
+  return (
+    <div style={{ position: 'relative', flex: '1 0 0', minWidth: 0 }}>
+      <div ref={ref} style={{ visibility: 'hidden' }}>{children}</div>
+      {lines.map((l, i) => (
+        <span
+          key={i}
+          className="ds-shimmer"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: l.left,
+            width: Math.max(l.right - l.left, 0),
+            top: l.top + (l.height - boneHeight) / 2,
+            height: boneHeight,
+            borderRadius: 'var(--radius-full)',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 // ─── card/payment-review — Figma node 6569:445 ────────────────────────────────
 
 const MERCHANT = 'Pancake House'
@@ -211,6 +276,16 @@ const rowStyle    = { display: 'flex', alignItems: 'center', gap: 'var(--space-2
 const labelStyle  = { margin: 0, fontSize: 16, fontWeight: 400, lineHeight: 1.5, color: 'var(--text-subtle)', whiteSpace: 'nowrap', flexShrink: 0 }
 const valueStyle  = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', flex: '1 0 0', minWidth: 0, textAlign: 'right' }
 const nameStyle   = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+const consentStyle = { margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--text-base)' }
+
+const CONSENT = (
+  <>
+    I have read and agree to the{' '}
+    <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Disclosure statement</span>
+    {'  '}and{' '}
+    <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Promissory note.</span>
+  </>
+)
 
 const logoStyle = {
   width: 40, height: 40, borderRadius: 'var(--radius-full)',
@@ -259,18 +334,21 @@ function PaymentReviewCard({ loading }) {
         ))}
       </div>
 
-      {/* checkbox-paragraph — static copy, never fetched, so never skeletoned */}
+      {/* checkbox-paragraph */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-200)', width: '100%' }}>
-        <div style={{
-          width: 24, height: 24, flexShrink: 0, boxSizing: 'border-box',
-          border: '2px solid var(--border-bold)', borderRadius: 'var(--radius-md)',
-        }} />
-        <p style={{ margin: 0, flex: '1 0 0', minWidth: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--text-base)' }}>
-          I have read and agree to the{' '}
-          <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Disclosure statement</span>
-          {'  '}and{' '}
-          <span style={{ fontWeight: 600, textDecoration: 'underline' }}>Promissory note.</span>
-        </p>
+        {loading
+          ? <Bone size={24} radius="var(--radius-md)" />
+          : <div style={{
+              width: 24, height: 24, flexShrink: 0, boxSizing: 'border-box',
+              border: '2px solid var(--border-bold)', borderRadius: 'var(--radius-md)',
+            }} />}
+        {loading ? (
+          <ParagraphBone fontSize={14}>
+            <p style={consentStyle}>{CONSENT}</p>
+          </ParagraphBone>
+        ) : (
+          <p style={{ ...consentStyle, flex: '1 0 0', minWidth: 0 }}>{CONSENT}</p>
+        )}
       </div>
     </div>
   )
@@ -310,8 +388,9 @@ function SkeletonLoaderDemo() {
         <Button type="secondary" size="sm" label="Replay" onClick={() => setLoading(true)} />
         <p style={{ margin: 0, fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
           The card is <code>card/payment-review</code>, Figma node <code>6569:445</code>.
-          The merchant and the six figures are fetched, so they get placeholders.
-          The consent row is static copy that is never fetched, so it never gets one.
+          Every element gets a placeholder, the checkbox and the consent copy
+          included. The consent bones are measured off the real line boxes at
+          runtime, so they follow wherever the text actually wraps.
         </p>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
           Timings are fixed. There is nothing to tune here on purpose, so the same
@@ -408,67 +487,43 @@ function SpecTable({ cols, rows }) {
 }
 
 const SPEC_ROWS = [
-  ['Shimmer cycle',   '1000ms',                          'One full pass. Measured at 4830px/s across a 1120px bone on a 3x screen.'],
-  ['Shimmer easing',  'linear',                          'Constant velocity. The measured peak moved at a steady rate across the whole pass.'],
-  ['Shimmer repeat',  'infinite, restart',               'Restart, never alternate.'],
-  ['Duty cycle',      '~25% sweeping, ~75% at rest',     'The peak crosses a bone in roughly 250ms, then the bone sits near flat for the rest of the second.'],
-  ['Mechanism',       'transform: translateX() on ::after', 'Compositor-only. Percentage-based, so a narrow bone and a wide one finish together.'],
-  ['Band',            '90deg, transparent → n100 → transparent', 'Exactly one bone-width wide with a linear ramp either side. Measured half-ramp was 554px on a 1120px bone.'],
-  ['Travel',          'translateX(-100%) → translateX(300%)', 'Peak enters at -0.5w and leaves at 3.5w, giving the 25% duty above.'],
-  ['Bone colour',     'neutral 200 #E0E0E0',             'LinkedIn measures #E3E3E3. Neutral 200 is the closest value in this ramp.'],
-  ['Highlight',       'neutral 100 #F5F5F5',             'LinkedIn peaks at #F2F2F2. Neutral 100 is the closest value in this ramp.'],
-  ['Amplitude',       '+21 luminance at peak',           'LinkedIn measures +15. Deliberately gentle. The bone glows, it does not flash.'],
-  ['Bone height',     '0.75 x font-size',                'Glyph height, not line height. The bone still occupies the full line box.'],
-  ['Bone radius',     'var(--radius-full)',              'Pill, matching both LinkedIn and the Figma behaviour frame.'],
-  ['Skeleton hold',   '3000ms',                          'Three exact cycles, so the reveal lands on a seam rather than mid-pass.'],
-  ['Reveal',          'mask wipe, left to right',        'The skeleton is wiped off the top of the real card. No cross-fade, no movement.'],
-  ['Reveal duration', '400ms',                           'Slightly longer than the 320ms screen push, because a soft-edged mask starts and ends gentler than a hard screen edge.'],
-  ['Reveal easing',   'cubic-bezier(0.4, 0, 0.2, 1)',    'The same curve as the StepForwardBack screen transition.'],
-  ['Reduced motion',  'band hidden, bone static',        'The placeholder still shows, it just does not move.'],
+  ['Bone colour',     'neutral 200',   'var(--bg-sunken), #E0E0E0. The resting colour of every placeholder.'],
+  ['Highlight',       'neutral 100',   'var(--bg-subtle), #F5F5F5. The peak of the band as it passes.'],
+  ['Amplitude',       '+21 luminance', 'The bone glows, it does not flash.'],
+  ['Band',            '90deg, transparent → neutral 100 → transparent', 'One bone-width wide, with a linear ramp either side. No hard edge.'],
+  ['Band travel',     'translateX(-100%) → translateX(300%)', 'The peak enters at -0.5w and leaves at 3.5w.'],
+  ['Cycle',           '1000ms',        'One full pass, start to start.'],
+  ['Easing',          'linear',        'Constant velocity. No acceleration into or out of the pass.'],
+  ['Repeat',          'infinite, restart', 'Restart, never alternate. A band that bounces back reads as scrubbing.'],
+  ['Duty cycle',      '25% passing, 75% at rest', 'The peak crosses a bone in 250ms, then the bone sits near flat for the remaining 750ms.'],
+  ['Scaling',         'per bone, in percentages', 'Every bone completes its pass in the same 1000ms regardless of width.'],
+  ['Mechanism',       'transform on ::after', 'Compositor-only. Never animate background-position.'],
+  ['Bone height',     '0.75 × font-size', 'Glyph height, not line height. The bone still occupies the full line box.'],
+  ['Bone radius',     'var(--radius-full)', 'Pill on text. Placeholders for shaped elements take that element’s own radius.'],
+  ['Coverage',        'every element',  'Text, images, controls. Nothing in a loading region is left in its resolved state.'],
+  ['Skeleton hold',   '3000ms',        'Demo only. Three exact cycles, so the reveal lands on a seam rather than mid-pass.'],
+  ['Reveal',          'mask wipe, left to right', 'The skeleton is wiped off the top of the real content. No cross-fade, no movement.'],
+  ['Reveal duration', '400ms',         'Slightly longer than the 320ms screen push, because a soft-edged mask starts and ends gentler than a hard edge.'],
+  ['Reveal easing',   'cubic-bezier(0.4, 0, 0.2, 1)', 'The same curve as the StepForwardBack screen transition.'],
+  ['Reduced motion',  'band hidden, bone static', 'The placeholder still shows, it just does not move.'],
+  ['Accessibility',   'aria-hidden on every bone', 'Placeholders carry no content to announce. A separate live region should say "Loading".'],
 ]
 
-const MEASURED_ROWS = [
-  ['Capture',        '2.92s at 60fps, 1206 x 2622',      'iPhone screen recording of the LinkedIn feed cold-starting. The skeleton is on screen from about 1.19s to 1.82s.'],
-  ['Bone luminance', '227 of 255  (#E3E3E3)',            'Flat and identical across every bone between passes.'],
-  ['Peak luminance', '242 of 255  (#F2F2F2)',            'The brightest value reached anywhere on a bone during a pass.'],
-  ['Direction',      'left to right',                    'Peak x increases with time on every sampled row.'],
-  ['Peak velocity',  '4830 px/s',                        'Peak tracked from x=281 at 1.240s to x=1150 at 1.420s on a 1120px bone.'],
-  ['Crossing time',  '~250ms',                           'Derived from the velocity above. Only one pass occurs in the 630ms the skeleton is visible, which is what puts the cycle near 1000ms.'],
-  ['Band width',     '~1x the bone width',               'At 1.300s the ramp ran from base at x=136 to peak at x=690, a 554px half-ramp on a 1120px bone.'],
-  ['Scaling',        'per bone, in percentages',         'At the same instant a 1120px bone peaked at 58% of its own width and a 790px bone peaked at 61% of its own width. One global wave would have put both peaks at the same x.'],
-]
-
-const RATIONALE_ROWS = [
-  ['Copied, not invented',
-   'LinkedIn’s feed skeleton.',
-   'The shimmer values are measured off a screen recording rather than reasoned from first principles. Where LinkedIn’s exact greys fall between steps of this ramp, the nearest neutral is used: #E3E3E3 becomes neutral 200 and #F2F2F2 becomes neutral 100.'],
-  ['Light, not dark',
-   'An earlier pass swept toward neutral 500.',
-   'The measurement settles it. LinkedIn sweeps from 227 up to 242, so the bone brightens. A darker sweep is a different effect, not a variant of this one.'],
-  ['Gentle amplitude',
-   'LinkedIn moves 15 luminance steps.',
-   'Neutral 200 to neutral 100 is 21 steps, slightly stronger, because those are the two ramp values either side of the measured pair. Still well short of anything that reads as a flash.'],
+const BEHAVIOUR_ROWS = [
+  ['Everything gets a placeholder',
+   'Text, figures, images, checkboxes, buttons. If an element sits inside a region that is waiting on data, it gets a bone. Leaving one element resolved while its neighbours load reads as a rendering fault rather than a loading state.'],
+  ['Bones are measured, not guessed',
+   'A bone takes its width from the real content it stands in for, by rendering that content hidden and sizing to it. Placeholder widths are never percentages picked by eye. A wrapping paragraph is measured per line box at runtime, so the bones follow the actual wrap.'],
+  ['Nothing moves on reveal',
+   'Because every bone already occupies the exact box its content will occupy, the layout at the moment of reveal is identical to the layout before it. That is what lets the wipe read as a reveal rather than a swap.'],
+  ['One coordinated pass, not many',
+   'The band is sized as a percentage of each bone, so a 150px label and a 60px figure finish together. Sizing in pixels instead would give every bone its own rhythm and the card would look like it was loading in fragments.'],
   ['A long rest between passes',
-   'The peak is on a bone for about a quarter of the cycle.',
-   'This is the part most implementations miss. A continuous conveyor never stops moving and reads as busy. LinkedIn passes once, then leaves the bone almost flat for three quarters of a second, which is what makes it calm enough to sit under real content.'],
-  ['Percentage-scaled per bone',
-   'Verified by comparing two bones of different widths.',
-   'Because the band is sized as a percentage of each bone, every bone finishes its pass at the same moment regardless of width. On this card, which mixes a 150px label with a 60px figure, that is the difference between one coordinated pass and fourteen independent ones.'],
-  ['linear',
-   'The measured peak held a constant 4830px/s.',
-   'No acceleration into or out of the pass. Anything eased would have shown as a changing velocity across the sampled frames.'],
-  ['translateX, not background-position',
-   'The Motion example animates background-position.',
-   'Transform is compositor-only. Background-position repaints every frame, and this card animates fourteen placeholders at once. Same visual result, without the paint cost.'],
-  ['3000ms hold',
-   'LinkedIn’s own feed loaded in about 630ms.',
-   'Under one full cycle, so on a real load you often see a single pass. The demo holds for three so the rhythm is legible, and three exact cycles put the reveal on a seam rather than mid-pass.'],
-  ['400ms wipe',
-   'Not from LinkedIn. Its content simply cuts in.',
-   'The wipe is this system’s own addition, reusing the 320ms StepForwardBack easing. 400ms rather than 320ms because a soft-edged mask starts and ends gentler than a hard screen edge.'],
-  ['No runtime controls',
-   'The Motion reference ships sliders.',
-   'Sliders suit a gallery whose product is the parameter space. They are wrong for a design system, where the value of the spec is that there is exactly one of it.'],
+   'The band is on a given bone for only a quarter of the cycle. A continuous conveyor never stops moving and reads as busy. The three quarters of rest is what makes the loader calm enough to sit under real content.'],
+  ['The chrome stays put',
+   'Card backgrounds, borders, radii and padding are not placeholders. They are identical in both states, so the wipe passes over them invisibly and the shape of the screen is stable from first paint.'],
+  ['Fixed values, everywhere',
+   'None of this is configurable per screen. The value of the spec is that there is exactly one of it.'],
 ]
 
 const CODE_SHIMMER = `.ds-shimmer {
@@ -523,7 +578,7 @@ const CODE_WIPE = `@property --ds-wipe {
   );
 }`
 
-const CODE_SIZER = `// The bone is measured by the string it replaces, never by a percentage.
+const CODE_SIZER = `// The bone takes its width from the string it replaces, never a percentage.
 // The hidden copy holds the line box open, so nothing moves on reveal.
 
 function TextBone({ children, fontSize = 16 }) {
@@ -563,12 +618,11 @@ export default function Motion() {
 
       <DocSection id="demo" title="Skeleton loader">
         <P>
-          The shimmer is a replication of LinkedIn&apos;s feed skeleton, measured
-          frame by frame off a screen recording rather than guessed. It is shown
-          here on <code>card/payment-review</code>, the installment review screen,
-          which is a good test for the pattern because it mixes a photo, a
-          merchant name, and six label and figure pairs of very different widths,
-          and because every one of those values arrives from the server at once.
+          The loading state for any screen waiting on data. Shown here on{' '}
+          <code>card/payment-review</code>, the installment review screen, which
+          is a good test for it because it mixes a photo, a merchant name, six
+          label and figure pairs of very different widths, a checkbox and a
+          wrapping paragraph. Every one of them gets a placeholder.
         </P>
         <DocCard>
           <CardHeader label="Live demo" />
@@ -578,48 +632,33 @@ export default function Motion() {
 
       <DocSection id="spec" title="Specification">
         <P>
-          Fixed values. Nothing here is configurable per screen.
+          The complete set of values applied to the skeleton loader. Fixed, and
+          not configurable per screen.
         </P>
         <DocCard>
           <SpecTable cols={['Property', 'Value', 'Notes']} rows={SPEC_ROWS} />
         </DocCard>
       </DocSection>
 
-      <DocSection id="measured" title="Measured source">
+      <DocSection id="behaviour" title="Behaviour">
         <P>
-          Everything in the shimmer row of the table above comes from sampling
-          pixel luminance across frames of a LinkedIn cold start, not from its
-          published CSS. The two rows worth reading are the last two.
+          The rules the values above are there to serve. These matter more than
+          any single number, because they are what a screen has to get right for
+          the loader to read as one state rather than a half-drawn page.
         </P>
         <DocCard>
-          <SpecTable cols={['Reading', 'Value', 'How']} rows={MEASURED_ROWS} />
-        </DocCard>
-        <div style={{ height: 20 }} />
-        <P>
-          The duty cycle is the part that is easy to miss by eye. The band is
-          only on a given bone for about a quarter of the second. Most
-          reimplementations of this pattern run a band across the element
-          continuously, which looks busy next to the original.
-        </P>
-        <P>
-          The scaling test is the other one. At a single instant, a 1120px bone
-          and a 790px bone had their bright peaks at 58% and 61% of their own
-          widths. If one gradient were sweeping across the whole screen, both
-          peaks would have sat at the same x. They did not, so each bone carries
-          its own band, sized to itself.
-        </P>
-      </DocSection>
-
-      <DocSection id="rationale" title="Why these values">
-        <P>
-          Neither <code>variables2.json</code> nor the Motion design file carries
-          duration or easing tokens, and the General Skeleton Behaviour frame has
-          no keyframe data on it. The shimmer values below are therefore taken
-          from the measurement above. The reveal is this system&apos;s own, since
-          LinkedIn has no equivalent, and is reasoned rather than measured.
-        </P>
-        <DocCard>
-          <SpecTable cols={['Decision', 'Reference point', 'Reasoning']} rows={RATIONALE_ROWS} />
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+              <tbody>
+                {BEHAVIOUR_ROWS.map((row, i, arr) => (
+                  <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                    <td style={{ padding: '12px 14px', verticalAlign: 'top', width: 220, fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 600, color: 'var(--text-base)' }}>{row[0]}</td>
+                    <td style={{ padding: '12px 14px', verticalAlign: 'top', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>{row[1]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </DocCard>
       </DocSection>
 
@@ -648,9 +687,10 @@ export default function Motion() {
           The third block is the part worth keeping. Each placeholder renders the
           real string inside itself at <code>visibility: hidden</code> and takes
           its width from it, so the bone for <code>&#8369;5,428.00</code> is
-          exactly as wide as that figure will be. Change the type scale and the
-          placeholders follow on their own. Nothing moves at the moment of reveal,
-          which is what lets the wipe read as a reveal rather than a swap.
+          exactly as wide as that figure will be. A wrapping paragraph is handled
+          the same way, measured per line box, so the bones follow the real wrap
+          and the last one is short because the last line is short. Change the
+          type scale and every placeholder follows on its own.
         </P>
       </DocSection>
 
