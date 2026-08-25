@@ -1,73 +1,47 @@
 /**
  * Motion — Billease Design System portal
  *
- * Skeleton loader: the shimmer applied to placeholder content while a screen
- * waits on data, and the wipe that reveals the real content once it arrives.
+ * Skeleton loader: the loading state for a region waiting on data.
  * Demonstrated on card/payment-review (Figma qESeTFW1GEEosrYnm4Hu3b, 6569:445).
  *
- * The reveal uses the native View Transitions API, so it needs no animation
- * library. Where the API is unavailable the state still swaps, just without
- * the wipe, and the same applies under prefers-reduced-motion.
+ * This is one pattern within the motion system, not the motion system itself.
  *
- * Colours are neutrals only, from Desktop/variables2.json:
- *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 500 #919191
- *   neutral 700 #545454  neutral 900 #1A1A1A  white
- * All are already bound in src/index.css, so this file references the tokens.
+ * Colours are neutrals only, from variables2.json, already bound in index.css.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import { useToc } from '../context/TocContext'
 import Button from '../components/ds/Button'
+import Alert from '../components/ds/Alert'
+import BilleaseIcon from '../assets/icons/BilleaseIcon'
 import merchantLogo from '../assets/merchants/pancake-house.png'
 
 const SECTIONS = [
-  { id: 'demo',      label: 'Skeleton loader' },
-  { id: 'spec',      label: 'Specification'   },
-  { id: 'behaviour', label: 'Behaviour'       },
-  { id: 'mechanics', label: 'Mechanics'       },
+  { id: 'skeleton-loader', label: 'Skeleton loader'      },
+  { id: 'demo',            label: 'Demo'                 },
+  { id: 'usage',           label: 'Usage'                },
+  { id: 'behaviour',       label: 'Behaviour'            },
+  { id: 'specification',   label: 'Specification'        },
+  { id: 'states',          label: 'States'               },
+  { id: 'accessibility',   label: 'Accessibility'        },
+  { id: 'engineering',     label: 'Engineering reference'},
 ]
 
-/* ───────────────────────────────────────────────────────────────────────────
-   TIMING — fixed. Not configurable at runtime, by design. Every screen that
-   uses the skeleton loader uses these exact values.
-   ─────────────────────────────────────────────────────────────────────────── */
-
-const SHIMMER_CYCLE  = 1000   // ms, one full pass of the band
-const SHIMMER_EASING = 'linear'
-const SKELETON_HOLD  = 3000   // ms, exactly three cycles, so the reveal lands on a seam
-const WIPE_DURATION  = 400    // ms
-const WIPE_EASING    = 'cubic-bezier(0.4, 0, 0.2, 1)'  // Billease transition easing
-
-const VIEW_NAME = 'ds-payment-review'
+const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
+const SKELETON_HOLD = 3000   // ms, demo only
 
 const MOTION_CSS = `
-  @property --ds-wipe {
-    syntax: '<percentage>';
-    inherits: true;
-    initial-value: -100%;
-  }
-
-  /* Peak enters at -0.5w and leaves at 3.5w, so it crosses the bone in a
-     quarter of the cycle and the remaining three quarters are near-flat rest. */
   @keyframes ds-shimmer-sweep {
     from { transform: translateX(-100%); }
     to   { transform: translateX(300%); }
   }
 
-  @keyframes ds-skeleton-wipe {
-    from { --ds-wipe:  100%; }
-    to   { --ds-wipe: -100%; }
-  }
-
-  /* The bone sits at neutral 200. A soft band exactly one bone-width wide
-     passes over it, peaking at neutral 100. The band is sized in percentages,
-     so a narrow bone and a wide one complete their pass in the same 1000ms. */
   .ds-shimmer {
     position: relative;
     overflow: hidden;
     background: var(--bg-sunken);
   }
+
   .ds-shimmer::after {
     content: '';
     position: absolute;
@@ -82,52 +56,28 @@ const MOTION_CSS = `
       transparent    100%
     );
     transform: translateX(-100%);
-    animation: ds-shimmer-sweep ${SHIMMER_CYCLE}ms ${SHIMMER_EASING} infinite;
+    animation: ds-shimmer-sweep ${SHIMMER_CYCLE}ms linear infinite;
     will-change: transform;
   }
 
-  ::view-transition-group(${VIEW_NAME}) {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  ::view-transition-image-pair(${VIEW_NAME}) {
-    mix-blend-mode: normal;
-  }
-
-  /* The skeleton is wiped off the top of the real card, not cross-faded into it. */
-  ::view-transition-old(${VIEW_NAME}) {
-    z-index: 2;
-    animation: ds-skeleton-wipe ${WIPE_DURATION}ms ${WIPE_EASING} both;
-    -webkit-mask-image: linear-gradient(to right, black var(--ds-wipe), transparent calc(var(--ds-wipe) + 100%));
-            mask-image: linear-gradient(to right, black var(--ds-wipe), transparent calc(var(--ds-wipe) + 100%));
-  }
-
-  ::view-transition-new(${VIEW_NAME}) {
-    animation: none;
-    opacity: 1;
-  }
+  .ds-shimmer--static::after { animation: none; opacity: 0; }
 
   @media (prefers-reduced-motion: reduce) {
     .ds-shimmer::after { animation: none; opacity: 0; }
-    ::view-transition-old(${VIEW_NAME}),
-    ::view-transition-new(${VIEW_NAME}) { animation: none; }
   }
 `
 
 // ─── Shimmer primitives ───────────────────────────────────────────────────────
 
-/**
- * TextBone — occupies the exact line box of the string it replaces, so nothing
- * moves on reveal, but draws the bone at glyph height rather than line height.
- * Width comes from the real string. No guessed percentages.
- */
-function TextBone({ children, fontSize = 16 }) {
+const boneClass = (staticOnly) => `ds-shimmer${staticOnly ? ' ds-shimmer--static' : ''}`
+
+/** TextBone — holds the line box of the string it replaces, drawn at glyph height. */
+function TextBone({ children, fontSize = 16, staticOnly = false }) {
   return (
     <span style={{ position: 'relative', display: 'inline-block', verticalAlign: 'top' }}>
       <span style={{ visibility: 'hidden' }}>{children}</span>
       <span
-        className="ds-shimmer"
+        className={boneClass(staticOnly)}
         aria-hidden="true"
         style={{
           position: 'absolute', left: 0, right: 0, top: '50%',
@@ -140,11 +90,11 @@ function TextBone({ children, fontSize = 16 }) {
   )
 }
 
-/** Bone — for a node with no intrinsic content to measure (the merchant logo). */
-function Bone({ size, radius }) {
+/** Bone — for a node with no intrinsic content to measure. */
+function Bone({ size, radius, staticOnly = false }) {
   return (
     <div
-      className="ds-shimmer"
+      className={boneClass(staticOnly)}
       aria-hidden="true"
       style={{ width: size, height: size, borderRadius: radius, flexShrink: 0 }}
     />
@@ -154,24 +104,12 @@ function Bone({ size, radius }) {
 /**
  * ParagraphBone — one bone per rendered line of a wrapping paragraph.
  *
- * Where TextBone measures a single string, this finds where the real text breaks
- * and draws a bone over each line, so the bones follow the true wrap and the
- * last one is short because the last line is short.
- *
- * Three things make this fiddly enough to be worth spelling out:
- *
- *  - Ranging over the wrapper element returns a rect for its block box as well
- *    as one per line fragment, and that block rect spans every line at once.
- *    Only text nodes are ranged over here, so no block rect is ever produced.
- *  - A run that wraps is one text node with two rects. A line built from several
- *    runs is several rects at the same height. So fragments are grouped into
- *    lines by vertical position, not by which node they came from.
- *  - Line positions are derived from the fragments themselves rather than from
- *    a computed line-height, which would have to be read off the right element
- *    to be correct. Grouping by proximity needs no such assumption, and absorbs
- *    the sub-pixel differences between bold and regular runs on one line.
+ * Only text nodes are ranged over, since ranging over an element would also
+ * return its block rect, which spans every line at once. Fragments are grouped
+ * into lines by the proximity of their vertical centres, which absorbs the
+ * sub-pixel difference between bold and regular runs on the same line.
  */
-function ParagraphBone({ fontSize = 14, children }) {
+function ParagraphBone({ fontSize = 14, staticOnly = false, children }) {
   const ref = useRef(null)
   const [rows, setRows] = useState([])
 
@@ -184,7 +122,6 @@ function ParagraphBone({ fontSize = 14, children }) {
       const base = el.getBoundingClientRect()
       if (base.width === 0) return
 
-      // Text nodes only. Ranging over an element would also return its block rect.
       const frags = []
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
@@ -201,7 +138,6 @@ function ParagraphBone({ fontSize = 14, children }) {
         }
       }
 
-      // Fragments within a few pixels of each other vertically are one line.
       const LINE_TOLERANCE = 3
       frags.sort((a, b) => a.centre - b.centre)
       const lines = []
@@ -225,7 +161,6 @@ function ParagraphBone({ fontSize = 14, children }) {
 
       if (next.length) { setRows(next); return }
 
-      // Nothing measurable. Fall back to full-width bones on a computed grid.
       const typeEl = el.firstElementChild || el
       const lineHeight = parseFloat(getComputedStyle(typeEl).lineHeight) || fontSize * 1.5
       const count = Math.max(1, Math.round(base.height / lineHeight))
@@ -235,9 +170,7 @@ function ParagraphBone({ fontSize = 14, children }) {
     }
 
     measure()
-    // Re-measure once webfonts settle, since Source Sans Pro changes the wrap.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure).catch(() => {})
-
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
     if (ro && ref.current) ro.observe(ref.current)
     return () => { cancelled = true; if (ro) ro.disconnect() }
@@ -251,7 +184,7 @@ function ParagraphBone({ fontSize = 14, children }) {
       {rows.map((l, i) => (
         <span
           key={i}
-          className="ds-shimmer"
+          className={boneClass(staticOnly)}
           aria-hidden="true"
           style={{
             position: 'absolute',
@@ -281,45 +214,32 @@ const DETAIL_ROWS = [
 ]
 
 const shell = {
-  width: 360,
-  boxSizing: 'border-box',
-  backgroundColor: 'var(--bg-base)',
+  width: 360, boxSizing: 'border-box', backgroundColor: 'var(--bg-base)',
   padding: 'var(--space-600) var(--space-500)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 'var(--space-600)',
+  display: 'flex', flexDirection: 'column', gap: 'var(--space-600)',
   fontFamily: 'var(--ds-font-family)',
-  viewTransitionName: VIEW_NAME,
 }
-
 const merchantCard = {
-  backgroundColor: 'var(--bg-subtle)',
-  borderRadius: 'var(--radius-lg)',
-  padding: 'var(--space-300)',
-  display: 'flex',
-  alignItems: 'center',
-  gap: 'var(--space-300)',
-  width: '100%',
-  boxSizing: 'border-box',
+  backgroundColor: 'var(--bg-subtle)', borderRadius: 'var(--radius-lg)',
+  padding: 'var(--space-300)', display: 'flex', alignItems: 'center',
+  gap: 'var(--space-300)', width: '100%', boxSizing: 'border-box',
 }
-
 const summaryCard = {
-  backgroundColor: 'var(--bg-base)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: 'var(--radius-lg)',
-  padding: 'var(--space-300)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 'var(--space-400)',
-  width: '100%',
-  boxSizing: 'border-box',
+  backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-subtle)',
+  borderRadius: 'var(--radius-lg)', padding: 'var(--space-300)',
+  display: 'flex', flexDirection: 'column', gap: 'var(--space-400)',
+  width: '100%', boxSizing: 'border-box',
 }
-
-const rowStyle    = { display: 'flex', alignItems: 'center', gap: 'var(--space-200)', width: '100%' }
-const labelStyle  = { margin: 0, fontSize: 16, fontWeight: 400, lineHeight: 1.5, color: 'var(--text-subtle)', whiteSpace: 'nowrap', flexShrink: 0 }
-const valueStyle  = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', flex: '1 0 0', minWidth: 0, textAlign: 'right' }
-const nameStyle   = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+const rowStyle   = { display: 'flex', alignItems: 'center', gap: 'var(--space-200)', width: '100%' }
+const labelStyle = { margin: 0, fontSize: 16, fontWeight: 400, lineHeight: 1.5, color: 'var(--text-subtle)', whiteSpace: 'nowrap', flexShrink: 0 }
+const valueStyle = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', flex: '1 0 0', minWidth: 0, textAlign: 'right' }
+const nameStyle  = { margin: 0, fontSize: 16, fontWeight: 600, lineHeight: 1.5, color: 'var(--text-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 const consentStyle = { margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--text-base)' }
+const logoStyle = {
+  width: 40, height: 40, borderRadius: 'var(--radius-full)',
+  border: '1px solid var(--border-subtle)', overflow: 'hidden', flexShrink: 0,
+  objectFit: 'cover', display: 'block',
+}
 
 const CONSENT = (
   <>
@@ -330,63 +250,56 @@ const CONSENT = (
   </>
 )
 
-const logoStyle = {
-  width: 40, height: 40, borderRadius: 'var(--radius-full)',
-  border: '1px solid var(--border-subtle)', overflow: 'hidden', flexShrink: 0,
-  objectFit: 'cover', display: 'block',
+function DetailRow({ row, loading, staticOnly }) {
+  return (
+    <div style={rowStyle}>
+      {loading ? (
+        <>
+          <TextBone fontSize={16} staticOnly={staticOnly}><span style={labelStyle}>{row.label}</span></TextBone>
+          <span style={valueStyle}>
+            <TextBone fontSize={16} staticOnly={staticOnly}><span style={{ fontWeight: 600 }}>{row.value}</span></TextBone>
+          </span>
+        </>
+      ) : (
+        <>
+          <p style={labelStyle}>{row.label}</p>
+          <p style={valueStyle}>{row.value}</p>
+        </>
+      )}
+    </div>
+  )
 }
 
-/**
- * The same shell renders both states. Only the data nodes swap, so the chrome
- * (backgrounds, borders, the consent row) is byte-identical across the wipe and
- * the layout cannot shift.
- */
-function PaymentReviewCard({ loading }) {
+/** One shell renders both states, so the chrome is identical across the change. */
+function PaymentReviewCard({ loading, staticOnly = false }) {
   return (
     <div style={shell} data-node-id="6569:445">
-      {/* card/recipient */}
       <div style={merchantCard}>
         {loading
-          ? <Bone size={40} radius="var(--radius-full)" />
+          ? <Bone size={40} radius="var(--radius-full)" staticOnly={staticOnly} />
           : <img src={merchantLogo} alt="" style={logoStyle} />}
         <div style={{ flex: '1 0 0', minWidth: 0 }}>
           {loading
-            ? <TextBone fontSize={16}><span style={nameStyle}>{MERCHANT}</span></TextBone>
+            ? <TextBone fontSize={16} staticOnly={staticOnly}><span style={nameStyle}>{MERCHANT}</span></TextBone>
             : <p style={nameStyle}>{MERCHANT}</p>}
         </div>
       </div>
 
-      {/* card/summary-review */}
       <div style={summaryCard}>
         {DETAIL_ROWS.map(row => (
-          <div key={row.label} style={rowStyle}>
-            {loading ? (
-              <>
-                <TextBone fontSize={16}><span style={labelStyle}>{row.label}</span></TextBone>
-                <span style={{ ...valueStyle, fontWeight: 600 }}>
-                  <TextBone fontSize={16}><span style={{ fontWeight: 600 }}>{row.value}</span></TextBone>
-                </span>
-              </>
-            ) : (
-              <>
-                <p style={labelStyle}>{row.label}</p>
-                <p style={valueStyle}>{row.value}</p>
-              </>
-            )}
-          </div>
+          <DetailRow key={row.label} row={row} loading={loading} staticOnly={staticOnly} />
         ))}
       </div>
 
-      {/* checkbox-paragraph */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-200)', width: '100%' }}>
         {loading
-          ? <Bone size={24} radius="var(--radius-md)" />
+          ? <Bone size={24} radius="var(--radius-md)" staticOnly={staticOnly} />
           : <div style={{
               width: 24, height: 24, flexShrink: 0, boxSizing: 'border-box',
               border: '2px solid var(--border-bold)', borderRadius: 'var(--radius-md)',
             }} />}
         {loading ? (
-          <ParagraphBone fontSize={14}>
+          <ParagraphBone fontSize={14} staticOnly={staticOnly}>
             <p style={consentStyle}>{CONSENT}</p>
           </ParagraphBone>
         ) : (
@@ -399,59 +312,62 @@ function PaymentReviewCard({ loading }) {
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
-function withWipe(update) {
-  const reduced = typeof window !== 'undefined'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (typeof document === 'undefined' || typeof document.startViewTransition !== 'function' || reduced) {
-    update()
-    return
-  }
-  document.startViewTransition(() => flushSync(update))
-}
-
 function SkeletonLoaderDemo() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!loading) return
-    const timer = setTimeout(() => withWipe(() => setLoading(false)), SKELETON_HOLD)
+    const timer = setTimeout(() => setLoading(false), SKELETON_HOLD)
     return () => clearTimeout(timer)
   }, [loading])
 
   return (
-    <div style={{ display: 'flex', gap: 40, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       <div style={{
         width: 360, flexShrink: 0,
         border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden',
       }}>
         <PaymentReviewCard loading={loading} />
       </div>
-
-      <div style={{ flex: 1, minWidth: 240, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <Button type="secondary" size="sm" label="Replay" onClick={() => setLoading(true)} />
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
-          The card is <code>card/payment-review</code>, Figma node <code>6569:445</code>.
-          Every element gets a placeholder, the checkbox and the consent copy
-          included. The consent bones are measured off the real line boxes at
-          runtime, so they follow wherever the text actually wraps.
-        </p>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
-          Timings are fixed. There is nothing to tune here on purpose, so the same
-          numbers ship everywhere the pattern is used.
-        </p>
+        <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
+          {loading ? 'Loading' : 'Loaded'}
+        </span>
       </div>
     </div>
   )
 }
 
-// ─── Layout helpers (same pattern as the component docs pages) ────────────────
-
-function DocSection({ id, title, children }) {
+/** A three-row fragment, used to show the states side by side. */
+function MiniCard({ loading, staticOnly = false }) {
   return (
-    <section id={id} style={{ marginBottom: 56 }}>
-      <h2 style={{ fontFamily: 'var(--font-family)', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 20px' }}>
+    <div style={{ ...summaryCard, width: 208, fontFamily: 'var(--ds-font-family)', gap: 'var(--space-300)' }}>
+      {DETAIL_ROWS.slice(0, 3).map(row => (
+        <DetailRow key={row.label} row={{ ...row, label: row.label.split(' ')[0] }} loading={loading} staticOnly={staticOnly} />
+      ))}
+    </div>
+  )
+}
+
+function Arrow() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, padding: '0 4px' }}>
+      <BilleaseIcon name="chevron-right" size="sm" color="var(--icon-subtle)" />
+    </div>
+  )
+}
+
+// ─── Layout helpers ───────────────────────────────────────────────────────────
+
+function DocSection({ id, title, level = 3, children }) {
+  const H = level === 2 ? 'h2' : 'h3'
+  const size = level === 2 ? 24 : 17
+  return (
+    <section id={id} style={{ marginBottom: level === 2 ? 28 : 44 }}>
+      <H style={{ fontFamily: 'var(--font-family)', fontSize: size, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 12px' }}>
         {title}
-      </h2>
+      </H>
       {children}
     </section>
   )
@@ -476,19 +392,75 @@ function CardHeader({ label }) {
 }
 
 function CardBody({ children, style }) {
-  return <div style={{ padding: '28px 32px', backgroundColor: '#fff', ...style }}>{children}</div>
+  return <div style={{ padding: '24px 28px', backgroundColor: '#fff', ...style }}>{children}</div>
 }
 
-const P = ({ children }) => (
-  <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
+const P = ({ children, style }) => (
+  <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)', maxWidth: '72ch', ...style }}>
     {children}
   </p>
 )
 
+function RuleTable({ rows }) {
+  return (
+    <DocCard>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <tbody>
+          {rows.map((row, i, arr) => (
+            <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+              <td style={{ padding: '12px 16px', verticalAlign: 'top', width: 240, fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 600, color: 'var(--text-base)' }}>{row[0]}</td>
+              <td style={{ padding: '12px 16px', verticalAlign: 'top', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>{row[1]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </DocCard>
+  )
+}
+
+function Swatch({ color }) {
+  return (
+    <span style={{
+      display: 'inline-block', width: 12, height: 12, borderRadius: 3,
+      backgroundColor: color, border: '1px solid var(--border-subtle)',
+      verticalAlign: '-2px', marginRight: 8,
+    }} />
+  )
+}
+
+function UsageList({ label, items, tone }) {
+  return (
+    <DocCard style={{ flex: 1, minWidth: 260 }}>
+      <CardHeader label={label} />
+      <CardBody style={{ padding: '16px 20px' }}>
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {items.map(item => (
+            <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.5, color: 'var(--text-base)' }}>
+              <BilleaseIcon name={tone === 'use' ? 'tick' : 'close-mini'} size="xs" color={tone === 'use' ? 'var(--icon-base)' : 'var(--icon-subtle)'} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </CardBody>
+    </DocCard>
+  )
+}
+
+function Note({ title, children }) {
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px 16px', border: '1px solid var(--border-subtle)', borderRadius: 8, backgroundColor: 'var(--bg-subtle)' }}>
+      <div style={{ fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>
+        <strong style={{ color: 'var(--text-base)', fontWeight: 600 }}>{title}</strong>{' '}
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function CodeBlock({ code }) {
   return (
     <pre style={{
-      margin: 0, padding: '18px 20px', overflowX: 'auto',
+      margin: 0, padding: '16px 20px', overflowX: 'auto',
       backgroundColor: 'var(--bg-subtle)', fontFamily: 'monospace',
       fontSize: 12.5, lineHeight: 1.65, color: 'var(--text-base)',
     }}>
@@ -497,86 +469,64 @@ function CodeBlock({ code }) {
   )
 }
 
-function SpecTable({ cols, rows }) {
-  return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 620 }}>
-        <thead>
-          <tr style={{ backgroundColor: 'var(--bg-subtle)' }}>
-            {cols.map(h => (
-              <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-family)', color: 'var(--text-disabled)', textTransform: 'uppercase', letterSpacing: '0.4px', borderBottom: '1px solid var(--border-subtle)' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i, arr) => (
-            <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-              {row.map((cell, j) => (
-                <td key={j} style={{
-                  padding: '8px 14px', verticalAlign: 'top',
-                  fontFamily: j < 2 ? 'monospace' : 'var(--font-family)',
-                  fontSize: j === 0 ? 12.5 : j === 1 ? 12 : 13,
-                  fontWeight: j === 0 ? 600 : 400,
-                  whiteSpace: j === 0 ? 'nowrap' : 'normal',
-                  color: j === 0 ? 'var(--text-base)' : j === 1 ? 'var(--text-base)' : 'var(--text-subtle)',
-                }}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
+// ─── Content ──────────────────────────────────────────────────────────────────
 
-const SPEC_ROWS = [
-  ['Bone colour',     'neutral 200',   'var(--bg-sunken), #E0E0E0. The resting colour of every placeholder.'],
-  ['Highlight',       'neutral 100',   'var(--bg-subtle), #F5F5F5. The peak of the band as it passes.'],
-  ['Amplitude',       '+21 luminance', 'The bone glows, it does not flash.'],
-  ['Band',            '90deg, transparent → neutral 100 → transparent', 'One bone-width wide, with a linear ramp either side. No hard edge.'],
-  ['Band travel',     'translateX(-100%) → translateX(300%)', 'The peak enters at -0.5w and leaves at 3.5w.'],
-  ['Cycle',           '1000ms',        'One full pass, start to start.'],
-  ['Easing',          'linear',        'Constant velocity. No acceleration into or out of the pass.'],
-  ['Repeat',          'infinite, restart', 'Restart, never alternate. A band that bounces back reads as scrubbing.'],
-  ['Duty cycle',      '25% passing, 75% at rest', 'The peak crosses a bone in 250ms, then the bone sits near flat for the remaining 750ms.'],
-  ['Scaling',         'per bone, in percentages', 'Every bone completes its pass in the same 1000ms regardless of width.'],
-  ['Mechanism',       'transform on ::after', 'Compositor-only. Never animate background-position.'],
-  ['Bone height',     '0.75 × font-size', 'Glyph height, not line height. The bone still occupies the full line box.'],
-  ['Bone radius',     'var(--radius-full)', 'Pill on text. Placeholders for shaped elements take that element’s own radius.'],
-  ['Coverage',        'every element',  'Text, images, controls. Nothing in a loading region is left in its resolved state.'],
-  ['Skeleton hold',   '3000ms',        'Demo only. Three exact cycles, so the reveal lands on a seam rather than mid-pass.'],
-  ['Reveal',          'mask wipe, left to right', 'The skeleton is wiped off the top of the real content. No cross-fade, no movement.'],
-  ['Reveal duration', '400ms',         'Slightly longer than the 320ms screen push, because a soft-edged mask starts and ends gentler than a hard edge.'],
-  ['Reveal easing',   'cubic-bezier(0.4, 0, 0.2, 1)', 'The same curve as the StepForwardBack screen transition.'],
-  ['Reduced motion',  'band hidden, bone static', 'The placeholder still shows, it just does not move.'],
-  ['Accessibility',   'aria-hidden on every bone', 'Placeholders carry no content to announce. A separate live region should say "Loading".'],
+const USE_WHEN = [
+  'The final content structure is known',
+  'Data is still loading',
+  'The wait is long enough to be perceptible',
+  'Showing the expected layout helps orientation',
 ]
 
-const BEHAVIOUR_ROWS = [
-  ['Everything gets a placeholder',
-   'Text, figures, images, checkboxes, buttons. If an element sits inside a region that is waiting on data, it gets a bone. Leaving one element resolved while its neighbours load reads as a rendering fault rather than a loading state.'],
-  ['Bones are measured, not guessed',
-   'A bone takes its width from the real content it stands in for, by rendering that content hidden and sizing to it. Placeholder widths are never percentages picked by eye. A wrapping paragraph is measured per line box at runtime, so the bones follow the actual wrap.'],
-  ['Nothing moves on reveal',
-   'Because every bone already occupies the exact box its content will occupy, the layout at the moment of reveal is identical to the layout before it. That is what lets the wipe read as a reveal rather than a swap.'],
-  ['One coordinated pass, not many',
-   'The band is sized as a percentage of each bone, so a 150px label and a 60px figure finish together. Sizing in pixels instead would give every bone its own rhythm and the card would look like it was loading in fragments.'],
-  ['A long rest between passes',
-   'The band is on a given bone for only a quarter of the cycle. A continuous conveyor never stops moving and reads as busy. The three quarters of rest is what makes the loader calm enough to sit under real content.'],
-  ['The chrome stays put',
-   'Card backgrounds, borders, radii and padding are not placeholders. They are identical in both states, so the wipe passes over them invisibly and the shape of the screen is stable from first paint.'],
-  ['Fixed values, everywhere',
-   'None of this is configurable per screen. The value of the spec is that there is exactly one of it.'],
+const AVOID_WHEN = [
+  'The wait is extremely short',
+  'The final structure is unknown',
+  'The process has measurable progress',
+  'Only a small independent action needs feedback',
+]
+
+const BEHAVIOUR_RULES = [
+  ['Match the final layout',
+   'Skeleton placeholders occupy the same space as the content they replace, so nothing shifts when content appears.'],
+  ['Skeletonize only unresolved content',
+   'Apply skeletons only to the region waiting on data. Keep independent available content usable.'],
+  ['Keep related shimmer synchronized',
+   'Placeholders within the same loading region should feel like one coordinated loading state.'],
+  ['Keep structural chrome stable',
+   'Container backgrounds, borders, radii, padding, and layout remain unchanged. Only unresolved content becomes skeleton.'],
+  ['No layout movement on reveal',
+   'Loaded content replaces the skeleton in the same space.'],
+]
+
+const SPEC_ROWS = [
+  ['Base',              <><Swatch color="var(--bg-sunken)" /><code>bg/sunken</code> · Neutral 200</>],
+  ['Highlight',         <><Swatch color="var(--bg-subtle)" /><code>bg/subtle</code> · Neutral 100</>],
+  ['Animation',         'Shimmer'],
+  ['Direction',         'Left to right'],
+  ['Duration',          '1000ms'],
+  ['Easing',            'Linear'],
+  ['Repeat',            'Infinite while loading'],
+  ['Text bone height',  '75% of font size'],
+  ['Text bone radius',  'Full'],
+  ['Reduced motion',    'Static skeleton'],
+  ['Accessibility',     'Skeleton placeholders hidden from assistive technology, loading status announced separately'],
+]
+
+const ACCESSIBILITY_RULES = [
+  ['Respect reduced motion',        'Under prefers-reduced-motion the skeleton is shown without the shimmer.'],
+  ['Do not announce placeholders',  'Individual bones carry no content. Each is hidden from assistive technology.'],
+  ['Announce the loading state',    'A single live region reports that the region is loading, and that it has finished.'],
+  ['Motion is never required',      'Nothing about the screen can only be understood by seeing the shimmer move.'],
 ]
 
 const CODE_SHIMMER = `.ds-shimmer {
   position: relative;
   overflow: hidden;
-  background: var(--bg-sunken);            /* neutral 200 */
+  background: var(--bg-sunken);            /* Neutral 200 */
 }
 
-/* A soft band exactly one bone-width wide, peaking at neutral 100.
-   Sized in percentages, so every bone finishes its pass together. */
+/* A soft band one bone-width wide, peaking at Neutral 100. Sized in
+   percentages, so every bone in a region finishes its pass together. */
 .ds-shimmer::after {
   content: '';
   position: absolute;
@@ -585,7 +535,7 @@ const CODE_SHIMMER = `.ds-shimmer {
   background: linear-gradient(
     90deg,
     transparent       0%,
-    var(--bg-subtle) 50%,                  /* neutral 100 */
+    var(--bg-subtle) 50%,                  /* Neutral 100 */
     transparent     100%
   );
   transform: translateX(-100%);
@@ -593,36 +543,17 @@ const CODE_SHIMMER = `.ds-shimmer {
   will-change: transform;                  /* compositor-only, no repaint */
 }
 
-/* Peak enters at -0.5w and leaves at 3.5w, so it crosses the bone in a
-   quarter of the cycle and rests for the other three quarters. */
 @keyframes ds-shimmer-sweep {
   from { transform: translateX(-100%); }
   to   { transform: translateX(300%); }
-}`
-
-const CODE_WIPE = `@property --ds-wipe {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: -100%;
 }
 
-@keyframes ds-skeleton-wipe {
-  from { --ds-wipe:  100%; }
-  to   { --ds-wipe: -100%; }
-}
-
-::view-transition-old(ds-payment-review) {
-  z-index: 2;               /* wipe the skeleton off the top of the real card */
-  animation: ds-skeleton-wipe 400ms cubic-bezier(0.4, 0, 0.2, 1) both;
-  mask-image: linear-gradient(
-    to right,
-    black var(--ds-wipe),
-    transparent calc(var(--ds-wipe) + 100%)
-  );
+@media (prefers-reduced-motion: reduce) {
+  .ds-shimmer::after { animation: none; opacity: 0; }
 }`
 
-const CODE_SIZER = `// The bone takes its width from the string it replaces, never a percentage.
-// The hidden copy holds the line box open, so nothing moves on reveal.
+const CODE_SIZER = `// A bone takes its width from the content it replaces, never a percentage.
+// The hidden copy holds the box open, so nothing moves on reveal.
 
 function TextBone({ children, fontSize = 16 }) {
   return (
@@ -630,6 +561,7 @@ function TextBone({ children, fontSize = 16 }) {
       <span style={{ visibility: 'hidden' }}>{children}</span>
       <span
         className="ds-shimmer"
+        aria-hidden="true"
         style={{
           position: 'absolute', left: 0, right: 0, top: '50%',
           transform: 'translateY(-50%)',
@@ -639,9 +571,18 @@ function TextBone({ children, fontSize = 16 }) {
       />
     </span>
   )
-}
+}`
 
-<TextBone fontSize={16}>{'₱5,428.00'}</TextBone>`
+const ENG_NOTES = [
+  ['Band geometry',
+   'The gradient runs transparent to Neutral 100 to transparent across one bone-width, and translates from -100% to 300%. The peak therefore crosses a bone in a quarter of the cycle and the bone rests for the other three quarters.'],
+  ['Percentage sizing',
+   'Because the band is a percentage of each bone rather than a fixed pixel width, a 150px label and a 60px figure complete their pass at the same moment. Fixed widths would give every bone its own rhythm.'],
+  ['Transform, not background-position',
+   'Animating transform stays on the compositor. Animating background-position repaints every frame, which is costly on a card carrying more than a dozen bones.'],
+  ['Wrapping paragraphs',
+   'Bones for a multi-line paragraph are measured per line box at runtime, grouping text-node rects by vertical centre. Ranging over the element instead would also return its block rect, which spans every line at once.'],
+]
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -654,87 +595,137 @@ export default function Motion() {
       <style>{MOTION_CSS}</style>
 
       <h1 style={{ margin: '0 0 8px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>Motion</h1>
-      <p style={{ margin: '0 0 40px', fontSize: 15, color: 'var(--text-subtle)', lineHeight: 1.5 }}>
-        Loading states, transitions, and the timing values behind them.
+      <p style={{ margin: '0 0 32px', fontSize: 15, color: 'var(--text-subtle)', lineHeight: 1.5, maxWidth: '72ch' }}>
+        Motion patterns and their specifications. Skeleton loader is the first pattern documented here.
       </p>
-      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
+      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 32 }} />
 
-      <DocSection id="demo" title="Skeleton loader">
-        <P>
-          The loading state for any screen waiting on data. Shown here on{' '}
-          <code>card/payment-review</code>, the installment review screen, which
-          is a good test for it because it mixes a photo, a merchant name, six
-          label and figure pairs of very different widths, a checkbox and a
-          wrapping paragraph. Every one of them gets a placeholder.
+      {/* ── Pattern ── */}
+      <DocSection id="skeleton-loader" title="Skeleton loader" level={2}>
+        <P style={{ marginBottom: 0, fontSize: 15, color: 'var(--text-base)' }}>
+          Indicates that structured content is loading while preserving the layout
+          users can expect when data arrives.
         </P>
+      </DocSection>
+
+      {/* ── Demo ── */}
+      <DocSection id="demo" title="Demo">
         <DocCard>
-          <CardHeader label="Live demo" />
+          <CardHeader label="Loading to loaded" />
           <CardBody><SkeletonLoaderDemo /></CardBody>
         </DocCard>
       </DocSection>
 
-      <DocSection id="spec" title="Specification">
-        <P>
-          The complete set of values applied to the skeleton loader. Fixed, and
-          not configurable per screen.
-        </P>
-        <DocCard>
-          <SpecTable cols={['Property', 'Value', 'Notes']} rows={SPEC_ROWS} />
-        </DocCard>
+      {/* ── Usage ── */}
+      <DocSection id="usage" title="Usage">
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <UsageList label="Use when" items={USE_WHEN} tone="use" />
+          <UsageList label="Avoid when" items={AVOID_WHEN} tone="avoid" />
+        </div>
       </DocSection>
 
+      {/* ── Behaviour ── */}
       <DocSection id="behaviour" title="Behaviour">
-        <P>
-          The rules the values above are there to serve. These matter more than
-          any single number, because they are what a screen has to get right for
-          the loader to read as one state rather than a half-drawn page.
-        </P>
+        <RuleTable rows={BEHAVIOUR_RULES} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+          <Note title="Reveal.">
+            Loaded content replaces the skeleton in place without layout movement.
+            Avoid additional reveal motion unless it has been specifically validated.
+          </Note>
+          <Note title="Fast responses.">
+            Avoid flashing skeletons for very fast responses. Use a consistent
+            delay and minimum-display strategy so the loading state does not appear
+            for only a few milliseconds. The threshold is not yet set.
+          </Note>
+          <Note title="Partial loading.">
+            Independent regions may resolve separately, but placeholders within the
+            same region should stay synchronized.
+          </Note>
+        </div>
+      </DocSection>
+
+      {/* ── Specification ── */}
+      <DocSection id="specification" title="Specification">
         <DocCard>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
-              <tbody>
-                {BEHAVIOUR_ROWS.map((row, i, arr) => (
-                  <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-                    <td style={{ padding: '12px 14px', verticalAlign: 'top', width: 220, fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 600, color: 'var(--text-base)' }}>{row[0]}</td>
-                    <td style={{ padding: '12px 14px', verticalAlign: 'top', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>{row[1]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              {SPEC_ROWS.map((row, i, arr) => (
+                <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <td style={{ padding: '10px 16px', verticalAlign: 'top', width: 200, fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 600, color: 'var(--text-base)', whiteSpace: 'nowrap' }}>{row[0]}</td>
+                  <td style={{ padding: '10px 16px', verticalAlign: 'top', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>{row[1]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </DocCard>
       </DocSection>
 
-      <DocSection id="mechanics" title="Mechanics">
-        <P>
-          The shimmer is one gradient twice as wide as the element it fills, slid
-          across it. There is no overlay and no pseudo-element, so it composites
-          cleanly at any corner radius.
-        </P>
+      {/* ── States ── */}
+      <DocSection id="states" title="States">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DocCard>
-            <CardHeader label="Shimmer" />
-            <CodeBlock code={CODE_SHIMMER} />
+            <CardHeader label="Loading to loaded" />
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <MiniCard loading />
+              <Arrow />
+              <MiniCard loading={false} />
+            </CardBody>
           </DocCard>
           <DocCard>
-            <CardHeader label="Reveal" />
-            <CodeBlock code={CODE_WIPE} />
+            <CardHeader label="Loading to error" />
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <MiniCard loading />
+              <Arrow />
+              <div style={{ width: 320, fontFamily: 'var(--ds-font-family)' }}>
+                <Alert type="critical" message="We could not load your payment details. Please try again." />
+              </div>
+            </CardBody>
           </DocCard>
           <DocCard>
-            <CardHeader label="Sizing a bone off the real string" />
-            <CodeBlock code={CODE_SIZER} />
+            <CardHeader label="Reduced motion" />
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <MiniCard loading staticOnly />
+              <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, maxWidth: '38ch' }}>
+                The skeleton still shows the expected layout. The shimmer does not run.
+              </span>
+            </CardBody>
           </DocCard>
         </div>
-        <div style={{ height: 20 }} />
-        <P>
-          The third block is the part worth keeping. Each placeholder renders the
-          real string inside itself at <code>visibility: hidden</code> and takes
-          its width from it, so the bone for <code>&#8369;5,428.00</code> is
-          exactly as wide as that figure will be. A wrapping paragraph is handled
-          the same way, measured per line box, so the bones follow the real wrap
-          and the last one is short because the last line is short. Change the
-          type scale and every placeholder follows on its own.
-        </P>
+        <div style={{ marginTop: 12 }}>
+          <Note title="Failed requests.">
+            A skeleton must not continue indefinitely after a request has failed.
+            Replace it with the appropriate error or retry state.
+          </Note>
+        </div>
+      </DocSection>
+
+      {/* ── Accessibility ── */}
+      <DocSection id="accessibility" title="Accessibility">
+        <RuleTable rows={ACCESSIBILITY_RULES} />
+      </DocSection>
+
+      {/* ── Engineering reference ── */}
+      <DocSection id="engineering" title="Engineering reference">
+        <details>
+          <summary style={{
+            cursor: 'pointer', listStyle: 'revert',
+            fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)',
+            padding: '10px 0',
+          }}>
+            Implementation details
+          </summary>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <RuleTable rows={ENG_NOTES} />
+            <DocCard>
+              <CardHeader label="Shimmer" />
+              <CodeBlock code={CODE_SHIMMER} />
+            </DocCard>
+            <DocCard>
+              <CardHeader label="Sizing a bone off the real content" />
+              <CodeBlock code={CODE_SIZER} />
+            </DocCard>
+          </div>
+        </details>
       </DocSection>
 
     </div>
