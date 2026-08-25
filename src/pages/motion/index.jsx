@@ -89,12 +89,24 @@ function NotYetDocumented({ pattern }) {
         </p>
       </DocSection>
 
+      {pattern.notes && (
+        <DocSection id="known" title="Known behavior">
+          <P>
+            What the Motion system file and the app already settle. The full
+            write-up for this pattern is not done yet.
+          </P>
+          <RuleTable rows={pattern.notes} labelWidth={220} />
+        </DocSection>
+      )}
+
       {rows.length > 0 && (
         <DocSection id="spec" title="Motion spec">
-          <P>
-            Read from the Motion system file. The full write-up for this pattern
-            is not done yet.
-          </P>
+          {!pattern.notes && (
+            <P>
+              Read from the Motion system file. The full write-up for this
+              pattern is not done yet.
+            </P>
+          )}
           <RuleTable rows={rows} labelWidth={200} />
         </DocSection>
       )}
