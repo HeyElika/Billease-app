@@ -1,21 +1,24 @@
 /**
  * Skeleton — Billease Design System
- * Source: Figma node 567:25585 (gradient fill), section 567:25575
- *   "General Skeleton Behaviour", file "Motion design" (P4kziTuTniQFQen8RQUIuy)
  * Registry slot: qr/skeleton, node 53:176, file qESeTFW1GEEosrYnm4Hu3b
- *   (this primitive is the code-behind for that registry entry)
  *
  * A placeholder block with an animated shimmer sweep. Compose multiple
  * <Skeleton> instances to mimic the silhouette of the content being loaded
  * (see SkeletonDocs for the grid-loader / detail-loader examples).
  *
- * Colors are bound Figma variables — color/neutral/neutral 200 (#E0E0E0) and
- * color/neutral/neutral 500 (#919191) — which map exactly to this repo's own
- * --bg-sunken and --bg-strong tokens, so no new color values are introduced.
+ * Implements the documented skeleton loader spec. The single source of truth
+ * is the portal page at Motion > Loader > Skeleton loader; keep the two in
+ * step rather than tuning values here.
  *
- * Duration/easing/loop are not attached to the Figma node itself (no
- * keyframe data on either reference frame) — 1000ms/linear/infinite is
- * carried from the written Motion spec doc, not extracted from the file.
+ *   base                neutral 200, var(--bg-sunken)
+ *   highlight           neutral 100, var(--bg-subtle)
+ *   band                90deg, one element-width wide, soft either side
+ *   travel              translateX(-100%) to translateX(300%)
+ *   duration / easing   1000ms linear, infinite while loading
+ *   text bone height    75% of font size
+ *   text bone radius    8px
+ *   rectangular radius  8px
+ *   circular radius     50%, via the `circle` prop
  *
  * For text-line placeholders specifically, use the named export SkeletonText
  * below rather than sizing <Skeleton> by hand — it derives height/width from
@@ -24,18 +27,21 @@
  */
 
 const GRADIENT = `linear-gradient(
-  65.69deg,
-  transparent 0%,
-  transparent 45.84%,
-  var(--bg-strong) 61.69%,
-  transparent 75.48%,
-  transparent 100%
+  90deg,
+  transparent      0%,
+  var(--bg-subtle) 50%,
+  transparent    100%
 )`
+
+// Shape rules. Text and rectangular placeholders share one radius; only
+// genuinely circular targets are round.
+const RECT_RADIUS = 'var(--radius-md)'   // 8px
+const TEXT_RADIUS = 'var(--radius-md)'   // 8px
 
 export default function Skeleton({
   width = '100%',
   height = 16,
-  radius = 'var(--radius-sm)',
+  radius = RECT_RADIUS,
   circle = false,
   className,
   style,
@@ -45,7 +51,7 @@ export default function Skeleton({
       <style>{`
         @keyframes ds-skeleton-sweep {
           from { transform: translateX(-100%); }
-          to   { transform: translateX(100%); }
+          to   { transform: translateX(300%); }
         }
         .ds-skeleton {
           position: relative;
@@ -55,13 +61,17 @@ export default function Skeleton({
         .ds-skeleton::after {
           content: '';
           position: absolute;
-          inset: 0;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 100%;
           background: ${GRADIENT};
           transform: translateX(-100%);
           animation: ds-skeleton-sweep 1000ms linear infinite;
+          will-change: transform;
         }
         @media (prefers-reduced-motion: reduce) {
-          .ds-skeleton::after { animation: none; }
+          .ds-skeleton::after { animation: none; opacity: 0; }
         }
       `}</style>
       <div
@@ -82,8 +92,8 @@ export default function Skeleton({
  * SkeletonText — a text-line placeholder sized off the typography scale, not
  * off the incoming content. See "Skeleton text sizing" design rule:
  *
- *  - Height reflects the visual weight of the text role it stands in for
- *    (primary/secondary/supporting), not the full line-height of that role.
+ *  - Height is 75% of the role's font-size: the glyph shape it stands in for,
+ *    not the full line box of that role.
  *  - Width is one of a small set of reusable proportional presets
  *    (short/medium/long) — never computed from the real string that will load.
  *
@@ -111,7 +121,7 @@ export function SkeletonText({ role = 'secondary', width = 'medium', className, 
     <Skeleton
       width={resolvedWidth}
       height={height}
-      radius={`calc(${height} / 2)`}
+      radius={TEXT_RADIUS}
       className={className}
       style={style}
     />

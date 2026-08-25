@@ -17,14 +17,14 @@
   --text-3xl: 32px;
 
   /* Skeleton text presets — derived from the type scale above, not fixed values.
-   * Height = 60% of the corresponding font-size, approximating the visible glyph
+   * Height = 75% of the corresponding font-size, approximating the visible glyph
    * shape rather than the full line box (line-height is ~1.5x font-size, so these
-   * stay meaningfully thinner). The 0.6 ratio is a starting point — validate
-   * visually against real type and adjust here, in one place, if needed.
+   * stay meaningfully thinner). 75% is the documented skeleton loader spec; see
+   * Motion > Loader > Skeleton loader.
    * Role mapping: primary → --text-xl, secondary → --text-md, supporting → --text-xxs. */
-  --skeleton-text-height-primary: calc(var(--text-xl) * 0.6);      /* 12px */
-  --skeleton-text-height-secondary: calc(var(--text-md) * 0.6);    /* 8.4px */
-  --skeleton-text-height-supporting: calc(var(--text-xxs) * 0.6);  /* 6.6px */
+  --skeleton-text-height-primary: calc(var(--text-xl) * 0.75);     /* 15px */
+  --skeleton-text-height-secondary: calc(var(--text-md) * 0.75);   /* 10.5px */
+  --skeleton-text-height-supporting: calc(var(--text-xxs) * 0.75); /* 8.25px */
 
   /* Proportional width presets — never computed from real incoming text. */
   --skeleton-text-width-short: 35%;

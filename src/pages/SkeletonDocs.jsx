@@ -192,13 +192,13 @@ function VuetifyContentCard() {
 }
 
 const COMPARE_ROWS = [
-  { prop: 'Base color',    figma: '#E0E0E0 (solid)', vuetify: '#E0E0E0 (solid) — same, per request' },
-  { prop: 'Highlight',     figma: '#919191 at full opacity', vuetify: '#696969 blended at 30% opacity — a darker grey than Skeleton uses, needed so the real 30% default reads visibly here' },
-  { prop: 'Gradient angle', figma: '65.69deg (diagonal)', vuetify: '90deg (pure horizontal) — Vuetify default, not tilted' },
-  { prop: 'Stop layout',   figma: '0% / 45.84% / 61.69% / 75.48% / 100% (asymmetric)', vuetify: '0% / 50% / 100% (evenly spaced, symmetric)' },
+  { prop: 'Base color',    figma: '#E0E0E0 (neutral 200)', vuetify: '#E0E0E0 (solid) — same, per request' },
+  { prop: 'Highlight',     figma: '#F5F5F5 (neutral 100)', vuetify: '#696969 blended at 30% opacity — a darker grey than Skeleton uses, needed so the real 30% default reads visibly here' },
+  { prop: 'Gradient angle', figma: '90deg (horizontal)', vuetify: '90deg (pure horizontal) — Vuetify default, not tilted' },
+  { prop: 'Stop layout',   figma: '0% / 50% / 100% (evenly spaced, symmetric)', vuetify: '0% / 50% / 100% (evenly spaced, symmetric)' },
   { prop: 'Duration',      figma: '1000ms', vuetify: '1500ms — Vuetify default' },
   { prop: 'Easing',        figma: 'linear', vuetify: 'ease — Vuetify never sets a timing function, so the browser default applies' },
-  { prop: 'Translate range', figma: '-100% → 100%, restart (not ping-pong)', vuetify: '-100% → 100%, restart — identical mechanism' },
+  { prop: 'Translate range', figma: '-100% → 300%, restart (not ping-pong)', vuetify: '-100% → 100%, restart — identical mechanism' },
 ]
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -257,7 +257,7 @@ export default function SkeletonDocs({ comp }) {
       {/* ── Typography hierarchy ── */}
       <DocSection id="typography" title="Typography hierarchy">
         <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)' }}>
-          <code>SkeletonText</code> sizes off the typography scale, not off a guessed pixel value. Height reflects the visual weight of the text role it stands in for — primary/secondary/supporting — and stays thinner than that role's actual line-height, since it represents the glyph shape, not the full line box. Width is one of three reusable proportional presets, never computed from the real string that will load.
+          <code>SkeletonText</code> sizes off the typography scale, not off a guessed pixel value. Height is 75% of the role's font-size — primary/secondary/supporting — so it represents the glyph shape rather than the full line box. Width is one of three reusable proportional presets, never computed from the real string that will load.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DocCard>
@@ -329,7 +329,7 @@ export default function SkeletonDocs({ comp }) {
               {[
                 { name: 'width',  type: 'number | string', def: '"100%"', desc: 'CSS width of the placeholder block.' },
                 { name: 'height', type: 'number | string', def: '16',     desc: 'CSS height of the placeholder block.' },
-                { name: 'radius', type: 'number | string', def: 'var(--radius-sm)', desc: 'Corner radius — use var(--radius-lg) for cards/images, a value equal to half the height for pill-shaped lines, or 0 for square blocks.' },
+                { name: 'radius', type: 'number | string', def: 'var(--radius-md)', desc: 'Corner radius. 8px is the spec default for text and rectangular placeholders. Pass circle for a round avatar.' },
                 { name: 'circle', type: 'boolean',         def: 'false',  desc: 'Shorthand for a fully round avatar placeholder — sets border-radius to 50%.' },
               ].map((row, i, arr) => (
                 <tr key={row.name} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
@@ -355,7 +355,7 @@ export default function SkeletonDocs({ comp }) {
             </thead>
             <tbody>
               {[
-                { name: 'role',  type: '"primary" | "secondary" | "supporting"', def: '"secondary"', desc: 'Maps to --skeleton-text-height-{role} — derived from the --text-xl / --text-md / --text-xxs type-scale tokens, not a fixed px value.' },
+                { name: 'role',  type: '"primary" | "secondary" | "supporting"', def: '"secondary"', desc: 'Maps to --skeleton-text-height-{role} — 75% of the --text-xl / --text-md / --text-xxs type-scale tokens, not a fixed px value.' },
                 { name: 'width', type: '"short" | "medium" | "long" | string', def: '"medium"', desc: 'Maps to --skeleton-text-width-{preset} (35% / 60% / 85%). A raw CSS width string also passes through, but avoid computing it from real content.' },
               ].map((row, i, arr) => (
                 <tr key={row.name} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>

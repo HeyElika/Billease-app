@@ -17,6 +17,12 @@ import {
 const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
 const SKELETON_HOLD = 3000   // ms, demo only
 
+// Shape rules. Text and rectangular placeholders share one radius; only
+// genuinely circular targets are round.
+const TEXT_BONE_RADIUS   = 'var(--radius-md)'   // 8px
+const RECT_BONE_RADIUS   = 'var(--radius-md)'   // 8px
+const CIRCLE_BONE_RADIUS = 'var(--radius-full)' // 50%
+
 const SHIMMER_CSS = `
   @keyframes ds-shimmer-sweep {
     from { transform: translateX(-100%); }
@@ -70,7 +76,7 @@ function TextBone({ children, fontSize = 16, staticOnly = false }) {
           position: 'absolute', left: 0, right: 0, top: '50%',
           transform: 'translateY(-50%)',
           height: Math.round(fontSize * 0.75),
-          borderRadius: 'var(--radius-full)',
+          borderRadius: TEXT_BONE_RADIUS,
         }}
       />
     </span>
@@ -179,7 +185,7 @@ function ParagraphBone({ fontSize = 14, staticOnly = false, children }) {
             width: l.width,
             top: l.centre - boneHeight / 2,
             height: boneHeight,
-            borderRadius: 'var(--radius-full)',
+            borderRadius: TEXT_BONE_RADIUS,
           }}
         />
       ))}
@@ -263,7 +269,7 @@ function PaymentReviewCard({ loading, staticOnly = false }) {
     <div style={shell} data-node-id="6569:445">
       <div style={merchantCard}>
         {loading
-          ? <Bone size={40} radius="var(--radius-full)" staticOnly={staticOnly} />
+          ? <Bone size={40} radius={CIRCLE_BONE_RADIUS} staticOnly={staticOnly} />
           : <img src={merchantLogo} alt="" style={logoStyle} />}
         <div style={{ flex: '1 0 0', minWidth: 0 }}>
           {loading
@@ -280,7 +286,7 @@ function PaymentReviewCard({ loading, staticOnly = false }) {
 
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-200)', width: '100%' }}>
         {loading
-          ? <Bone size={24} radius="var(--radius-md)" staticOnly={staticOnly} />
+          ? <Bone size={24} radius={RECT_BONE_RADIUS} staticOnly={staticOnly} />
           : <div style={{
               width: 24, height: 24, flexShrink: 0, boxSizing: 'border-box',
               border: '2px solid var(--border-bold)', borderRadius: 'var(--radius-md)',
@@ -376,15 +382,19 @@ const BEHAVIOR_RULES = [
 ]
 
 const SPEC_ROWS = [
-  ['Base color',      <><Swatch color="var(--bg-sunken)" /><code>bg/sunken</code> · Neutral 200</>],
-  ['Highlight color', <><Swatch color="var(--bg-subtle)" /><code>bg/subtle</code> · Neutral 100</>],
-  ['Animation',       'Shimmer'],
-  ['Direction',       'Left to right'],
-  ['Duration',        '1000ms'],
-  ['Easing',          'Linear'],
-  ['Repeat',          'Infinite while loading'],
-  ['Bone height',     '75% of font size'],
-  ['Bone radius',     'Full'],
+  ['Base color',                <><Swatch color="var(--bg-sunken)" /><code>bg/sunken</code> · Neutral 200</>],
+  ['Highlight color',           <><Swatch color="var(--bg-subtle)" /><code>bg/subtle</code> · Neutral 100</>],
+  ['Animation',                 'Shimmer'],
+  ['Direction',                 'Left to right'],
+  ['Duration',                  '1000ms'],
+  ['Easing',                    'Linear'],
+  ['Repeat',                    'Infinite while loading'],
+  ['Text bone height',          '75% of font size'],
+  ['Text bone radius',          '8px'],
+  ['Rectangular visual radius', '8px'],
+  ['Circular visual radius',    'Full / 50%'],
+  ['Visual placeholder size',   'Match target dimensions'],
+  ['Responsive behavior',       'Follow the same layout constraints as loaded content'],
 ]
 
 const ACCESSIBILITY_RULES = [
