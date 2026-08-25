@@ -3,10 +3,35 @@
  *
  * One entry per motion type (category), each holding the patterns documented
  * under it. Adding a new motion type is a matter of adding a category here and
- * registering its page component in src/pages/motion/index.js.
+ * registering its page component in src/pages/motion/registry.js.
  *
  * Route shape: /motion/:categoryId/:patternId
  */
+
+/**
+ * The canonical page structure. Every motion pattern is documented with these
+ * sections, in this order, so the pages stay comparable to each other.
+ *
+ *   Purpose        One short definition of what the motion communicates.
+ *   Demo           Live example with a replay control. The most important part.
+ *   When to use    When it applies, and when it does not.
+ *   Behavior       The rules that have to hold wherever the pattern is applied.
+ *   Motion spec    Only the values needed to reproduce it.
+ *   States         The transitions the pattern has to cover.
+ *   Accessibility  Reduced motion, and what gets announced.
+ *
+ * Purpose is rendered by the section shell from `definition` below. Pattern
+ * pages render the remaining sections using these exact ids.
+ */
+export const MOTION_SECTIONS = [
+  { id: 'purpose',       label: 'Purpose'       },
+  { id: 'demo',          label: 'Demo'          },
+  { id: 'usage',         label: 'When to use'   },
+  { id: 'behavior',      label: 'Behavior'      },
+  { id: 'spec',          label: 'Motion spec'   },
+  { id: 'states',        label: 'States'        },
+  { id: 'accessibility', label: 'Accessibility' },
+]
 
 export const MOTION_CATEGORIES = [
   {
@@ -18,14 +43,6 @@ export const MOTION_CATEGORIES = [
         id: 'skeleton',
         label: 'Skeleton loader',
         definition: 'Indicates that structured content is loading while preserving the layout users can expect when data arrives.',
-        sections: [
-          { id: 'demo',          label: 'Demo'                 },
-          { id: 'usage',         label: 'Usage'                },
-          { id: 'behaviour',     label: 'Behaviour'            },
-          { id: 'specification', label: 'Specification'        },
-          { id: 'states',        label: 'States'               },
-          { id: 'accessibility', label: 'Accessibility'        },
-        ],
       },
     ],
   },

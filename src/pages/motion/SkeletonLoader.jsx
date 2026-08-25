@@ -362,31 +362,31 @@ const AVOID_WHEN = [
   'Only a small independent action needs feedback',
 ]
 
-const BEHAVIOUR_RULES = [
+const BEHAVIOR_RULES = [
   ['Match the final layout',
-   'Skeleton placeholders occupy the same space as the content they replace, so nothing shifts when content appears.'],
-  ['Skeletonize only unresolved content',
-   'Apply skeletons only to the region waiting on data. Keep independent available content usable.'],
-  ['Keep related shimmer synchronized',
-   'Placeholders within the same loading region should feel like one coordinated loading state.'],
-  ['Keep structural chrome stable',
-   'Container backgrounds, borders, radii, padding, and layout remain unchanged. Only unresolved content becomes skeleton.'],
-  ['No layout movement on reveal',
-   'Loaded content replaces the skeleton in the same space.'],
+   'Placeholders occupy the same space as the content they replace.'],
+  ['Skeletonize only unresolved regions',
+   'Apply skeletons only to the region waiting on data. Keep independent content that is already available usable.'],
+  ['Keep shimmer synchronized',
+   'Placeholders within the same region animate as one coordinated loading state, not as separate elements.'],
+  ['Keep container and chrome stable',
+   'Backgrounds, borders, radii, padding and layout do not change. Only unresolved content becomes skeleton.'],
+  ['No layout shift when content appears',
+   'Loaded content replaces the skeleton in the same space, with no reveal motion.'],
+  ['Avoid flicker for very fast responses',
+   'Use a consistent delay and minimum display time so the skeleton never appears for only a few milliseconds. The threshold is not yet set.'],
 ]
 
 const SPEC_ROWS = [
-  ['Base',              <><Swatch color="var(--bg-sunken)" /><code>bg/sunken</code> · Neutral 200</>],
-  ['Highlight',         <><Swatch color="var(--bg-subtle)" /><code>bg/subtle</code> · Neutral 100</>],
-  ['Animation',         'Shimmer'],
-  ['Direction',         'Left to right'],
-  ['Duration',          '1000ms'],
-  ['Easing',            'Linear'],
-  ['Repeat',            'Infinite while loading'],
-  ['Text bone height',  '75% of font size'],
-  ['Text bone radius',  'Full'],
-  ['Reduced motion',    'Static skeleton'],
-  ['Accessibility',     'Skeleton placeholders hidden from assistive technology, loading status announced separately'],
+  ['Base color',      <><Swatch color="var(--bg-sunken)" /><code>bg/sunken</code> · Neutral 200</>],
+  ['Highlight color', <><Swatch color="var(--bg-subtle)" /><code>bg/subtle</code> · Neutral 100</>],
+  ['Animation',       'Shimmer'],
+  ['Direction',       'Left to right'],
+  ['Duration',        '1000ms'],
+  ['Easing',          'Linear'],
+  ['Repeat',          'Infinite while loading'],
+  ['Bone height',     '75% of font size'],
+  ['Bone radius',     'Full'],
 ]
 
 const ACCESSIBILITY_RULES = [
@@ -410,33 +410,18 @@ export default function SkeletonLoader() {
         </DocCard>
       </DocSection>
 
-      <DocSection id="usage" title="Usage">
+      <DocSection id="usage" title="When to use">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <UsageList label="Use when" items={USE_WHEN} tone="use" />
-          <UsageList label="Avoid when" items={AVOID_WHEN} tone="avoid" />
+          <UsageList label="Do not use when" items={AVOID_WHEN} tone="avoid" />
         </div>
       </DocSection>
 
-      <DocSection id="behaviour" title="Behaviour">
-        <RuleTable rows={BEHAVIOUR_RULES} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-          <Note title="Reveal.">
-            Loaded content replaces the skeleton in place without layout movement.
-            Avoid additional reveal motion unless it has been specifically validated.
-          </Note>
-          <Note title="Fast responses.">
-            Avoid flashing skeletons for very fast responses. Use a consistent
-            delay and minimum-display strategy so the loading state does not appear
-            for only a few milliseconds. The threshold is not yet set.
-          </Note>
-          <Note title="Partial loading.">
-            Independent regions may resolve separately, but placeholders within the
-            same region should stay synchronized.
-          </Note>
-        </div>
+      <DocSection id="behavior" title="Behavior">
+        <RuleTable rows={BEHAVIOR_RULES} labelWidth={260} />
       </DocSection>
 
-      <DocSection id="specification" title="Specification">
+      <DocSection id="spec" title="Motion spec">
         <DocCard>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
