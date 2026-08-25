@@ -68,77 +68,6 @@ export const STANDARD_EASING = 'cubic-bezier(0.9, 0, 0.1, 1)'
 
 export const MOTION_CATEGORIES = [
   {
-    id: 'foundations',
-    label: 'Foundations',
-    description: 'The shared values every other motion in the system references.',
-    patterns: [
-      {
-        id: 'easing',
-        label: 'Easing',
-        definition: 'The standard curve every motion uses, and the documented exceptions to it.',
-        spec: { easing: STANDARD_EASING },
-        notes: [
-          ['The standard curve',
-           'cubic-bezier(0.9, 0, 0.1, 1). Every frame in the Motion system file uses it, at 200, 300, 400, 600 or 1500ms.'],
-          ['Documented exception: bottom sheet',
-           'Sheets are drag-driven, so a physics-based spring settle is the correct platform behavior. Approved as-is on both platforms.'],
-          ['Documented exception: OTP error shake',
-           'Uses a bouncy ease across four 100ms sub-moves.'],
-          ['Unresolved: the cards work',
-           'The cards handoff uses Material 3 curves throughout and the standard curve nowhere: emphasized-decelerate cubic-bezier(0.05, 0.7, 0.1, 1) for the flip and carousel snap, and standard cubic-bezier(0.2, 0, 0, 1) for press feedback. Its durations of 450, 380, 360, 260, 120 and 110ms mostly sit off the system scale too. This needs settling as either an approved platform exception, like the bottom sheet, or as drift to correct.'],
-        ],
-      },
-      {
-        id: 'duration',
-        label: 'Duration',
-        definition: 'The duration scale, and how to choose between its steps.',
-        spec: { duration: '200 / 300 / 400 / 600 / 1500ms' },
-      },
-      {
-        id: 'haptics',
-        label: 'Haptics',
-        definition: 'Which motions are paired with haptic feedback, and when in the animation it fires.',
-      },
-      {
-        id: 'gesture-drivers',
-        label: 'Gesture drivers',
-        definition: 'How a gesture replaces a timed curve as the thing driving an animation, and which surfaces accept which gestures.',
-        node: '1:4144',
-        notes: [
-          ['Two drivers',
-           'A tap plays the full animation at its specified duration and curve. A gesture maps animation progress to the gesture fraction in real time, interpolated linearly, and on release either completes or snaps back. A gesture never has its own animation; it drives an existing one.'],
-          ['Tab switch',
-           'Horizontal swipe drives alpha, cross-slide and the background lerp from a single progress value, so they stay in sync with the finger. Alpha runs 10% to 100%. The swipe driver is active only in the top 300dp of the screen, the region holding the header, segmented control and Available Limit card. Below that it is off.'],
-          ['Bottom sheet',
-           'Drag to dismiss is kept. Because the sheet is drag-driven, a physics-based spring settle is the correct behavior and is a documented exception to the standard curve, on both platforms.'],
-          ['Full-height flow sheet',
-           'Swipe down to dismiss is disabled. Close via back navigation or an explicit control only, so an accidental drag cannot discard form input.'],
-          ['Drawer',
-           'Edge swipe to open is disabled on both platforms. The top-bar control is the only trigger, which avoids conflicts with the system back gesture and with the tab swipe region.'],
-          ['Not yet specified',
-           'Row swipe actions, the activity carousel, the onboarding pager and the full-image dialog all accept swipe in the Android app but have no entry in the Motion system file.'],
-        ],
-      },
-      {
-        id: 'icon-state',
-        label: 'Icon state change',
-        definition: 'How an icon transitions between its two states, so that every pattern using one does not decide separately.',
-        notes: [
-          ['Paired icons',
-           'The icon set ships outline and fill variants of the same glyph: home, chat, user, pin, statement, activity, calendar, installment, users and start. The pair is the two states.'],
-          ['Where it happens',
-           'Bottom navigation outline to fill, the accordion chevron rotating 0 to -180 degrees, radio and checkbox selection, and the password reveal from eye-off to show.'],
-          ['Current state',
-           'Unspecified. The Android app swaps the icon colour with no transition, so the change is instant. Every pattern that needs it currently decides for itself, which is the symptom of nobody owning it.'],
-          ['First real numbers',
-           'The cards handoff cross-fades the closed and open lock icons over 260ms, and transforms the reveal icon over 110ms. Those are the only measured values for icon state change anywhere in the product, and are worth testing as the general rule.'],
-          ['Open question',
-           'Whether the two states cross-fade and over what duration, or whether particular pairs animate their own geometry the way the chevron already does.'],
-        ],
-      },
-    ],
-  },
-  {
     id: 'loader',
     label: 'Loader',
     description: 'States that stand in for content while it is being fetched.',
@@ -178,8 +107,8 @@ export const MOTION_CATEGORIES = [
   },
   {
     id: 'navigation',
-    label: 'Navigation',
-    description: 'Moving between screens, tabs and flows.',
+    label: 'Navigation & transitions',
+    description: 'Moving between screens, tabs, flows and items.',
     patterns: [
       {
         id: 'app-launch',
@@ -201,6 +130,14 @@ export const MOTION_CATEGORIES = [
         definition: 'The cross-slide between two segmented control destinations.',
         node: '1:4144',
         spec: { duration: '600ms', easing: STANDARD_EASING },
+        notes: [
+          ['Two drivers',
+           'A tap plays the full 600ms animation on the standard curve. A horizontal swipe instead maps animation progress to the gesture fraction in real time, interpolated linearly, and on release either completes or snaps back.'],
+          ['One progress value',
+           'Alpha, the cross-slide and the background colour lerp are all driven by the same progress value, so they stay in sync with the finger. Alpha runs 10% to 100%.'],
+          ['Where the gesture is live',
+           'The swipe driver is active only in the top 300dp of the screen, the region holding the header, segmented control and Available Limit card. Below that it is off.'],
+        ],
       },
       {
         id: 'card-carousel',
@@ -231,8 +168,8 @@ export const MOTION_CATEGORIES = [
     ],
   },
   {
-    id: 'overlay',
-    label: 'Overlay',
+    id: 'overlays',
+    label: 'Overlays',
     description: 'Surfaces that arrive over the current screen.',
     patterns: [
       {
@@ -241,6 +178,12 @@ export const MOTION_CATEGORIES = [
         definition: 'The full-height sheet that opens when the user enters a new flow.',
         node: '1:4201',
         spec: { duration: '600ms', easing: STANDARD_EASING },
+        notes: [
+          ['Dismissal',
+           'Swipe down to dismiss is disabled on full-height flow sheets. Close via back navigation or an explicit control only, so an accidental drag cannot discard form input. Standard bottom sheets keep drag to dismiss.'],
+          ['Scrim',
+           'Black, 0 to 50% opacity. Sheet travels Y 740 to 0.'],
+        ],
       },
       {
         id: 'bottom-sheet',
@@ -248,6 +191,12 @@ export const MOTION_CATEGORIES = [
         definition: 'The entrance and dismissal of a partial-height bottom sheet.',
         node: '1:4231',
         spec: { duration: '600ms', easing: STANDARD_EASING },
+        notes: [
+          ['Drag to dismiss',
+           'Kept, unlike full-height flow sheets.'],
+          ['Approved curve exception',
+           'Because the sheet is drag-driven, a physics-based spring settle is the correct platform behavior and is approved as-is on both platforms. The 600ms and standard curve describe the intended feel, not a strict requirement. The scrim spec still applies: black, 0 to 50%.'],
+        ],
       },
       {
         id: 'dialog',
@@ -262,13 +211,19 @@ export const MOTION_CATEGORIES = [
         definition: 'The side panel that slides in from the edge while the screen behind it parallaxes.',
         node: '1:4281',
         spec: { duration: '400ms', easing: STANDARD_EASING },
+        notes: [
+          ['Open trigger',
+           'Edge swipe to open is disabled on both platforms. The top-bar control is the only trigger, which avoids conflicts with the system back gesture and with the tab swipe region.'],
+          ['Motion',
+           'Drawer X -370 to 0, screen content parallax 0 to -40, scrim black 0 to 50%.'],
+        ],
       },
     ],
   },
   {
     id: 'controls',
-    label: 'Controls',
-    description: 'Form and disclosure controls responding to input.',
+    label: 'Controls & interactions',
+    description: 'Components responding to direct input.',
     patterns: [
       {
         id: 'input-focus',
@@ -284,19 +239,31 @@ export const MOTION_CATEGORIES = [
         node: '1:4371',
         spec: { duration: '400ms', easing: STANDARD_EASING },
       },
-    ],
-  },
-  {
-    id: 'disclosure',
-    label: 'Disclosure',
-    description: 'Revealing content in place, without leaving the screen or covering it.',
-    patterns: [
+      {
+        id: 'show-hide',
+        label: 'Show and hide value',
+        definition: 'Revealing a masked value in place, such as a balance, an available limit or an account number.',
+        notes: [
+          ['Already implemented',
+           'The Balance component takes a reveal flag that toggles the value between masked and shown, and swaps its icon between show and hide as it does. This is shipped behavior, not a proposal.'],
+          ['Three states, not two',
+           'Locked is a distinct state rather than the opposite of revealed. While locked, a lock icon replaces the reveal control, the control is removed rather than disabled, and the value renders in a disabled style. Any motion has to cover locked to unlocked as well as hidden to shown.'],
+          ['Current state in the app',
+           'No animation. The value and the icon both swap instantly, and the tap target explicitly suppresses its ripple, so there is no feedback of any kind on the interaction.'],
+          ['What the cards handoff proposes',
+           'The reveal icon transforms over 110ms, and lock and unlock cross-fade their two icons over 260ms. Those are the first real numbers for this transition anywhere.'],
+        ],
+      },
       {
         id: 'accordion',
         label: 'Accordion',
         definition: 'The expand and collapse of a disclosure section, with its chevron.',
         node: '1:4356',
         spec: { duration: '300ms', easing: STANDARD_EASING },
+        notes: [
+          ['Motion',
+           'Chevron rotates 0 to -180 degrees while the list travels. Both run on the same 300ms and standard curve.'],
+        ],
       },
       {
         id: 'card-flip',
@@ -315,28 +282,11 @@ export const MOTION_CATEGORIES = [
            'These values come from the cards handoff prototype. They are not in the Motion system Figma file, and they do not use the Billease standard curve.'],
         ],
       },
-      {
-        id: 'show-hide',
-        label: 'Show and hide value',
-        definition: 'Revealing a masked value in place, such as a balance, an available limit or an account number.',
-        notes: [
-          ['Already implemented',
-           'The Balance component takes a reveal flag that toggles the value between masked and shown, and swaps its icon between show and hide as it does. This is shipped behavior, not a proposal.'],
-          ['Three states, not two',
-           'Locked is a distinct state rather than the opposite of revealed. While locked, a lock icon replaces the reveal control, the control is removed rather than disabled, and the value renders in a disabled style. Any motion has to cover locked to unlocked as well as hidden to shown.'],
-          ['Current state in the app',
-           'No animation. The value and the icon both swap instantly, and the tap target explicitly suppresses its ripple, so there is no feedback of any kind on the interaction.'],
-          ['What the cards handoff proposes',
-           'The reveal icon transforms over 110ms, and lock and unlock cross-fade their two icons over 260ms. Those are the first real numbers for this transition anywhere.'],
-          ['Relation to icon state change',
-           'The control is an icon with two states, so whatever Foundations settles for icon state change applies to the toggle itself.'],
-        ],
-      },
     ],
   },
   {
     id: 'feedback',
-    label: 'Feedback',
+    label: 'Feedback & status',
     description: 'The system answering something the user just did.',
     patterns: [
       {
