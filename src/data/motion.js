@@ -22,6 +22,8 @@
  *   Motion spec    Only the values needed to reproduce it.
  *   States         The transitions the pattern has to cover.
  *   Accessibility  Reduced motion, and what gets announced.
+ *   Engineering    The values a spec table leaves out but an implementation
+ *                  cannot be built without. Last, and engineering-facing.
  *
  * Purpose is rendered by the section shell from `definition` below. Pattern
  * pages render the remaining sections using these exact ids.
@@ -34,6 +36,7 @@ export const MOTION_SECTIONS = [
   { id: 'spec',          label: 'Motion spec'   },
   { id: 'states',        label: 'States'        },
   { id: 'accessibility', label: 'Accessibility' },
+  { id: 'engineering',   label: 'Engineering reference' },
 ]
 
 export const MOTION_CATEGORIES = [

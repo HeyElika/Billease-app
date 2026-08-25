@@ -10,7 +10,7 @@ import Alert from '../../components/ds/Alert'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import merchantLogo from '../../assets/merchants/pancake-house.png'
 import {
-  DocSection, DocCard, CardHeader, CardBody,
+  DocSection, DocCard, CardHeader, CardBody, P,
   DemoCard, ReplayButton, RuleTable, Swatch, UsageList, Note,
 } from './docs'
 
@@ -378,7 +378,7 @@ const BEHAVIOR_RULES = [
   ['No layout shift when content appears',
    'Loaded content replaces the skeleton in the same space, with no reveal motion.'],
   ['Avoid flicker for very fast responses',
-   'Use a consistent delay and minimum display time so the skeleton never appears for only a few milliseconds. The threshold is not yet set.'],
+   'Use a consistent delay and minimum display time so the skeleton never appears for only a few milliseconds. Proposed values are in the engineering reference.'],
 ]
 
 const SPEC_ROWS = [
@@ -402,6 +402,31 @@ const ACCESSIBILITY_RULES = [
   ['Do not announce placeholders', 'Individual bones carry no content. Each is hidden from assistive technology.'],
   ['Announce the loading state',   'A single live region reports that the region is loading, and that it has finished.'],
   ['Motion is never required',     'Nothing about the screen can only be understood by seeing the shimmer move.'],
+]
+
+const ENGINEERING_ROWS = [
+  ['Band width',
+   'One bone width. The gradient spans exactly the width of the placeholder it sits on.'],
+  ['Band profile',
+   'Transparent at 0%, highlight at 50%, transparent at 100%. A linear ramp either side, never a hard edge.'],
+  ['Travel',
+   'translateX(-100%) to translateX(300%) over one cycle.'],
+  ['Rest between passes',
+   'The peak crosses a placeholder in roughly 250ms, then the placeholder sits at base for the remaining 750ms. This is not a continuous conveyor, and treating it as one produces a visibly busier effect.'],
+  ['Scale the band per placeholder',
+   'Size the band as a percentage of each placeholder, never as a fixed pixel width. Fixed widths make placeholders of different sizes fall out of step, which breaks the synchronization rule in Behavior.'],
+  ['Animate transform',
+   'Animate transform rather than a background offset. Transform stays on the compositor; background offsets repaint every frame, which is costly on a screen carrying a dozen placeholders.'],
+  ['Text width when unknown',
+   'Match target dimensions applies to images and controls, whose size is known ahead of the data. Text width is not: before it loads there is no string to measure. Use the proportional presets, 35% / 60% / 85% of the container, picked to reflect the expected line. Never default a text placeholder to full width.'],
+  ['Reduced motion',
+   'Hide the band entirely and leave the placeholder at its base color. Do not substitute a slower or smaller animation.'],
+  ['Announcing the load',
+   'One polite live region per loading region, announcing that the region is loading and that it has finished. Every individual placeholder is hidden from assistive technology.'],
+  ['Fast responses (proposed)',
+   'Do not show the skeleton until the request has been pending 300ms, and once shown hold it for at least 500ms. Worst case this adds 800ms, and only to responses landing between those two points. Proposed, not yet adopted.'],
+  ['Platform units',
+   'Values are in CSS pixels; 1px maps to 1dp. Text placeholder height is 75% of the resolved font size. Full radius is 50%, CircleShape on Compose.'],
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -481,6 +506,15 @@ export default function SkeletonLoader() {
 
       <DocSection id="accessibility" title="Accessibility">
         <RuleTable rows={ACCESSIBILITY_RULES} />
+      </DocSection>
+
+      <DocSection id="engineering" title="Engineering reference">
+        <P>
+          The values the spec table leaves out. Each of these is a decision an
+          implementation has to make, and the shimmer looks different depending
+          on which way it goes.
+        </P>
+        <RuleTable rows={ENGINEERING_ROWS} labelWidth={220} />
       </DocSection>
 
     </>

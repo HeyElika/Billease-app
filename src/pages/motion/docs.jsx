@@ -60,6 +60,12 @@ export function CardBody({ children, style }) {
   return <div style={{ padding: '24px 28px', backgroundColor: '#fff', ...style }}>{children}</div>
 }
 
+export const P = ({ children, style }) => (
+  <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)', maxWidth: '72ch', ...style }}>
+    {children}
+  </p>
+)
+
 /** DemoStage — centres a live example inside a doc card. */
 export function DemoStage({ children, style }) {
   return (
