@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import billy from '../../assets/billy.png'
 
 export const HEADER_HEIGHT = 52
 
@@ -30,27 +31,32 @@ export default function Header() {
       boxSizing: 'border-box',
     }}>
 
-      {/* Logo */}
+      {/* Logo — billy, Billease Library node 13040:3607 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 40, flexShrink: 0 }}>
         <div style={{
+          position: 'relative',
           width: 28,
           height: 28,
-          borderRadius: 6,
-          backgroundColor: 'var(--bg-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          overflow: 'hidden',
           flexShrink: 0,
         }}>
-          <span style={{ color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-family)' }}>B</span>
+          {/* Crop values from the node: the frame trims the asset's padding. */}
+          <img
+            src={billy}
+            alt=""
+            style={{
+              position: 'absolute',
+              width: '127.05%',
+              height: '117.97%',
+              left: '-9.93%',
+              top: '-11.29%',
+              maxWidth: 'none',
+              objectFit: 'contain',
+            }}
+          />
         </div>
-        <div>
-          <div style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
-            Billease DS
-          </div>
-          <div style={{ fontFamily: 'var(--font-family)', fontSize: 10, color: 'var(--text-subtle)', lineHeight: 1 }}>
-            Native App Library
-          </div>
+        <div style={{ fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>
+          Billease DS
         </div>
       </div>
 
