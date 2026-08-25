@@ -25,7 +25,6 @@ export const MOTION_CATEGORIES = [
           { id: 'specification', label: 'Specification'        },
           { id: 'states',        label: 'States'               },
           { id: 'accessibility', label: 'Accessibility'        },
-          { id: 'engineering',   label: 'Engineering reference'},
         ],
       },
     ],

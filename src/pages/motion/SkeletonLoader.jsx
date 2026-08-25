@@ -12,7 +12,7 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import merchantLogo from '../../assets/merchants/pancake-house.png'
 import {
   DocSection, DocCard, CardHeader, CardBody,
-  RuleTable, Swatch, UsageList, Note, CodeBlock,
+  RuleTable, Swatch, UsageList, Note,
 } from './docs'
 
 const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
@@ -396,60 +396,6 @@ const ACCESSIBILITY_RULES = [
   ['Motion is never required',     'Nothing about the screen can only be understood by seeing the shimmer move.'],
 ]
 
-const CODE_SHIMMER = `.ds-shimmer {
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-sunken);            /* Neutral 200 */
-}
-
-/* A soft band one bone-width wide, peaking at Neutral 100. Sized in
-   percentages, so every bone in a region finishes its pass together. */
-.ds-shimmer::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; left: 0;
-  width: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent       0%,
-    var(--bg-subtle) 50%,                  /* Neutral 100 */
-    transparent     100%
-  );
-  transform: translateX(-100%);
-  animation: ds-shimmer-sweep 1000ms linear infinite;
-  will-change: transform;                  /* compositor-only, no repaint */
-}
-
-@keyframes ds-shimmer-sweep {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(300%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ds-shimmer::after { animation: none; opacity: 0; }
-}`
-
-const CODE_SIZER = `// A bone takes its width from the content it replaces, never a percentage.
-// The hidden copy holds the box open, so nothing moves on reveal.
-
-function TextBone({ children, fontSize = 16 }) {
-  return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
-      <span style={{ visibility: 'hidden' }}>{children}</span>
-      <span
-        className="ds-shimmer"
-        aria-hidden="true"
-        style={{
-          position: 'absolute', left: 0, right: 0, top: '50%',
-          transform: 'translateY(-50%)',
-          height: Math.round(fontSize * 0.75),
-          borderRadius: 'var(--radius-full)',
-        }}
-      />
-    </span>
-  )
-}`
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SkeletonLoader() {
@@ -547,27 +493,6 @@ export default function SkeletonLoader() {
         <RuleTable rows={ACCESSIBILITY_RULES} />
       </DocSection>
 
-      <DocSection id="engineering" title="Engineering reference">
-        <details>
-          <summary style={{
-            cursor: 'pointer', listStyle: 'revert',
-            fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)',
-            padding: '10px 0',
-          }}>
-            Implementation details
-          </summary>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            <DocCard>
-              <CardHeader label="Shimmer" />
-              <CodeBlock code={CODE_SHIMMER} />
-            </DocCard>
-            <DocCard>
-              <CardHeader label="Sizing a bone off the real content" />
-              <CodeBlock code={CODE_SIZER} />
-            </DocCard>
-          </div>
-        </details>
-      </DocSection>
     </>
   )
 }
