@@ -25,6 +25,7 @@ const SNAP_MS   = 300
 const SNAP_EASE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
 const THRESHOLD = 60   // px of travel before the carousel commits
 const TAP_SLOP  = 4    // px under which a pointer move is a tap, not a drag
+const EDGE_RESIST = 0.35  // drag past the first or last card moves at 35% of the finger
 
 const CARD = { w: 300, h: 190 }
 const PEEK = { w: 268, h: 170 }
@@ -230,8 +231,11 @@ function CardCarouselDemo() {
 
   const onPointerMove = (e) => {
     if (!dragging) return
-    const delta = e.clientX - startX.current
+    let delta = e.clientX - startX.current
     if (Math.abs(delta) > TAP_SLOP) moved.current = delta
+    // Past either end the row still moves, at 35% of the finger, then springs back.
+    if (active === 0 && delta > 0) delta *= EDGE_RESIST
+    if (active === last && delta < 0) delta *= EDGE_RESIST
     setDrag(delta)
   }
 
@@ -347,7 +351,7 @@ const BEHAVIOR_RULES = [
   ['One card is the subject',
    'The centred card is the one everything below refers to. The dots, the action row and the transaction list all follow it, and the list changes contents as the card changes. On the add-card slot there is nothing to act on, so both disappear.'],
   ['The strip follows the finger',
-   'While dragging, the row tracks the pointer one to one with no easing at all. The animation only takes over on release.'],
+   'This is a drag, not a flick. While the pointer is down the row is bound to it one to one with no easing, and the animation only takes over on release.'],
   ['Past the threshold it commits',
    'Beyond 60px of travel the carousel moves to the neighbouring card. Under that it returns to where it was. Release decides, not direction of travel.'],
   ['A small move is a tap',
@@ -362,7 +366,9 @@ const SPEC_ROWS = [
   ['Snap duration',     '300ms'],
   ['Snap easing',       'cubic-bezier(0.05, 0.7, 0.1, 1)'],
   ['While dragging',    'No transition. The row maps to the pointer one to one.'],
-  ['Commit threshold',  '60px'],
+  ['Commit threshold',  '60px of travel, measured on release'],
+  ['Decided by',        'Distance only. Velocity is not measured, so a fast flick under 60px does nothing.'],
+  ['Edge resistance',   '0.35 past the first and last card'],
   ['Tap slop',          '4px'],
   ['Centred card',      '300 x 190, radius-lg'],
   ['Peeking card',      '268 x 170, which is the same card at 89.3%'],
@@ -397,6 +403,10 @@ const ENGINEERING_ROWS = [
    'Scaling from the top-left leaves the shorter card sitting high, so a peeking card is offset down by 10.13px, half the height it loses. Without it the row looks top-aligned rather than centred.'],
   ['Only animate on release',
    'Set the transition to none while a pointer is down and restore it on release. Leaving the transition on during a drag makes the row lag behind the finger by the full snap duration.'],
+  ['Drag, not fling',
+   'This is direct manipulation: the row is bound to the pointer and release decides the outcome. It is not a fling, where a gesture is recognised and a canned animation plays. Nothing measures velocity, so a quick flick that travels under 60px snaps back however fast it was. If flick-to-advance is wanted, that is a new behavior to spec, not a tuning change.'],
+  ['Damp the ends, do not block them',
+   'Dragging past the first or last card still moves the row, at 35% of the finger, and springs back on release. Hard-stopping at the ends reads as a broken gesture rather than a boundary.'],
   ['Threshold and slop are separate',
    'The 60px threshold decides whether a release commits. The 4px slop decides whether the gesture was a tap at all. Conflating them either makes taps impossible or makes every small drag a selection.'],
   ['Reduced motion means off, not fast',

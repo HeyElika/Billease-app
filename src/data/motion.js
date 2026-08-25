@@ -142,14 +142,14 @@ export const MOTION_CATEGORIES = [
       {
         id: 'card-carousel',
         label: 'Card carousel',
-        definition: 'Swiping horizontally between cards, with the neighbouring card peeking at the edge.',
+        definition: 'Dragging horizontally between cards, with the neighbouring card peeking at the edge.',
         spec: { duration: '300ms snap', easing: 'cubic-bezier(0.05, 0.7, 0.1, 1)' },
         links: [{ label: 'Cards animation handoff', detail: 'Interactive prototype', url: 'https://claude.ai/code/artifact/63d0fe5d-2b57-4568-8bf6-a054e326a60a' }],
         notes: [
           ['Layout',
            'The centred card sits at full scale. Neighbours peek at the edges at 268/300 scale, roughly 0.89, re-centred vertically against the centred card so the row reads as one strip.'],
-          ['Drag',
-           'The strip follows the finger one to one with no transition while dragging. A movement under 4px is treated as a tap rather than a drag, so tapping a peeking card also selects it.'],
+          ['Drag, not fling',
+           'The strip follows the finger one to one with no transition while the pointer is down. Velocity is never measured, so this is direct manipulation rather than a recognised swipe gesture. A movement under 4px is treated as a tap, so tapping a peeking card also selects it.'],
           ['Commit or snap back',
            'Past 60px of travel the carousel commits to the neighbouring card. Under that it returns to where it was. Snap runs 300ms on the Material 3 emphasized-decelerate curve.'],
           ['What follows the selection',
