@@ -111,7 +111,7 @@ function NotYetDocumented({ pattern }) {
         </DocSection>
       )}
 
-      {(figma || pattern.asset) && (
+      {(figma || pattern.asset || pattern.links) && (
         <DocSection id="source" title="Source">
           <DocCard>
             <CardHeader label="Where this lives" />
@@ -126,6 +126,9 @@ function NotYetDocumented({ pattern }) {
                   detail="Lottie file, Google Drive"
                 />
               )}
+              {(pattern.links ?? []).map(link => (
+                <SourceLink key={link.url} href={link.url} label={link.label} detail={link.detail} />
+              ))}
             </div>
           </DocCard>
         </DocSection>
