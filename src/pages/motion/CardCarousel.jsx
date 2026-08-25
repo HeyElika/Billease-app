@@ -14,6 +14,7 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import cloudIcon from '../../assets/cards/cloud.svg'
+import manageIcon from '../../assets/cards/manage.svg'
 import {
   DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note,
 } from './docs'
@@ -42,9 +43,23 @@ const SLOTS = {
 }
 
 const CARDS = [
-  { id: 'physical', kind: 'art', art: cardArt,    last4: '3354' },
-  { id: 'virtual',  kind: 'art', art: virtualArt, cloud: true },
-  { id: 'add',      kind: 'add' },
+  {
+    id: 'physical', kind: 'art', art: cardArt, last4: '3354',
+    tx: [
+      { merchant: 'Jollibee BGC Branch', meta: 'Credit line • Card 3354 • Purchase • 17:09', amount: '- ₱334.00' },
+      { merchant: 'Mercury Drug',        meta: 'Credit line • Card 3354 • Purchase • 16:50', amount: '- ₱763.00' },
+      { merchant: 'SM Supermarket',      meta: 'Credit line • Card 3354 • Purchase • 17:09', amount: '- ₱763.00', failed: true },
+    ],
+  },
+  {
+    id: 'virtual', kind: 'art', art: virtualArt, cloud: true,
+    tx: [
+      { merchant: 'FreshMart Grocery',    meta: 'Credit line • Card 5764 • Purchase • 16:29', amount: '- ₱200.00', failed: true },
+      { merchant: 'Ace Hardware & Home',  meta: 'Credit line • Card 5764 • Purchase • 11:09', amount: '- ₱154.00' },
+      { merchant: 'Netflix Subscription', meta: 'Credit line • Card 5764 • Purchase • 11:09', amount: '- ₱549.00' },
+    ],
+  },
+  { id: 'add', kind: 'add' },
 ]
 
 // ─── Card faces ───────────────────────────────────────────────────────────────
@@ -109,6 +124,88 @@ function AddCard() {
       <span style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, boxSizing: 'border-box' }}>
         <BilleaseIcon name="plus" size="md" color="var(--icon-base)" />
       </span>
+    </div>
+  )
+}
+
+// ─── Below the carousel ───────────────────────────────────────────────────────
+// access-card/menu/item (14108:666) and transaction-widget (49002:20669).
+
+function MenuItem({ icon, label }) {
+  return (
+    <div style={{
+      width: 100, height: 78,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 'var(--space-200)',
+    }}>
+      <div style={{
+        width: 50, height: 50, borderRadius: 12,
+        backgroundColor: 'var(--bg-subtle)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {icon}
+      </div>
+      <span style={{
+        width: 100, textAlign: 'center', fontFamily: 'var(--ds-font-family)',
+        fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)',
+      }}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function TransactionItem({ tx }) {
+  const amountColor = tx.failed ? 'var(--text-error)' : 'var(--text-base)'
+  return (
+    <div style={{ display: 'flex', gap: 'var(--space-300)', alignItems: 'center', padding: 'var(--space-300) 0', width: '100%' }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 'var(--radius-full)', flexShrink: 0,
+        backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-subtle)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <BilleaseIcon name="cart" size="sm" color="var(--icon-base)" />
+      </div>
+      <div style={{ flex: '1 0 0', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.5 }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {tx.merchant}
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-subtle)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {tx.meta}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, lineHeight: 1.5, color: amountColor, textAlign: 'right', whiteSpace: 'nowrap' }}>
+          {tx.amount}
+        </span>
+        {tx.failed && (
+          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, lineHeight: 1.25, color: 'var(--text-error)', textAlign: 'right' }}>
+            Failed
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TransactionWidget({ card }) {
+  if (!card.tx) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-400)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
+      <div style={{ height: 24, display: 'flex', alignItems: 'center', gap: 'var(--space-200)', width: '100%' }}>
+        <span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, lineHeight: 1.25, color: 'var(--text-base)', whiteSpace: 'nowrap' }}>
+          Transactions for this card
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ height: 28, display: 'flex', alignItems: 'center', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-200)', width: '100%' }}>
+          <span style={{ fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>Today</span>
+        </div>
+        {card.tx.map(tx => <TransactionItem key={tx.merchant} tx={tx} />)}
+        <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%' }}>
+          <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -213,6 +310,20 @@ function CardCarouselDemo() {
             />
           ))}
         </div>
+
+        {/* Everything below follows the centred card. */}
+        <div style={{ width: 320, display: 'flex', flexDirection: 'column', gap: 'var(--space-700)', marginTop: 'var(--space-700)' }}>
+          {CARDS[active].kind !== 'add' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <MenuItem label="View details" icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />} />
+                <MenuItem label="Lock" icon={<BilleaseIcon name="lock" size="sm" color="var(--icon-base)" />} />
+                <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
+              </div>
+              <TransactionWidget card={CARDS[active]} />
+            </>
+          )}
+        </div>
       </div>
     </DemoCard>
   )
@@ -234,7 +345,7 @@ const AVOID_WHEN = [
 
 const BEHAVIOR_RULES = [
   ['One card is the subject',
-   'The centred card is the one everything below refers to. The dots, the action row and the transaction list all follow it.'],
+   'The centred card is the one everything below refers to. The dots, the action row and the transaction list all follow it, and the list changes contents as the card changes. On the add-card slot there is nothing to act on, so both disappear.'],
   ['The strip follows the finger',
    'While dragging, the row tracks the pointer one to one with no easing at all. The animation only takes over on release.'],
   ['Past the threshold it commits',
@@ -302,7 +413,9 @@ export default function CardCarousel() {
         <div style={{ marginTop: 12 }}>
           <Note title="Try it.">
             Drag the row, or tap a peeking card. A drag under 60px snaps back; past
-            it the carousel commits. Nothing eases while the pointer is down.
+            it the carousel commits, and nothing eases while the pointer is down.
+            Watch the transaction list below: it belongs to whichever card is
+            centred, and empties on the add-card slot.
           </Note>
         </div>
       </DocSection>
