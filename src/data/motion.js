@@ -22,7 +22,7 @@ export const MOTION_FILE_KEY = 'A4uFHah9JZUPVpYhCIkKpi'
  * access.
  */
 export const LOTTIE_PAGE_LOADER =
-  'https://drive.google.com/file/d/1ExDtGdw9bb6v15Cc6Ua66EkWTm29aan_/view?usp=drive_link'
+  'https://drive.google.com/file/d/1ExDtGdw9bb6v15Cc6Ua66EkWTm29aan_/view'
 
 export const LOTTIE_SPINNER =
   'https://drive.google.com/file/d/1QZaNt5RsgYBBU3ZMDDdUJ1XVwVGGf0jQ/view?usp=drive_link'
@@ -82,7 +82,7 @@ export const MOTION_CATEGORIES = [
         label: 'Page loader',
         definition: 'A full-screen looping animation shown while a whole page fetches or renders.',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Bouncing balls', url: LOTTIE_PAGE_LOADER },
+        asset: { name: 'page-loader.json', url: LOTTIE_PAGE_LOADER },
         notes: [
           ['Behavior',
            'Loops indefinitely until the fetch or render completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
