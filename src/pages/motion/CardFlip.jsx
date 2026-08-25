@@ -6,8 +6,9 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import Button from '../../components/ds/Button'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
+import cardArt from '../../assets/cards/access-card.png'
+import manageIcon from '../../assets/cards/manage.svg'
 import {
   DocSection, DocCard, P,
   DemoCard, RuleTable, UsageList, Note,
@@ -22,11 +23,12 @@ const EYE_DOWN_MS  = 100   // squash down, scaleY 100% to 5%
 const EYE_UP_MS    = 110   // squash back up
 const EYE_TOTAL_MS = EYE_DOWN_MS + EYE_UP_MS
 
-// Card faces, from the prototype. Product colours, not design-system neutrals.
-const PHYSICAL = { bg: 'rgb(230, 12, 150)', ink: '#FFFFFF' }
-const VIRTUAL  = { bg: 'rgb(57, 255, 20)',  ink: '#1A1A1A' }
-
-const CARD = { w: 300, h: 190, radius: 12 }
+/**
+ * Geometry read from Financial Core, node 53373:134934 (access-card/item) and
+ * 14108:666 (access-card/menu/item). Not approximated.
+ */
+const CARD = { w: 300, h: 190, radius: 'var(--radius-lg)', pad: 'var(--space-300)' }
+const MENU = { itemW: 100, itemH: 78, tile: 50, icon: 20 }
 
 const DETAILS = {
   number: '1265 6653 9832 3354',
@@ -50,7 +52,7 @@ const CSS = `
     inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: ${CARD.radius}px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
   }
   /* Pre-rotated so it lands right way up rather than mirrored. */
@@ -67,99 +69,71 @@ const CSS = `
 
 // ─── Card faces ───────────────────────────────────────────────────────────────
 
-function Chip() {
+const faceStyle = {
+  width: '100%', height: '100%', position: 'relative',
+  fontFamily: 'var(--ds-font-family)',
+}
+
+const artStyle = {
+  position: 'absolute', inset: 0, width: '100%', height: '100%',
+  objectFit: 'cover', borderRadius: 'var(--radius-lg)', pointerEvents: 'none',
+}
+
+/** 8px box holding a 3.33px white circle, per the dot asset. */
+function Dot() {
   return (
-    <div style={{
-      width: 34, height: 26, borderRadius: 5,
-      background: 'linear-gradient(150deg, #E8D9A8, #C9AE6B)',
-      display: 'grid', gridTemplateRows: 'repeat(3, 1fr)', gap: 3, padding: 4,
-      boxSizing: 'border-box', opacity: 0.95,
-    }}>
-      {[0, 1, 2].map(i => (
-        <div key={i} style={{ background: 'rgba(0,0,0,0.16)', borderRadius: 1 }} />
-      ))}
-    </div>
+    <span style={{ width: 8, height: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
+      <span style={{ width: 3.33, height: 3.33, borderRadius: '50%', backgroundColor: '#fff' }} />
+    </span>
   )
 }
 
-function Mastercard() {
+function CardFront() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center' }} aria-hidden="true">
-      <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#EB001B' }} />
-      <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#F79E1B', marginLeft: -10, mixBlendMode: 'multiply' }} />
-    </div>
-  )
-}
-
-function CardFront({ theme }) {
-  return (
-    <div style={{
-      width: '100%', height: '100%', backgroundColor: theme.bg, color: theme.ink,
-      padding: 18, boxSizing: 'border-box',
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      fontFamily: 'var(--ds-font-family)', position: 'relative',
-    }}>
-      {/* Watermark */}
-      <div aria-hidden="true" style={{
-        position: 'absolute', right: -30, top: 20, width: 200, height: 200,
-        borderRadius: '46% 54% 40% 60%', background: 'rgba(255,255,255,0.07)',
-      }} />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
-        <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em', opacity: 0.92 }}>
-          billease
-        </span>
-      </div>
-      <div style={{ position: 'relative', marginTop: -8 }}><Chip /></div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', position: 'relative' }}>
-        <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: '0.06em' }}>
-          •• {DETAILS.last4}
-        </span>
-        <Mastercard />
-      </div>
-    </div>
-  )
-}
-
-function DetailRow({ label, value, theme, copyable, onCopy }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 10, opacity: 0.7, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{label}</div>
-        <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '0.04em' }}>{value}</div>
-      </div>
-      {copyable && (
-        <button
-          type="button"
-          onClick={onCopy}
-          aria-label={`Copy ${label}`}
-          style={{
-            border: 'none', background: 'rgba(0,0,0,0.10)', borderRadius: 6,
-            padding: '5px 7px', cursor: 'pointer', display: 'inline-flex',
-            color: theme.ink, flexShrink: 0,
-          }}
-        >
-          <BilleaseIcon name="copy" size="xs" color={theme.ink} />
-        </button>
-      )}
-    </div>
-  )
-}
-
-function CardBack({ theme, copyable, onCopy }) {
-  return (
-    <div style={{
-      width: '100%', height: '100%', backgroundColor: theme.bg, color: theme.ink,
-      padding: 18, boxSizing: 'border-box',
-      display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 12,
-      fontFamily: 'var(--ds-font-family)',
-    }}>
-      <DetailRow label="Card number" value={DETAILS.number} theme={theme} copyable={copyable} onCopy={onCopy} />
-      <div style={{ display: 'flex', gap: 28 }}>
-        <div style={{ flex: 1 }}>
-          <DetailRow label="Expiry date" value={DETAILS.expiry} theme={theme} copyable={copyable} onCopy={onCopy} />
+    <div style={faceStyle}>
+      <img src={cardArt} alt="" style={artStyle} />
+      <div style={{
+        position: 'absolute', inset: 0, padding: CARD.pad, boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}><Dot /><Dot /></span>
+          <span style={{
+            fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5,
+            color: 'var(--text-on-dark)', whiteSpace: 'nowrap',
+          }}>
+            {DETAILS.last4}
+          </span>
         </div>
-        <div style={{ flex: 1 }}>
-          <DetailRow label="CVV" value={DETAILS.cvv} theme={theme} copyable={copyable} onCopy={onCopy} />
+      </div>
+    </div>
+  )
+}
+
+function BackField({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, lineHeight: 1.5, color: 'rgba(255,255,255,0.72)' }}>{label}</div>
+      <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-on-dark)', letterSpacing: '0.03em' }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+/** Figma documents the front only. The back reuses the same artwork and type. */
+function CardBack() {
+  return (
+    <div style={faceStyle}>
+      <img src={cardArt} alt="" style={artStyle} />
+      <div style={{
+        position: 'absolute', inset: 0, padding: CARD.pad, boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'var(--space-300)',
+      }}>
+        <BackField label="Card number" value={DETAILS.number} />
+        <div style={{ display: 'flex', gap: 'var(--space-600)' }}>
+          <BackField label="Expiry date" value={DETAILS.expiry} />
+          <BackField label="CVV" value={DETAILS.cvv} />
         </div>
       </div>
     </div>
@@ -191,28 +165,33 @@ function EyeToggle({ revealed, color }) {
   )
 }
 
-// ─── Action row ───────────────────────────────────────────────────────────────
+// ─── access-card/menu/item ────────────────────────────────────────────────────
 
-function Action({ icon, label, onClick, disabled, custom }) {
+function MenuItem({ label, onClick, disabled, children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: 76 }}>
+    <div style={{
+      width: MENU.itemW, height: MENU.itemH,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 'var(--space-200)',
+    }}>
       <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         style={{
-          width: 52, height: 52, borderRadius: 'var(--radius-lg)', border: 'none',
+          width: MENU.tile, height: MENU.tile, borderRadius: 12, border: 'none',
           backgroundColor: 'var(--bg-subtle)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.4 : 1,
+          opacity: disabled ? 0.4 : 1, padding: 0,
         }}
       >
-        {custom ?? <BilleaseIcon name={icon} size="sm" color="var(--icon-base)" />}
+        {children}
       </button>
       <span style={{
-        fontFamily: 'var(--ds-font-family)', fontSize: 12,
-        color: disabled ? 'var(--text-disabled)' : 'var(--text-base)', textAlign: 'center',
+        width: MENU.itemW, textAlign: 'center',
+        fontFamily: 'var(--ds-font-family)', fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5,
+        color: disabled ? 'var(--text-disabled)' : 'var(--text-base)',
       }}>
         {label}
       </span>
@@ -223,125 +202,55 @@ function Action({ icon, label, onClick, disabled, custom }) {
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
 function CardFlipDemo() {
-  const [virtual, setVirtual]   = useState(false)
   const [revealed, setRevealed] = useState(false)
-  const [locked, setLocked]     = useState(false)
-  const [asking, setAsking]     = useState(false)
-  const [copied, setCopied]     = useState(false)
-
-  const theme = virtual ? VIRTUAL : PHYSICAL
-
-  // Revealed state is not persistent: locking or switching card drops it.
-  const selectCard = (isVirtual) => {
-    setVirtual(isVirtual)
-    setRevealed(false)
-    setAsking(false)
-  }
+  const [locked, setLocked] = useState(false)
 
   const toggleLock = () => {
     const next = !locked
     setLocked(next)
-    if (next) { setRevealed(false); setAsking(false) }
-  }
-
-  useEffect(() => {
-    if (!copied) return
-    const t = setTimeout(() => setCopied(false), 1600)
-    return () => clearTimeout(t)
-  }, [copied])
-
-  const onViewDetails = () => {
-    if (locked) return
-    if (revealed) { setRevealed(false); return }  // hiding needs no confirmation
-    setAsking(true)                                // revealing does
+    if (next) setRevealed(false)   // the reveal does not survive a lock
   }
 
   return (
-    <DemoCard
-      label="View details"
-      action={
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[['Physical', false], ['Virtual', true]].map(([label, isV]) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => selectCard(isV)}
-              style={{
-                border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-full)',
-                padding: '5px 12px', cursor: 'pointer',
-                fontFamily: 'var(--font-family)', fontSize: 12,
-                fontWeight: virtual === isV ? 600 : 400,
-                backgroundColor: virtual === isV ? 'var(--bg-sunken)' : 'transparent',
-                color: virtual === isV ? 'var(--text-base)' : 'var(--text-subtle)',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      }
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+    <DemoCard label="View details">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
         <style>{CSS}</style>
 
         <div style={{ position: 'relative', width: CARD.w, height: CARD.h }}>
           <div className={`be-flip${revealed ? ' is-revealed' : ''}`} style={{ width: '100%', height: '100%' }}>
             <div className="be-flip-inner">
-              <div className="be-face"><CardFront theme={theme} /></div>
-              <div className="be-face be-face--back">
-                <CardBack theme={theme} copyable={virtual} onCopy={() => setCopied(true)} />
-              </div>
+              <div className="be-face"><CardFront /></div>
+              <div className="be-face be-face--back"><CardBack /></div>
             </div>
           </div>
 
           {locked && (
             <div style={{
-              position: 'absolute', inset: 0, borderRadius: CARD.radius,
-              backgroundColor: 'rgba(0,0,0,0.55)', color: '#fff',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-              fontFamily: 'var(--ds-font-family)',
+              position: 'absolute', inset: 0, borderRadius: 'var(--radius-lg)',
+              backgroundColor: 'rgba(0,0,0,0.55)', color: 'var(--text-on-dark)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 'var(--space-200)', fontFamily: 'var(--ds-font-family)',
             }}>
-              <BilleaseIcon name="lock" size="md" color="#fff" />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Card locked</span>
-            </div>
-          )}
-
-          {/* Biometric gate. Reveal only. */}
-          {asking && (
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: CARD.radius,
-              backgroundColor: 'rgba(0,0,0,0.55)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
-            }}>
-              <div style={{
-                backgroundColor: 'var(--bg-base)', borderRadius: 'var(--radius-lg)',
-                padding: 16, width: '100%', textAlign: 'center',
-                fontFamily: 'var(--ds-font-family)',
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-base)' }}>Confirm your identity</div>
-                <div style={{ fontSize: 12, color: 'var(--text-subtle)', margin: '4px 0 12px' }}>Verify with your face</div>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                  <Button type="secondary" size="sm" label="Cancel" onClick={() => setAsking(false)} />
-                  <Button type="primary" size="sm" label="Confirm" onClick={() => { setAsking(false); setRevealed(true) }} />
-                </div>
-              </div>
+              <BilleaseIcon name="lock" size="md" color="var(--icon-on-dark)" />
+              <span style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Card locked</span>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Action
+        <div style={{ display: 'flex' }}>
+          <MenuItem
             label={revealed ? 'Hide details' : 'View details'}
-            onClick={onViewDetails}
+            onClick={() => setRevealed(v => !v)}
             disabled={locked}
-            custom={<EyeToggle revealed={revealed} color={locked ? 'var(--icon-disabled)' : 'var(--icon-base)'} />}
-          />
-          <Action icon="lock" label={locked ? 'Unlock' : 'Lock'} onClick={toggleLock} />
-          <Action icon="filter" label="Manage" onClick={() => {}} />
-        </div>
-
-        <div style={{ height: 18, fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
-          {copied ? 'Copied to clipboard' : ''}
+          >
+            <EyeToggle revealed={revealed} color={locked ? 'var(--icon-disabled)' : 'var(--icon-base)'} />
+          </MenuItem>
+          <MenuItem label={locked ? 'Unlock' : 'Lock'} onClick={toggleLock}>
+            <BilleaseIcon name="lock" size="sm" color="var(--icon-base)" />
+          </MenuItem>
+          <MenuItem label="Manage" onClick={() => {}}>
+            <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />
+          </MenuItem>
         </div>
       </div>
     </DemoCard>
@@ -433,9 +342,10 @@ export default function CardFlip() {
         <CardFlipDemo />
         <div style={{ marginTop: 12 }}>
           <Note title="Try it.">
-            View details asks for confirmation before flipping. Hide details flips
-            back without asking. Lock the card and the reveal is dropped and the
-            action disabled. Switch to the virtual card for the copy affordance.
+            View details turns the card over. Hide details turns it back. Lock the
+            card and the reveal is dropped and the action disabled. The demo shows
+            the motion only, so the biometric gate that precedes a real reveal is
+            described under Behavior rather than simulated here.
           </Note>
         </div>
       </DocSection>
