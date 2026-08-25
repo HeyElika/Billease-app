@@ -16,9 +16,19 @@
 
 export const MOTION_FILE_KEY = 'A4uFHah9JZUPVpYhCIkKpi'
 
-/** Lottie JSON files live in Drive, not in the repo. */
+/**
+ * Lottie JSON files live in Drive, not in the repo. Each loader links to its own
+ * file; the folder holds both. These are Drive links, so whoever opens them
+ * needs access to that folder.
+ */
 export const MOTION_ASSETS_URL =
   'https://drive.google.com/drive/folders/1tVTpDWv4D2J3GO-Cy8DGNy78QS3vw5qn?usp=sharing'
+
+export const LOTTIE_PAGE_LOADER =
+  'https://drive.google.com/file/d/1ExDtGdw9bb6v15Cc6Ua66EkWTm29aan_/view?usp=drive_link'
+
+export const LOTTIE_SPINNER =
+  'https://drive.google.com/file/d/1QZaNt5RsgYBBU3ZMDDdUJ1XVwVGGf0jQ/view?usp=drive_link'
 
 export function figmaUrl(node) {
   if (!node) return null
@@ -147,7 +157,14 @@ export const MOTION_CATEGORIES = [
         definition: 'A full-screen looping animation shown while a whole page fetches or renders.',
         node: '1:4515',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Bouncings.json', url: MOTION_ASSETS_URL },
+        asset: { name: 'Bouncings.json', url: LOTTIE_PAGE_LOADER },
+        links: [{ label: 'All motion assets', detail: 'Google Drive folder', url: MOTION_ASSETS_URL }],
+        notes: [
+          ['Behavior',
+           'Loops indefinitely until the fetch or render completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
+          ['Where it applies',
+           'Whole-page waits, where the app is fetching or rendering an entire screen rather than a region of one.'],
+        ],
       },
       {
         id: 'spinner',
@@ -155,7 +172,14 @@ export const MOTION_CATEGORIES = [
         definition: 'A micro loading indicator inside an existing component, signalling background processing without taking over the screen.',
         node: '1:4515',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Spinner.json', url: MOTION_ASSETS_URL },
+        asset: { name: 'Spinner.json', url: LOTTIE_SPINNER },
+        links: [{ label: 'All motion assets', detail: 'Google Drive folder', url: MOTION_ASSETS_URL }],
+        notes: [
+          ['Behavior',
+           'Loops indefinitely until the fetch completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
+          ['Where it applies',
+           'Inside an existing component, signalling background processing without taking over the screen. Use the skeleton loader instead when the shape of the incoming content is known.'],
+        ],
       },
     ],
   },
