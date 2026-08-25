@@ -17,13 +17,10 @@
 export const MOTION_FILE_KEY = 'A4uFHah9JZUPVpYhCIkKpi'
 
 /**
- * Lottie JSON files live in Drive, not in the repo. Each loader links to its own
- * file; the folder holds both. These are Drive links, so whoever opens them
- * needs access to that folder.
+ * Lottie files live in Drive, not in the repo. Each loader links to its own
+ * file and nothing else. These are Drive links, so whoever opens them needs
+ * access.
  */
-export const MOTION_ASSETS_URL =
-  'https://drive.google.com/drive/folders/1tVTpDWv4D2J3GO-Cy8DGNy78QS3vw5qn?usp=sharing'
-
 export const LOTTIE_PAGE_LOADER =
   'https://drive.google.com/file/d/1ExDtGdw9bb6v15Cc6Ua66EkWTm29aan_/view?usp=drive_link'
 
@@ -155,10 +152,8 @@ export const MOTION_CATEGORIES = [
         id: 'page',
         label: 'Page loader',
         definition: 'A full-screen looping animation shown while a whole page fetches or renders.',
-        node: '1:4515',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Bouncings.json', url: LOTTIE_PAGE_LOADER },
-        links: [{ label: 'All motion assets', detail: 'Google Drive folder', url: MOTION_ASSETS_URL }],
+        asset: { name: 'Bouncing balls', url: LOTTIE_PAGE_LOADER },
         notes: [
           ['Behavior',
            'Loops indefinitely until the fetch or render completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
@@ -170,10 +165,8 @@ export const MOTION_CATEGORIES = [
         id: 'spinner',
         label: 'Inline spinner',
         definition: 'A micro loading indicator inside an existing component, signalling background processing without taking over the screen.',
-        node: '1:4515',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Spinner.json', url: LOTTIE_SPINNER },
-        links: [{ label: 'All motion assets', detail: 'Google Drive folder', url: MOTION_ASSETS_URL }],
+        asset: { name: 'Spinner', url: LOTTIE_SPINNER },
         notes: [
           ['Behavior',
            'Loops indefinitely until the fetch completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
