@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
+import { LockGlyph } from './cardIcons'
 import {
   DocSection, DocCard, P,
   DemoCard, RuleTable, UsageList, Note,
@@ -250,7 +251,7 @@ function CardFlipDemo() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 'var(--space-200)', fontFamily: 'var(--ds-font-family)',
             }}>
-              <BilleaseIcon name="lock" size="md" color="var(--icon-on-dark)" />
+              <LockGlyph size={24} color="var(--icon-on-dark)" />
               <span style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Card locked</span>
             </div>
           )}
@@ -265,7 +266,7 @@ function CardFlipDemo() {
             <EyeToggle revealed={revealed} color={locked ? 'var(--icon-disabled)' : 'var(--icon-base)'} />
           </MenuItem>
           <MenuItem label={locked ? 'Unlock' : 'Lock'} onClick={toggleLock}>
-            <BilleaseIcon name="lock" size="sm" color="var(--icon-base)" />
+            <LockGlyph color="var(--icon-base)" />
           </MenuItem>
           <MenuItem label="Manage" onClick={() => {}}>
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />

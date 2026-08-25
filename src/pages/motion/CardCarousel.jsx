@@ -17,6 +17,7 @@ import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
+import { LockGlyph } from './cardIcons'
 import {
   DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note,
 } from './docs'
@@ -392,7 +393,7 @@ function CardCarouselDemo() {
             <>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <MenuItem label="View details" icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />} />
-                <MenuItem label="Lock" icon={<BilleaseIcon name="lock" size="sm" color="var(--icon-base)" />} />
+                <MenuItem label="Lock" icon={<LockGlyph color="var(--icon-base)" />} />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
               </div>
               <TransactionWidget card={CARDS[active]} />
