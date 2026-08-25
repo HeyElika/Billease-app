@@ -6,7 +6,6 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import Alert from '../../components/ds/Alert'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
@@ -271,13 +270,6 @@ function CardFlipDemo() {
           <MenuItem label="Manage" onClick={() => {}}>
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />
           </MenuItem>
-        </div>
-
-        {/* Part of the revealed state. Swaps in with no transition, deliberately. */}
-        <div style={{ width: 320, minHeight: 8, fontFamily: 'var(--ds-font-family)' }}>
-          {revealed && !locked && (
-            <Alert type="info" message="This card is for in-store purchases only. Create a virtual card to shop online." />
-          )}
         </div>
       </div>
     </DemoCard>
