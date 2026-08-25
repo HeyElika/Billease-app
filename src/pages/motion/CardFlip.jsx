@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import Alert from '../../components/ds/Alert'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
@@ -29,6 +30,9 @@ const EYE_TOTAL_MS = EYE_DOWN_MS + EYE_UP_MS
  */
 const CARD = { w: 300, h: 190, radius: 'var(--radius-lg)', pad: 'var(--space-300)' }
 const MENU = { itemW: 100, itemH: 78, tile: 50, icon: 20 }
+
+/** The revealed face fill, read from the node. Not a token in this repo. */
+const BACK_BG = '#AE136D'
 
 const DETAILS = {
   number: '1265 6653 9832 3354',
@@ -112,29 +116,45 @@ function CardFront() {
 
 function BackField({ label, value }) {
   return (
-    <div>
-      <div style={{ fontSize: 11, lineHeight: 1.5, color: 'rgba(255,255,255,0.72)' }}>{label}</div>
-      <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-on-dark)', letterSpacing: '0.03em' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-100)', whiteSpace: 'nowrap' }}>
+      <span style={{
+        fontSize: 'var(--text-sm)', fontWeight: 400, lineHeight: 1.5,
+        color: 'var(--text-on-dark-subtle)',
+      }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: 'var(--text-lg)', fontWeight: 600, lineHeight: 1.5,
+        color: 'var(--text-on-dark)',
+      }}>
         {value}
-      </div>
+      </span>
     </div>
   )
 }
 
-/** Figma documents the front only. The back reuses the same artwork and type. */
+/**
+ * The revealed face is a flat fill, not the printed artwork: access-card/item
+ * in the revealed state (I49002:20665;14839:3523) drops the image entirely.
+ * Content is bottom-aligned, same 12px padding as the front.
+ */
 function CardBack() {
   return (
-    <div style={faceStyle}>
-      <img src={cardArt} alt="" style={artStyle} />
-      <div style={{
-        position: 'absolute', inset: 0, padding: CARD.pad, boxSizing: 'border-box',
-        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'var(--space-300)',
-      }}>
-        <BackField label="Card number" value={DETAILS.number} />
-        <div style={{ display: 'flex', gap: 'var(--space-600)' }}>
-          <BackField label="Expiry date" value={DETAILS.expiry} />
-          <BackField label="CVV" value={DETAILS.cvv} />
-        </div>
+    <div style={{
+      ...faceStyle,
+      backgroundColor: BACK_BG,
+      padding: CARD.pad,
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-end',
+      gap: 'var(--space-300)',
+    }}>
+      <BackField label="Card number" value={DETAILS.number} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-800)' }}>
+        <BackField label="Expiry date" value={DETAILS.expiry} />
+        <BackField label="CVV" value={DETAILS.cvv} />
       </div>
     </div>
   )
@@ -251,6 +271,13 @@ function CardFlipDemo() {
           <MenuItem label="Manage" onClick={() => {}}>
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />
           </MenuItem>
+        </div>
+
+        {/* Part of the revealed state. Swaps in with no transition, deliberately. */}
+        <div style={{ width: 320, minHeight: 8, fontFamily: 'var(--ds-font-family)' }}>
+          {revealed && !locked && (
+            <Alert type="info" message="This card is for in-store purchases only. Create a virtual card to shop online." />
+          )}
         </div>
       </div>
     </DemoCard>
