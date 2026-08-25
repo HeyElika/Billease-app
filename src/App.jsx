@@ -5,12 +5,13 @@ import TOC from './components/ui/TOC'
 import Explorer from './pages/Explorer'
 import Tokens from './pages/Tokens'
 import Iconography from './pages/Iconography'
-import Motion from './pages/Motion'
+import Motion from './pages/motion'
 import Patterns from './pages/Patterns'
 import Typography from './pages/Typography'
 import Illustrations from './pages/Illustrations'
 import Grid from './pages/Grid'
 import PrototypesPage from './pages/PrototypesPage'
+import { DEFAULT_MOTION_PATH } from './data/motion'
 import { TocProvider } from './context/TocContext'
 
 function Layout() {
@@ -52,7 +53,9 @@ function Layout() {
               <Route path="/icons" element={<Iconography />} />
               <Route path="/illustrations" element={<Illustrations />} />
               <Route path="/grid" element={<Grid />} />
-              <Route path="/motion" element={<Motion />} />
+              <Route path="/motion" element={<Navigate to={DEFAULT_MOTION_PATH} replace />} />
+              <Route path="/motion/:categoryId" element={<Motion />} />
+              <Route path="/motion/:categoryId/:patternId" element={<Motion />} />
               <Route path="/patterns" element={<Patterns />} />
               <Route path="/prototypes" element={<Navigate to="/prototypes/email-verification/too-many-otp-attempts" replace />} />
               <Route path="/prototypes/:flowId/:scenarioId" element={<PrototypesPage />} />

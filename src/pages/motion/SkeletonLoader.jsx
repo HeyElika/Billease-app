@@ -1,36 +1,24 @@
 /**
- * Motion — Billease Design System portal
+ * Skeleton loader — a pattern under Motion / Loader.
  *
- * Skeleton loader: the loading state for a region waiting on data.
  * Demonstrated on card/payment-review (Figma qESeTFW1GEEosrYnm4Hu3b, 6569:445).
- *
- * This is one pattern within the motion system, not the motion system itself.
- *
  * Colours are neutrals only, from variables2.json, already bound in index.css.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useToc } from '../context/TocContext'
-import Button from '../components/ds/Button'
-import Alert from '../components/ds/Alert'
-import BilleaseIcon from '../assets/icons/BilleaseIcon'
-import merchantLogo from '../assets/merchants/pancake-house.png'
-
-const SECTIONS = [
-  { id: 'skeleton-loader', label: 'Skeleton loader'      },
-  { id: 'demo',            label: 'Demo'                 },
-  { id: 'usage',           label: 'Usage'                },
-  { id: 'behaviour',       label: 'Behaviour'            },
-  { id: 'specification',   label: 'Specification'        },
-  { id: 'states',          label: 'States'               },
-  { id: 'accessibility',   label: 'Accessibility'        },
-  { id: 'engineering',     label: 'Engineering reference'},
-]
+import Button from '../../components/ds/Button'
+import Alert from '../../components/ds/Alert'
+import BilleaseIcon from '../../assets/icons/BilleaseIcon'
+import merchantLogo from '../../assets/merchants/pancake-house.png'
+import {
+  DocSection, DocCard, CardHeader, CardBody,
+  RuleTable, Swatch, UsageList, Note, CodeBlock,
+} from './docs'
 
 const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
 const SKELETON_HOLD = 3000   // ms, demo only
 
-const MOTION_CSS = `
+const SHIMMER_CSS = `
   @keyframes ds-shimmer-sweep {
     from { transform: translateX(-100%); }
     to   { transform: translateX(300%); }
@@ -358,117 +346,6 @@ function Arrow() {
   )
 }
 
-// ─── Layout helpers ───────────────────────────────────────────────────────────
-
-function DocSection({ id, title, level = 3, children }) {
-  const H = level === 2 ? 'h2' : 'h3'
-  const size = level === 2 ? 24 : 17
-  return (
-    <section id={id} style={{ marginBottom: level === 2 ? 28 : 44 }}>
-      <H style={{ fontFamily: 'var(--font-family)', fontSize: size, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 12px' }}>
-        {title}
-      </H>
-      {children}
-    </section>
-  )
-}
-
-function DocCard({ children, style }) {
-  return (
-    <div style={{ backgroundColor: '#fff', border: '1px solid var(--border-subtle)', borderRadius: 8, overflow: 'hidden', ...style }}>
-      {children}
-    </div>
-  )
-}
-
-function CardHeader({ label }) {
-  return (
-    <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-subtle)' }}>
-      <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-        {label}
-      </span>
-    </div>
-  )
-}
-
-function CardBody({ children, style }) {
-  return <div style={{ padding: '24px 28px', backgroundColor: '#fff', ...style }}>{children}</div>
-}
-
-const P = ({ children, style }) => (
-  <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)', maxWidth: '72ch', ...style }}>
-    {children}
-  </p>
-)
-
-function RuleTable({ rows }) {
-  return (
-    <DocCard>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <tbody>
-          {rows.map((row, i, arr) => (
-            <tr key={row[0]} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-              <td style={{ padding: '12px 16px', verticalAlign: 'top', width: 240, fontFamily: 'var(--font-family)', fontSize: 13, fontWeight: 600, color: 'var(--text-base)' }}>{row[0]}</td>
-              <td style={{ padding: '12px 16px', verticalAlign: 'top', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>{row[1]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </DocCard>
-  )
-}
-
-function Swatch({ color }) {
-  return (
-    <span style={{
-      display: 'inline-block', width: 12, height: 12, borderRadius: 3,
-      backgroundColor: color, border: '1px solid var(--border-subtle)',
-      verticalAlign: '-2px', marginRight: 8,
-    }} />
-  )
-}
-
-function UsageList({ label, items, tone }) {
-  return (
-    <DocCard style={{ flex: 1, minWidth: 260 }}>
-      <CardHeader label={label} />
-      <CardBody style={{ padding: '16px 20px' }}>
-        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {items.map(item => (
-            <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.5, color: 'var(--text-base)' }}>
-              <BilleaseIcon name={tone === 'use' ? 'tick' : 'close-mini'} size="xs" color={tone === 'use' ? 'var(--icon-base)' : 'var(--icon-subtle)'} />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </CardBody>
-    </DocCard>
-  )
-}
-
-function Note({ title, children }) {
-  return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px 16px', border: '1px solid var(--border-subtle)', borderRadius: 8, backgroundColor: 'var(--bg-subtle)' }}>
-      <div style={{ fontFamily: 'var(--font-family)', fontSize: 13, lineHeight: 1.6, color: 'var(--text-subtle)' }}>
-        <strong style={{ color: 'var(--text-base)', fontWeight: 600 }}>{title}</strong>{' '}
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function CodeBlock({ code }) {
-  return (
-    <pre style={{
-      margin: 0, padding: '16px 20px', overflowX: 'auto',
-      backgroundColor: 'var(--bg-subtle)', fontFamily: 'monospace',
-      fontSize: 12.5, lineHeight: 1.65, color: 'var(--text-base)',
-    }}>
-      <code>{code}</code>
-    </pre>
-  )
-}
-
 // ─── Content ──────────────────────────────────────────────────────────────────
 
 const USE_WHEN = [
@@ -513,10 +390,10 @@ const SPEC_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',        'Under prefers-reduced-motion the skeleton is shown without the shimmer.'],
-  ['Do not announce placeholders',  'Individual bones carry no content. Each is hidden from assistive technology.'],
-  ['Announce the loading state',    'A single live region reports that the region is loading, and that it has finished.'],
-  ['Motion is never required',      'Nothing about the screen can only be understood by seeing the shimmer move.'],
+  ['Respect reduced motion',       'Under prefers-reduced-motion the skeleton is shown without the shimmer.'],
+  ['Do not announce placeholders', 'Individual bones carry no content. Each is hidden from assistive technology.'],
+  ['Announce the loading state',   'A single live region reports that the region is loading, and that it has finished.'],
+  ['Motion is never required',     'Nothing about the screen can only be understood by seeing the shimmer move.'],
 ]
 
 const CODE_SHIMMER = `.ds-shimmer {
@@ -573,42 +450,13 @@ function TextBone({ children, fontSize = 16 }) {
   )
 }`
 
-const ENG_NOTES = [
-  ['Band geometry',
-   'The gradient runs transparent to Neutral 100 to transparent across one bone-width, and translates from -100% to 300%. The peak therefore crosses a bone in a quarter of the cycle and the bone rests for the other three quarters.'],
-  ['Percentage sizing',
-   'Because the band is a percentage of each bone rather than a fixed pixel width, a 150px label and a 60px figure complete their pass at the same moment. Fixed widths would give every bone its own rhythm.'],
-  ['Transform, not background-position',
-   'Animating transform stays on the compositor. Animating background-position repaints every frame, which is costly on a card carrying more than a dozen bones.'],
-  ['Wrapping paragraphs',
-   'Bones for a multi-line paragraph are measured per line box at runtime, grouping text-node rects by vertical centre. Ranging over the element instead would also return its block rect, which spans every line at once.'],
-]
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
-export default function Motion() {
-  const { setSections } = useToc()
-  useEffect(() => { setSections(SECTIONS); return () => setSections([]) }, [])
-
+export default function SkeletonLoader() {
   return (
-    <div style={{ fontFamily: 'var(--font-family)' }}>
-      <style>{MOTION_CSS}</style>
+    <>
+      <style>{SHIMMER_CSS}</style>
 
-      <h1 style={{ margin: '0 0 8px', fontSize: 32, fontWeight: 700, color: 'var(--text-base)', lineHeight: 1.2 }}>Motion</h1>
-      <p style={{ margin: '0 0 32px', fontSize: 15, color: 'var(--text-subtle)', lineHeight: 1.5, maxWidth: '72ch' }}>
-        Motion patterns and their specifications. Skeleton loader is the first pattern documented here.
-      </p>
-      <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 32 }} />
-
-      {/* ── Pattern ── */}
-      <DocSection id="skeleton-loader" title="Skeleton loader" level={2}>
-        <P style={{ marginBottom: 0, fontSize: 15, color: 'var(--text-base)' }}>
-          Indicates that structured content is loading while preserving the layout
-          users can expect when data arrives.
-        </P>
-      </DocSection>
-
-      {/* ── Demo ── */}
       <DocSection id="demo" title="Demo">
         <DocCard>
           <CardHeader label="Loading to loaded" />
@@ -616,7 +464,6 @@ export default function Motion() {
         </DocCard>
       </DocSection>
 
-      {/* ── Usage ── */}
       <DocSection id="usage" title="Usage">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <UsageList label="Use when" items={USE_WHEN} tone="use" />
@@ -624,7 +471,6 @@ export default function Motion() {
         </div>
       </DocSection>
 
-      {/* ── Behaviour ── */}
       <DocSection id="behaviour" title="Behaviour">
         <RuleTable rows={BEHAVIOUR_RULES} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
@@ -644,7 +490,6 @@ export default function Motion() {
         </div>
       </DocSection>
 
-      {/* ── Specification ── */}
       <DocSection id="specification" title="Specification">
         <DocCard>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -660,7 +505,6 @@ export default function Motion() {
         </DocCard>
       </DocSection>
 
-      {/* ── States ── */}
       <DocSection id="states" title="States">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DocCard>
@@ -699,12 +543,10 @@ export default function Motion() {
         </div>
       </DocSection>
 
-      {/* ── Accessibility ── */}
       <DocSection id="accessibility" title="Accessibility">
         <RuleTable rows={ACCESSIBILITY_RULES} />
       </DocSection>
 
-      {/* ── Engineering reference ── */}
       <DocSection id="engineering" title="Engineering reference">
         <details>
           <summary style={{
@@ -715,7 +557,6 @@ export default function Motion() {
             Implementation details
           </summary>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            <RuleTable rows={ENG_NOTES} />
             <DocCard>
               <CardHeader label="Shimmer" />
               <CodeBlock code={CODE_SHIMMER} />
@@ -727,7 +568,6 @@ export default function Motion() {
           </div>
         </details>
       </DocSection>
-
-    </div>
+    </>
   )
 }

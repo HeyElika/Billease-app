@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { componentIndex } from '../../data/components'
 import { PROTOTYPE_FLOWS } from '../../data/prototypeFlows'
+import { MOTION_CATEGORIES } from '../../data/motion'
 import { HEADER_HEIGHT } from './Header'
 
 const SHOWN_CATEGORIES = [
@@ -256,6 +257,117 @@ function ComponentsSidebar() {
   )
 }
 
+// ─── Section: Motion ──────────────────────────────────────────────────────────
+
+/** A collapsible motion type holding its patterns. Mirrors CategoryItem. */
+function MotionCategoryItem({ category, open, onToggle }) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '7px 16px',
+          border: 'none',
+          background: 'none',
+          cursor: 'pointer',
+          fontFamily: 'var(--font-family)',
+          fontSize: 13,
+          fontWeight: open ? 600 : 400,
+          color: open ? 'var(--text-base)' : 'var(--text-subtle)',
+          textAlign: 'left',
+          borderRadius: 0,
+          transition: 'color 0.12s',
+        }}
+      >
+        <span>{category.label}</span>
+        <ChevronIcon open={open} />
+      </button>
+
+      {open && (
+        <div>
+          {category.patterns.length === 0 && (
+            <div style={{
+              padding: '5px 16px 5px 26px',
+              fontFamily: 'var(--font-family)',
+              fontSize: 13,
+              color: 'var(--text-disabled)',
+            }}>
+              Coming soon
+            </div>
+          )}
+          {category.patterns.map(pattern => (
+            <NavLink
+              key={pattern.id}
+              to={`/motion/${category.id}/${pattern.id}`}
+              style={({ isActive }) => ({
+                display: 'block',
+                padding: '5px 16px 5px 26px',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-family)',
+                fontSize: 13,
+                color: isActive ? 'var(--text-base)' : 'var(--text-subtle)',
+                fontWeight: isActive ? 600 : 400,
+                borderLeft: isActive ? '2px solid var(--bg-secondary)' : '2px solid transparent',
+                backgroundColor: isActive ? 'var(--bg-info-subtle)' : 'transparent',
+                transition: 'background-color 0.1s, color 0.1s',
+              })}
+              onMouseEnter={e => {
+                const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                if (!isCurrent) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-subtle)'
+                  e.currentTarget.style.color = 'var(--text-base)'
+                }
+              }}
+              onMouseLeave={e => {
+                const isCurrent = e.currentTarget.getAttribute('aria-current') === 'page'
+                if (!isCurrent) {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = 'var(--text-subtle)'
+                }
+              }}
+            >
+              {pattern.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MotionSidebar() {
+  const { pathname } = useLocation()
+  const activeCategory = MOTION_CATEGORIES.find(c => pathname.startsWith(`/motion/${c.id}`))
+  const defaultOpen = activeCategory?.id ?? MOTION_CATEGORIES[0]?.id ?? null
+
+  // Derived, not synced: a category is open if it was toggled, otherwise if it
+  // is the one the current route sits under.
+  const [toggled, setToggled] = useState({})
+  const isOpen = (id) => (id in toggled ? toggled[id] : id === defaultOpen)
+
+  const handleToggle = useCallback((id) => {
+    setToggled(prev => ({ ...prev, [id]: !(id in prev ? prev[id] : id === defaultOpen) }))
+  }, [defaultOpen])
+
+  return (
+    <div style={{ paddingBottom: 24 }}>
+      <SectionLabel>Motion</SectionLabel>
+      {MOTION_CATEGORIES.map(category => (
+        <MotionCategoryItem
+          key={category.id}
+          category={category}
+          open={isOpen(category.id)}
+          onToggle={() => handleToggle(category.id)}
+        />
+      ))}
+    </div>
+  )
+}
+
 // ─── Section: Prototypes ──────────────────────────────────────────────────────
 function PrototypesSidebar() {
   return (
@@ -303,7 +415,7 @@ export default function Sidebar() {
   function renderContent() {
     if (isFoundation)  return <FoundationSidebar />
     if (isComponents)  return <ComponentsSidebar />
-    if (isMotion)      return <PlaceholderSidebar label="Motion" />
+    if (isMotion)      return <MotionSidebar />
     if (isPrototypes)  return <PrototypesSidebar />
     return <PlaceholderSidebar label="Patterns" />
   }
