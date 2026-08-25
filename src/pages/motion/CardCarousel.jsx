@@ -2,11 +2,13 @@
  * Card carousel — a pattern under Motion / Navigation & transitions.
  *
  * Layout from Financial Core, access-card/carousel (I49002:20422;14839:3755).
- * Motion from the cards animation handoff prototype.
+ * Release, settle and edge behaviour from the carousel motion spec.
  *
- * The two agree exactly: the Figma row is 268 + 12 + 300 + 12 + 268 = 860
- * centred in 360, which puts the card left edges at -250, 30 and 342. Those are
- * the prototype's slot constants, unchanged.
+ * The Figma row is 268 + 12 + 300 + 12 + 268 = 860 centred in 360, which puts
+ * the card left edges at -250, 30 and 342. Those are also the handoff
+ * prototype's slot constants, so the layout was never reconciled after the fact.
+ * The spec supersedes the prototype on velocity, spring settling, edge
+ * resistance and interruption, none of which the prototype implemented.
  */
 
 import { useRef, useState } from 'react'
@@ -20,12 +22,26 @@ import {
 } from './docs'
 
 // ─── Values ───────────────────────────────────────────────────────────────────
+// Layout from Figma. Release, settle and edge behaviour from the carousel spec.
 
-const SNAP_MS   = 300
-const SNAP_EASE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
-const THRESHOLD = 60   // px of travel before the carousel commits
-const TAP_SLOP  = 4    // px under which a pointer move is a tap, not a drag
-const EDGE_RESIST = 0.35  // drag past the first or last card moves at 35% of the finger
+const COMMIT_PX      = 60      // or ~18% of card width where sizing is relative
+const COMMIT_PCT     = 0.18
+const FLICK_VELOCITY = 500     // px/s on release
+const TAP_SLOP       = 4       // px under which a pointer move is a tap
+const MAX_STEP       = 1       // cards advanced per gesture
+
+const SETTLE_COMMIT_MS = 280   // spring, damping ~0.85
+const SETTLE_SNAP_MS   = 260
+const SPRING_DAMPING   = 0.85
+
+// CSS cannot carry release velocity into a spring, so the demo runs the
+// documented duration-and-curve fallback. Native should use the spring.
+const FALLBACK_MS   = 250
+const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
+const REDUCED_MS    = 120      // within the 100 to 150ms reduced-motion range
+
+const EDGE_RESIST    = 0.25    // displayed overscroll = drag x 0.25
+const MAX_OVERSCROLL = 28      // px, within the 24 to 32 range
 
 const CARD = { w: 300, h: 190 }
 const PEEK = { w: 268, h: 170 }
@@ -42,6 +58,9 @@ const SLOTS = {
   '1':  { x: 342,  y: PEEK_Y, s: PEEK_SCALE },
   '2':  { x: 630,  y: PEEK_Y, s: PEEK_SCALE },
 }
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const CARDS = [
   {
@@ -215,43 +234,93 @@ function TransactionWidget({ card }) {
 
 function CardCarouselDemo() {
   const [active, setActive] = useState(1)
-  const [drag, setDrag] = useState(0)
+  const [offset, setOffset] = useState(0)
   const [dragging, setDragging] = useState(false)
+  const [settleMs, setSettleMs] = useState(FALLBACK_MS)
+
   const startX = useRef(0)
+  const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
   const moved = useRef(0)
+  const samples = useRef([])     // recent {x, t} for the release velocity
+  const trackRef = useRef(null)
 
   const last = CARDS.length - 1
 
+  /** Where the track actually is right now, mid-settle included. */
+  const currentOffset = () => {
+    const el = trackRef.current
+    if (!el) return offset
+    const m = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+    return m.m41 - SLOTS['0'].x
+  }
+
   const onPointerDown = (e) => {
     e.currentTarget.setPointerCapture?.(e.pointerId)
+    // Interruption: take over from wherever the settle has got to, no jump.
+    baseOffset.current = dragging ? offset : currentOffset()
+    setOffset(baseOffset.current)
     startX.current = e.clientX
     moved.current = 0
+    samples.current = [{ x: e.clientX, t: performance.now() }]
     setDragging(true)
   }
 
   const onPointerMove = (e) => {
     if (!dragging) return
-    let delta = e.clientX - startX.current
+    const delta = e.clientX - startX.current
     if (Math.abs(delta) > TAP_SLOP) moved.current = delta
-    // Past either end the row still moves, at 35% of the finger, then springs back.
-    if (active === 0 && delta > 0) delta *= EDGE_RESIST
-    if (active === last && delta < 0) delta *= EDGE_RESIST
-    setDrag(delta)
+
+    samples.current.push({ x: e.clientX, t: performance.now() })
+    if (samples.current.length > 6) samples.current.shift()
+
+    let next = baseOffset.current + delta
+    // Past either end the track resists rather than stopping dead.
+    if ((active === 0 && next > 0) || (active === last && next < 0)) {
+      const over = next
+      next = Math.sign(over) * Math.min(Math.abs(over) * EDGE_RESIST, MAX_OVERSCROLL)
+    }
+    setOffset(next)
+  }
+
+  /** px/s over the last ~100ms of the gesture. */
+  const releaseVelocity = () => {
+    const s = samples.current
+    if (s.length < 2) return 0
+    const end = s[s.length - 1]
+    const start = s.find(p => end.t - p.t <= 100) ?? s[0]
+    const dt = end.t - start.t
+    return dt > 0 ? ((end.x - start.x) / dt) * 1000 : 0
   }
 
   const onPointerUp = () => {
     if (!dragging) return
     setDragging(false)
+
+    const velocity = releaseVelocity()
+    const distance = offset
+    const threshold = Math.min(COMMIT_PX, CARD.w * COMMIT_PCT)
+
+    // Commit on distance OR on a flick, whichever happens first. One card max.
+    const wantsPrev = distance > 0 || velocity > 0
+    const committed =
+      Math.abs(distance) >= threshold || Math.abs(velocity) >= FLICK_VELOCITY
+
     let next = active
-    if (drag < -THRESHOLD && active < last) next = active + 1
-    if (drag > THRESHOLD && active > 0) next = active - 1
+    if (committed) {
+      next = wantsPrev ? active - MAX_STEP : active + MAX_STEP
+      next = Math.max(0, Math.min(last, next))
+    }
+
+    const changed = next !== active
+    setSettleMs(prefersReducedMotion() ? REDUCED_MS : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS))
     setActive(next)
-    setDrag(0)
+    setOffset(0)
   }
 
   // A tap on a peeking card selects it. Movement under the slop is still a tap.
   const onCardClick = (index) => {
     if (Math.abs(moved.current) > TAP_SLOP) return
+    setSettleMs(prefersReducedMotion() ? REDUCED_MS : SETTLE_COMMIT_MS)
     setActive(index)
   }
 
@@ -279,6 +348,7 @@ function CardCarouselDemo() {
             return (
               <div
                 key={card.id}
+                ref={i === active ? trackRef : null}
                 onClick={() => onCardClick(i)}
                 style={{
                   position: 'absolute',
@@ -287,8 +357,9 @@ function CardCarouselDemo() {
                   width: CARD.w,
                   height: CARD.h,
                   transformOrigin: '0 0',
-                  transform: `translate(${slot.x + drag}px, ${slot.y}px) scale(${slot.s})`,
-                  transition: dragging ? 'none' : `transform ${SNAP_MS}ms ${SNAP_EASE}`,
+                  transform: `translate(${slot.x + offset}px, ${slot.y}px) scale(${slot.s})`,
+                  // One track: every card takes the same offset, none animates alone.
+                  transition: dragging ? 'none' : `transform ${settleMs}ms ${FALLBACK_EASE}`,
                   willChange: 'transform',
                 }}
               >
@@ -348,69 +419,70 @@ const AVOID_WHEN = [
 ]
 
 const BEHAVIOR_RULES = [
-  ['One card is the subject',
-   'The centred card is the one everything below refers to. The dots, the action row and the transaction list all follow it, and the list changes contents as the card changes. On the add-card slot there is nothing to act on, so both disappear.'],
-  ['The strip follows the finger',
-   'This is a drag, not a flick. While the pointer is down the row is bound to it one to one with no easing, and the animation only takes over on release.'],
-  ['Past the threshold it commits',
-   'Beyond 60px of travel the carousel moves to the neighbouring card. Under that it returns to where it was. Release decides, not direction of travel.'],
-  ['A small move is a tap',
-   'Movement under 4px counts as a tap rather than a drag, so tapping a peeking card selects it. Both ways of changing card have to work.'],
-  ['Neighbours peek, they never hide',
-   'The adjacent card stays partly visible at 89.3% scale. That sliver is what tells someone there is more than one card, so it is not decoration and must not be trimmed away on narrow screens.'],
-  ['Add card is a slot',
-   'The add-card placeholder sits in the carousel like any other card, so reaching the end of the set and adding to it are the same gesture.'],
+  ['The track follows the finger',
+   'While a pointer is down the cards move as one horizontal track at a 1:1 ratio, with no easing. No card animates on its own, and the neighbouring card simply enters the viewport as the track moves.'],
+  ['Release commits on distance or velocity',
+   'Below 60px the card snaps back. At 60px or beyond, or on a flick of 500px/s or more in the same direction, the carousel commits to the adjacent card. A gesture advances one card at most.'],
+  ['Selection changes on release, not during',
+   'Through the drag the current card stays selected, the dots stay put and the content below does not switch. On a commit all three update, and they may start updating during the settle rather than waiting for it to finish.'],
+  ['The ends resist, they do not loop',
+   'Dragging past the first or last card shows a quarter of the travel, up to about 28px, then returns to the boundary card on release.'],
+  ['Add card is a position, not an action',
+   'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
+  ['Gestures interrupt cleanly',
+   'A new drag during a settle takes over from wherever the track has reached, with no jump back to a resting position. Rapid swipes stay continuous and animations are never queued.'],
 ]
 
 const SPEC_ROWS = [
-  ['Snap duration',     '300ms'],
-  ['Snap easing',       'cubic-bezier(0.05, 0.7, 0.1, 1)'],
-  ['While dragging',    'No transition. The row maps to the pointer one to one.'],
-  ['Commit threshold',  '60px of travel, measured on release'],
-  ['Decided by',        'Distance only. Velocity is not measured, so a fast flick under 60px does nothing.'],
-  ['Edge resistance',   '0.35 past the first and last card'],
-  ['Tap slop',          '4px'],
-  ['Centred card',      '300 x 190, radius-lg'],
-  ['Peeking card',      '268 x 170, which is the same card at 89.3%'],
-  ['Gap',               '12px'],
-  ['Slot left edges',   '-250 / 30 / 342 in a 360 stage'],
-  ['Dots',              'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
-  ['Reduced motion',    'Transitions off. The card changes instantly.'],
+  ['Drag tracking',      '1:1, no easing'],
+  ['Commit distance',    `${COMMIT_PX}px, or about ${COMMIT_PCT * 100}% of card width where sizing is relative`],
+  ['Flick velocity',     `${FLICK_VELOCITY}px/s or more on release`],
+  ['Cards per gesture',  String(MAX_STEP)],
+  ['Commit settle',      `${SETTLE_COMMIT_MS}ms spring, preserving release velocity`],
+  ['Snap-back settle',   `${SETTLE_SNAP_MS}ms, same spring character`],
+  ['Spring damping',     `${SPRING_DAMPING}, no noticeable overshoot`],
+  ['Curve fallback',     `${FALLBACK_MS}ms ${FALLBACK_EASE} where spring physics are unavailable`],
+  ['Edge resistance',    `${EDGE_RESIST * 100}% of drag distance`],
+  ['Max overscroll',     '24 to 32px'],
+  ['Reduced motion',     '100 to 150ms, no spring or overshoot'],
+  ['Centred card',       '300 x 190, radius-lg'],
+  ['Peeking card',       '268 x 170, the same card at 89.3%'],
+  ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
+  ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
 ]
 
 const STATE_ROWS = [
-  ['Single card',    'One card and the add-card slot. The carousel still works, there is simply less to move through.'],
-  ['Multiple cards', 'The chosen card centred, neighbours peeking either side.'],
-  ['Dragging',       'The row is under the finger with no easing, and no card is settled yet.'],
-  ['Add card',       'The dashed placeholder centred, treated as the active slot.'],
+  ['During drag',   'The current card stays selected. Dots and the content below are unchanged.'],
+  ['Commit',        'Selected card, dots and content all update. They may begin during the settle.'],
+  ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
+  ['At either end', 'The track resists at a quarter of the drag and returns to the boundary card. The carousel never loops.'],
+  ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
 ]
 
 const ACCESSIBILITY_RULES = [
   ['Respect reduced motion',
-   'Switch the transition off so the card changes instantly. Do not substitute a shorter slide.'],
+   'Remove the spring and any overshoot, keeping the carousel fully functional on a 100 to 150ms transition, or the platform convention where one exists.'],
   ['Never gesture-only',
-   'Tapping a peeking card selects it, so the carousel is usable without a drag. Anything reachable by swipe has to be reachable another way.'],
+   'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
-   'The dots are decorative. The position in the set, and the change of card, need announcing separately.'],
+   'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
   ['Motion is never required',
-   'Which card is chosen is carried by the content below it, not by having seen the row move.'],
+   'Which card is chosen is carried by the content below it, not by having seen the track move.'],
 ]
 
 const ENGINEERING_ROWS = [
+  ['Spring first, curve as fallback',
+   'Settle with a spring that carries the release velocity through, so the motion continues the gesture rather than starting a new animation. Where spring physics are not available, a 250ms cubic-bezier(0.2, 0, 0, 1) is close enough. The demo on this page uses that fallback, since CSS cannot carry velocity into a transition.'],
+  ['Distance and velocity, not one or the other',
+   'Either condition commits. Measuring only distance loses the flick; measuring only velocity loses the slow, deliberate drag.'],
+  ['Interrupt by reading the current transform',
+   'On a new pointer down mid-settle, take the track position from its computed transform and continue from there. Resetting to the resting position first is what makes rapid swipes feel broken.'],
   ['Slot values are left edges',
-   'The x values are the left edge of each card, and scaling uses a top-left origin so they stay true as the card shrinks. With a centre origin the peeks land in the wrong place.'],
-  ['Re-centre the peek vertically',
-   'Scaling from the top-left leaves the shorter card sitting high, so a peeking card is offset down by 10.13px, half the height it loses. Without it the row looks top-aligned rather than centred.'],
-  ['Only animate on release',
-   'Set the transition to none while a pointer is down and restore it on release. Leaving the transition on during a drag makes the row lag behind the finger by the full snap duration.'],
-  ['Drag, not fling',
-   'This is direct manipulation: the row is bound to the pointer and release decides the outcome. It is not a fling, where a gesture is recognised and a canned animation plays. Nothing measures velocity, so a quick flick that travels under 60px snaps back however fast it was. If flick-to-advance is wanted, that is a new behavior to spec, not a tuning change.'],
-  ['Damp the ends, do not block them',
-   'Dragging past the first or last card still moves the row, at 35% of the finger, and springs back on release. Hard-stopping at the ends reads as a broken gesture rather than a boundary.'],
+   'The x values are each card\'s left edge, and scaling uses a top-left origin so they hold as the card shrinks. A centre origin puts the peeks in the wrong place. A peeking card is also offset down 10.13px, half the height it loses, or the row reads top-aligned.'],
   ['Threshold and slop are separate',
-   'The 60px threshold decides whether a release commits. The 4px slop decides whether the gesture was a tap at all. Conflating them either makes taps impossible or makes every small drag a selection.'],
-  ['Reduced motion means off, not fast',
-   'Set the transition to none rather than shortening it. A very fast slide is still motion.'],
+   'The 60px threshold decides whether a release commits. The 4px slop decides whether the gesture was a tap at all. Conflating them either makes taps impossible or turns every small drag into a selection.'],
+  ['Symmetrical in both directions',
+   'Left advances, right goes back, on identical thresholds and spring values. Desktop pointer and touch follow the same logic.'],
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -422,10 +494,11 @@ export default function CardCarousel() {
         <CardCarouselDemo />
         <div style={{ marginTop: 12 }}>
           <Note title="Try it.">
-            Drag the row, or tap a peeking card. A drag under 60px snaps back; past
-            it the carousel commits, and nothing eases while the pointer is down.
-            Watch the transaction list below: it belongs to whichever card is
-            centred, and empties on the add-card slot.
+            Below 60px the card snaps back. At 60px or beyond, or on a
+            high-velocity flick, the carousel commits to the adjacent card.
+            Nothing eases while the pointer is down, and a new drag during a
+            settle takes over from where the track had reached. The content below
+            belongs to whichever card is centred.
           </Note>
         </div>
       </DocSection>
@@ -455,10 +528,9 @@ export default function CardCarousel() {
           </table>
         </DocCard>
         <div style={{ marginTop: 12 }}>
-          <Note title="Layout and motion agree.">
+          <Note title="Layout.">
             The Figma row is 268 + 12 + 300 + 12 + 268 centred in 360, which puts
-            the card left edges at -250, 30 and 342. Those are the same numbers
-            the prototype uses, so the two were not reconciled after the fact.
+            the card left edges at -250, 30 and 342.
           </Note>
         </div>
       </DocSection>
