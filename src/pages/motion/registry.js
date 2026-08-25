@@ -8,7 +8,9 @@
  */
 
 import SkeletonLoader from './SkeletonLoader'
+import CardFlip from './CardFlip'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
+  'controls/card-flip': CardFlip,
 }
