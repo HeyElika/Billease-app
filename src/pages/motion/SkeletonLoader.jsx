@@ -6,13 +6,12 @@
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import Button from '../../components/ds/Button'
 import Alert from '../../components/ds/Alert'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import merchantLogo from '../../assets/merchants/pancake-house.png'
 import {
   DocSection, DocCard, CardHeader, CardBody,
-  DemoCard, DemoStatus, RuleTable, Swatch, UsageList, Note,
+  DemoCard, ReplayButton, RuleTable, Swatch, UsageList, Note,
 } from './docs'
 
 const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
@@ -312,12 +311,7 @@ function SkeletonLoaderDemo() {
   return (
     <DemoCard
       label="Loading to loaded"
-      action={
-        <>
-          <DemoStatus>{loading ? 'Loading' : 'Loaded'}</DemoStatus>
-          <Button type="secondary" size="sm" label="Replay" onClick={() => setLoading(true)} />
-        </>
-      }
+      action={<ReplayButton onClick={() => setLoading(true)} />}
     >
       <div style={{
         width: 360,
@@ -441,7 +435,7 @@ export default function SkeletonLoader() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DocCard>
             <CardHeader label="Loading to loaded" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading />
               <Arrow />
               <MiniCard loading={false} />
@@ -449,7 +443,7 @@ export default function SkeletonLoader() {
           </DocCard>
           <DocCard>
             <CardHeader label="Loading to error" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading />
               <Arrow />
               <div style={{ width: 320, fontFamily: 'var(--ds-font-family)' }}>
@@ -459,7 +453,7 @@ export default function SkeletonLoader() {
           </DocCard>
           <DocCard>
             <CardHeader label="Reduced motion" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap', padding: '32px 28px' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading staticOnly />
               <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, maxWidth: '38ch' }}>
                 The skeleton still shows the expected layout. The shimmer does not run.

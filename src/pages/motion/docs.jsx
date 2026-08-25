@@ -90,22 +90,66 @@ export function DemoCard({ label, action, children, stageStyle }) {
   )
 }
 
-/** DemoStatus — the small "Loading" / "Loaded" caption beside a replay control. */
-export function DemoStatus({ children }) {
+/**
+ * ReplayButton — the replay control on a motion demo.
+ *
+ * Portal chrome, not a design-system component. It matches Button
+ * secondary/sm exactly (32px tall, 12px horizontal padding, 8px gap,
+ * --radius-full, --bg-sunken on --text-base, 14px semibold) but carries a
+ * leading icon, which the DS Button cannot do: its iconLeft slot is hardcoded
+ * to arrow-left. Logged as a missing variant rather than modifying Button.
+ *
+ * Icon is solar:refresh-linear, taken verbatim from the Iconify Solar set.
+ */
+export function ReplayButton({ onClick, label = 'Replay' }) {
   return (
-    <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
-      {children}
-    </span>
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        height: 32,
+        padding: '0 12px',
+        border: 'none',
+        borderRadius: 'var(--radius-full)',
+        backgroundColor: 'var(--bg-sunken)',
+        color: 'var(--text-base)',
+        fontFamily: 'var(--ds-font-family)',
+        fontSize: 14,
+        fontWeight: 600,
+        lineHeight: 1.5,
+        cursor: 'pointer',
+        flexShrink: 0,
+      }}
+    >
+      <RefreshIcon />
+      <span>{label}</span>
+    </button>
   )
 }
 
-export const P = ({ children, style }) => (
-  <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--text-subtle)', lineHeight: 1.6, fontFamily: 'var(--font-family)', maxWidth: '72ch', ...style }}>
-    {children}
-  </p>
-)
+/** solar:refresh-linear — exact paths from the Iconify Solar set, not redrawn. */
+function RefreshIcon({ size = 16 }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style={{ flexShrink: 0, display: 'block' }}
+    >
+      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+        <path d="M3.67981 13L3.67981 11.3333C3.67981 6.73096 7.4402 3 12.0789 3C15.1178 3 17.7799 4.60136 19.2545 7M2 11.3333L3.67981 13L5.35962 11.3333" />
+        <path d="M20.3139 11V12.6667C20.3139 17.269 16.5391 21 11.8827 21C8.83213 21 6.15995 19.3986 4.67969 17M22.0001 12.6667L20.3139 11L18.6277 12.6667" />
+      </g>
+    </svg>
+  )
+}
 
-/** Two-column table of rule name and description. */
 export function RuleTable({ rows, labelWidth = 240 }) {
   return (
     <DocCard>
