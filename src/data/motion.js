@@ -14,6 +14,9 @@
  *
  *   Purpose        One short definition of what the motion communicates.
  *   Demo           Live example with a replay control. The most important part.
+ *                  Built with DemoCard: the replay control and status caption
+ *                  sit in the header bar, the example is centred on the stage
+ *                  below. Every pattern uses this so demos stay comparable.
  *   When to use    When it applies, and when it does not.
  *   Behavior       The rules that have to hold wherever the pattern is applied.
  *   Motion spec    Only the values needed to reproduce it.

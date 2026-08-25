@@ -26,18 +26,77 @@ export function DocCard({ children, style }) {
   )
 }
 
-export function CardHeader({ label }) {
+/**
+ * CardHeader — the label bar on a doc card.
+ *
+ * `action` renders on the right of the bar. Every motion demo puts its replay
+ * control here rather than beside the example, so the stage below stays clean.
+ */
+export function CardHeader({ label, action }) {
   return (
-    <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-subtle)' }}>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+      minHeight: action ? 48 : 0,
+      padding: action ? '8px 12px 8px 16px' : '10px 16px',
+      borderBottom: '1px solid var(--border-subtle)',
+      backgroundColor: 'var(--bg-subtle)',
+    }}>
       <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, fontWeight: 600, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
         {label}
       </span>
+      {action ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          {action}
+        </div>
+      ) : null}
     </div>
   )
 }
 
 export function CardBody({ children, style }) {
   return <div style={{ padding: '24px 28px', backgroundColor: '#fff', ...style }}>{children}</div>
+}
+
+/** DemoStage — centres a live example inside a doc card. */
+export function DemoStage({ children, style }) {
+  return (
+    <div style={{
+      padding: '40px 28px',
+      backgroundColor: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...style,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+/**
+ * DemoCard — the standard shape for a motion demo: a labelled bar carrying the
+ * replay control, over a centred stage. Every motion pattern uses this so the
+ * demos stay comparable.
+ */
+export function DemoCard({ label, action, children, stageStyle }) {
+  return (
+    <DocCard>
+      <CardHeader label={label} action={action} />
+      <DemoStage style={stageStyle}>{children}</DemoStage>
+    </DocCard>
+  )
+}
+
+/** DemoStatus — the small "Loading" / "Loaded" caption beside a replay control. */
+export function DemoStatus({ children }) {
+  return (
+    <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
+      {children}
+    </span>
+  )
 }
 
 export const P = ({ children, style }) => (

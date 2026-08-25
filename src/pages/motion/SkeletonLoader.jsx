@@ -12,7 +12,7 @@ import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import merchantLogo from '../../assets/merchants/pancake-house.png'
 import {
   DocSection, DocCard, CardHeader, CardBody,
-  RuleTable, Swatch, UsageList, Note,
+  DemoCard, DemoStatus, RuleTable, Swatch, UsageList, Note,
 } from './docs'
 
 const SHIMMER_CYCLE = 1000   // ms, one full pass of the band
@@ -310,20 +310,24 @@ function SkeletonLoaderDemo() {
   }, [loading])
 
   return (
-    <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <DemoCard
+      label="Loading to loaded"
+      action={
+        <>
+          <DemoStatus>{loading ? 'Loading' : 'Loaded'}</DemoStatus>
+          <Button type="secondary" size="sm" label="Replay" onClick={() => setLoading(true)} />
+        </>
+      }
+    >
       <div style={{
-        width: 360, flexShrink: 0,
-        border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'hidden',
+        width: 360,
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
       }}>
         <PaymentReviewCard loading={loading} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Button type="secondary" size="sm" label="Replay" onClick={() => setLoading(true)} />
-        <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
-          {loading ? 'Loading' : 'Loaded'}
-        </span>
-      </div>
-    </div>
+    </DemoCard>
   )
 }
 
@@ -404,10 +408,7 @@ export default function SkeletonLoader() {
       <style>{SHIMMER_CSS}</style>
 
       <DocSection id="demo" title="Demo">
-        <DocCard>
-          <CardHeader label="Loading to loaded" />
-          <CardBody><SkeletonLoaderDemo /></CardBody>
-        </DocCard>
+        <SkeletonLoaderDemo />
       </DocSection>
 
       <DocSection id="usage" title="When to use">
@@ -440,7 +441,7 @@ export default function SkeletonLoader() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <DocCard>
             <CardHeader label="Loading to loaded" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading />
               <Arrow />
               <MiniCard loading={false} />
@@ -448,7 +449,7 @@ export default function SkeletonLoader() {
           </DocCard>
           <DocCard>
             <CardHeader label="Loading to error" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading />
               <Arrow />
               <div style={{ width: 320, fontFamily: 'var(--ds-font-family)' }}>
@@ -458,7 +459,7 @@ export default function SkeletonLoader() {
           </DocCard>
           <DocCard>
             <CardHeader label="Reduced motion" />
-            <CardBody style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <CardBody style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, flexWrap: 'wrap', padding: '32px 28px' }}>
               <MiniCard loading staticOnly />
               <span style={{ fontFamily: 'var(--font-family)', fontSize: 13, color: 'var(--text-subtle)', lineHeight: 1.6, maxWidth: '38ch' }}>
                 The skeleton still shows the expected layout. The shimmer does not run.
