@@ -12,8 +12,8 @@
  * AnimateView from motion-plus, which is paid, and the effect does not need it.
  *
  * Colours are neutrals only, from Desktop/variables2.json:
- *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 300 #D4D4D4
- *   neutral 500 #919191  neutral 700 #545454  neutral 900 #1A1A1A  white
+ *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 500 #919191
+ *   neutral 700 #545454  neutral 900 #1A1A1A  white
  * All are already bound in src/index.css, so this file references the tokens.
  */
 
@@ -26,6 +26,7 @@ import merchantLogo from '../assets/merchants/pancake-house.png'
 const SECTIONS = [
   { id: 'demo',      label: 'Skeleton loader' },
   { id: 'spec',      label: 'Specification'   },
+  { id: 'measured',  label: 'Measured source'  },
   { id: 'rationale', label: 'Why these values'},
   { id: 'mechanics', label: 'Mechanics'       },
 ]
@@ -39,9 +40,9 @@ const SECTIONS = [
    extraction, and the reasoning for each is in the "Why these values" section.
    ─────────────────────────────────────────────────────────────────────────── */
 
-const SHIMMER_CYCLE  = 1200   // ms, one full sweep
+const SHIMMER_CYCLE  = 1000   // ms, one full sweep (measured off LinkedIn)
 const SHIMMER_EASING = 'linear'
-const SKELETON_HOLD  = 2400   // ms, exactly two cycles, so the reveal lands on a seam
+const SKELETON_HOLD  = 3000   // ms, exactly three cycles, so the reveal lands on a seam
 const WIPE_DURATION  = 400    // ms
 const WIPE_EASING    = 'cubic-bezier(0.4, 0, 0.2, 1)'  // Billease transition easing
 
@@ -54,9 +55,11 @@ const MOTION_CSS = `
     initial-value: -100%;
   }
 
+  /* Peak enters at -0.5w and leaves at 3.5w, so it crosses the bone in a
+     quarter of the cycle and the remaining three quarters are near-flat rest. */
   @keyframes ds-shimmer-sweep {
-    from { background-position: -200% 0; }
-    to   { background-position:  200% 0; }
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(300%); }
   }
 
   @keyframes ds-skeleton-wipe {
@@ -64,17 +67,31 @@ const MOTION_CSS = `
     to   { --ds-wipe: -100%; }
   }
 
-  /* neutral 300 base, neutral 100 highlight. Both read against white and
-     against the neutral 100 merchant card, which is why the base is 300. */
+  /* Measured off the LinkedIn feed skeleton (see the Measurement section).
+     Bone sits at neutral 200. A soft band exactly one bone-width wide passes
+     over it, peaking at neutral 100. The band is sized in percentages, so a
+     narrow bone and a wide one complete their pass in the same 1000ms. */
   .ds-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-sunken);
+  }
+  .ds-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     background: linear-gradient(
       90deg,
-      var(--bg-elevated) 25%,
-      var(--bg-subtle)   50%,
-      var(--bg-elevated) 75%
+      transparent      0%,
+      var(--bg-subtle) 50%,
+      transparent    100%
     );
-    background-size: 200% 100%;
+    transform: translateX(-100%);
     animation: ds-shimmer-sweep ${SHIMMER_CYCLE}ms ${SHIMMER_EASING} infinite;
+    will-change: transform;
   }
 
   ::view-transition-group(${VIEW_NAME}) {
@@ -100,7 +117,7 @@ const MOTION_CSS = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ds-shimmer { animation: none; }
+    .ds-shimmer::after { animation: none; opacity: 0; }
     ::view-transition-old(${VIEW_NAME}),
     ::view-transition-new(${VIEW_NAME}) { animation: none; }
   }
@@ -391,60 +408,98 @@ function SpecTable({ cols, rows }) {
 }
 
 const SPEC_ROWS = [
-  ['Shimmer cycle',   '1200ms',                          'One full sweep of the highlight band across a placeholder.'],
-  ['Shimmer easing',  'linear',                          'Constant speed, so the rhythm reads the same on a wide label and a narrow figure.'],
-  ['Shimmer repeat',  'infinite, restart',               'Restart, never alternate. A sweep that bounces back reads as scrubbing, not loading.'],
-  ['Gradient',        '90deg, n300 25%, n100 50%, n300 75%', 'Three stops over a background sized 200% × 100%.'],
-  ['Sweep',           'background-position -200% 0 → 200% 0', 'Slides the oversized gradient, so nothing is layered on top and the bone composites at any radius.'],
-  ['Base colour',     'neutral 300 #D4D4D4',             'Reads against white and against the neutral 100 merchant card.'],
-  ['Highlight',       'neutral 100 #F5F5F5',             'A light glint, not a dark shadow. ΔL* ≈ 11, visible without shouting.'],
-  ['Bone height',     '0.75 × font-size',           'Glyph height, not line height. The bone still occupies the full line box.'],
-  ['Bone radius',     'var(--radius-full)',              'Pill, matching the placeholder lines in the Figma behaviour frame.'],
-  ['Skeleton hold',   '2400ms',                          'Exactly two shimmer cycles, so the reveal lands on a seam rather than mid-sweep.'],
+  ['Shimmer cycle',   '1000ms',                          'One full pass. Measured at 4830px/s across a 1120px bone on a 3x screen.'],
+  ['Shimmer easing',  'linear',                          'Constant velocity. The measured peak moved at a steady rate across the whole pass.'],
+  ['Shimmer repeat',  'infinite, restart',               'Restart, never alternate.'],
+  ['Duty cycle',      '~25% sweeping, ~75% at rest',     'The peak crosses a bone in roughly 250ms, then the bone sits near flat for the rest of the second.'],
+  ['Mechanism',       'transform: translateX() on ::after', 'Compositor-only. Percentage-based, so a narrow bone and a wide one finish together.'],
+  ['Band',            '90deg, transparent → n100 → transparent', 'Exactly one bone-width wide with a linear ramp either side. Measured half-ramp was 554px on a 1120px bone.'],
+  ['Travel',          'translateX(-100%) → translateX(300%)', 'Peak enters at -0.5w and leaves at 3.5w, giving the 25% duty above.'],
+  ['Bone colour',     'neutral 200 #E0E0E0',             'LinkedIn measures #E3E3E3. Neutral 200 is the closest value in this ramp.'],
+  ['Highlight',       'neutral 100 #F5F5F5',             'LinkedIn peaks at #F2F2F2. Neutral 100 is the closest value in this ramp.'],
+  ['Amplitude',       '+21 luminance at peak',           'LinkedIn measures +15. Deliberately gentle. The bone glows, it does not flash.'],
+  ['Bone height',     '0.75 x font-size',                'Glyph height, not line height. The bone still occupies the full line box.'],
+  ['Bone radius',     'var(--radius-full)',              'Pill, matching both LinkedIn and the Figma behaviour frame.'],
+  ['Skeleton hold',   '3000ms',                          'Three exact cycles, so the reveal lands on a seam rather than mid-pass.'],
   ['Reveal',          'mask wipe, left to right',        'The skeleton is wiped off the top of the real card. No cross-fade, no movement.'],
   ['Reveal duration', '400ms',                           'Slightly longer than the 320ms screen push, because a soft-edged mask starts and ends gentler than a hard screen edge.'],
   ['Reveal easing',   'cubic-bezier(0.4, 0, 0.2, 1)',    'The same curve as the StepForwardBack screen transition.'],
-  ['Reduced motion',  'shimmer static, no wipe',         'The placeholder still shows, it just does not move.'],
+  ['Reduced motion',  'band hidden, bone static',        'The placeholder still shows, it just does not move.'],
+]
+
+const MEASURED_ROWS = [
+  ['Capture',        '2.92s at 60fps, 1206 x 2622',      'iPhone screen recording of the LinkedIn feed cold-starting. The skeleton is on screen from about 1.19s to 1.82s.'],
+  ['Bone luminance', '227 of 255  (#E3E3E3)',            'Flat and identical across every bone between passes.'],
+  ['Peak luminance', '242 of 255  (#F2F2F2)',            'The brightest value reached anywhere on a bone during a pass.'],
+  ['Direction',      'left to right',                    'Peak x increases with time on every sampled row.'],
+  ['Peak velocity',  '4830 px/s',                        'Peak tracked from x=281 at 1.240s to x=1150 at 1.420s on a 1120px bone.'],
+  ['Crossing time',  '~250ms',                           'Derived from the velocity above. Only one pass occurs in the 630ms the skeleton is visible, which is what puts the cycle near 1000ms.'],
+  ['Band width',     '~1x the bone width',               'At 1.300s the ramp ran from base at x=136 to peak at x=690, a 554px half-ramp on a 1120px bone.'],
+  ['Scaling',        'per bone, in percentages',         'At the same instant a 1120px bone peaked at 58% of its own width and a 790px bone peaked at 61% of its own width. One global wave would have put both peaks at the same x.'],
 ]
 
 const RATIONALE_ROWS = [
-  ['1200ms cycle',
-   'Between Facebook’s original 1000ms and Motion’s 1500ms.',
-   'This card animates fourteen placeholders at once. Below about 1000ms that many synchronised bones read as flicker; above about 1500ms the card reads as stalled rather than working. 1200ms holds both edges, and being a round multiple of 100 lets the hold duration land on a clean cycle boundary.'],
-  ['linear, not ease-in-out',
-   'Motion’s example uses easeInOut.',
-   'Ease-in-out parks the band off-element at both ends, which creates a rest beat. That beat is a fixed fraction of the cycle but a variable fraction of each bone’s width, so on a card that mixes a 150px label with a 60px figure the narrow bones visibly pulse out of step with the wide ones. Linear keeps the rhythm identical at every width. It also matches the shipped Skeleton component.'],
-  ['neutral 300 base',
-   'The behaviour frame in Figma draws bones at neutral 200.',
-   'Neutral 200 is also the value of border/subtle, and the merchant card sits on neutral 100. A neutral 200 bone on that card is close enough to its container that the highlight briefly erases the bone. Neutral 300 clears both surfaces this component actually uses.'],
-  ['Lighter highlight',
-   'The current Skeleton component sweeps toward neutral 500.',
-   'A darker sweep reads as a shadow crossing the surface. Every established implementation of this pattern sweeps lighter, because the mental model is a glint travelling over a dull surface. Neutral 100 gives a ΔL* of about 11, which is legible at 12px bone height without drawing attention away from the content that is arriving.'],
-  ['2400ms hold',
-   'Motion’s example holds for 2500ms.',
-   'Two exact cycles. At 2500ms the wipe would begin 100ms into a third sweep and cut the band in half mid-travel, which is visible. Landing the reveal on a seam means the shimmer has just left the element when the wipe starts.'],
+  ['Copied, not invented',
+   'LinkedIn’s feed skeleton.',
+   'The shimmer values are measured off a screen recording rather than reasoned from first principles. Where LinkedIn’s exact greys fall between steps of this ramp, the nearest neutral is used: #E3E3E3 becomes neutral 200 and #F2F2F2 becomes neutral 100.'],
+  ['Light, not dark',
+   'An earlier pass swept toward neutral 500.',
+   'The measurement settles it. LinkedIn sweeps from 227 up to 242, so the bone brightens. A darker sweep is a different effect, not a variant of this one.'],
+  ['Gentle amplitude',
+   'LinkedIn moves 15 luminance steps.',
+   'Neutral 200 to neutral 100 is 21 steps, slightly stronger, because those are the two ramp values either side of the measured pair. Still well short of anything that reads as a flash.'],
+  ['A long rest between passes',
+   'The peak is on a bone for about a quarter of the cycle.',
+   'This is the part most implementations miss. A continuous conveyor never stops moving and reads as busy. LinkedIn passes once, then leaves the bone almost flat for three quarters of a second, which is what makes it calm enough to sit under real content.'],
+  ['Percentage-scaled per bone',
+   'Verified by comparing two bones of different widths.',
+   'Because the band is sized as a percentage of each bone, every bone finishes its pass at the same moment regardless of width. On this card, which mixes a 150px label with a 60px figure, that is the difference between one coordinated pass and fourteen independent ones.'],
+  ['linear',
+   'The measured peak held a constant 4830px/s.',
+   'No acceleration into or out of the pass. Anything eased would have shown as a changing velocity across the sampled frames.'],
+  ['translateX, not background-position',
+   'The Motion example animates background-position.',
+   'Transform is compositor-only. Background-position repaints every frame, and this card animates fourteen placeholders at once. Same visual result, without the paint cost.'],
+  ['3000ms hold',
+   'LinkedIn’s own feed loaded in about 630ms.',
+   'Under one full cycle, so on a real load you often see a single pass. The demo holds for three so the rhythm is legible, and three exact cycles put the reveal on a seam rather than mid-pass.'],
   ['400ms wipe',
-   'Motion’s example wipes over 600ms.',
-   '600ms is tuned to a full-viewport hero. Against the 320ms screen push already in this system, 600ms for a single card would make the smaller gesture the slowest one on screen. 400ms keeps the card subordinate to the screen transition while giving the soft mask edge enough travel to read.'],
+   'Not from LinkedIn. Its content simply cuts in.',
+   'The wipe is this system’s own addition, reusing the 320ms StepForwardBack easing. 400ms rather than 320ms because a soft-edged mask starts and ends gentler than a hard screen edge.'],
   ['No runtime controls',
-   'The reference example ships sliders.',
-   'Sliders are right for a gallery whose product is the parameter space. They are wrong for a design system, where the value of the spec is that there is exactly one of it.'],
+   'The Motion reference ships sliders.',
+   'Sliders suit a gallery whose product is the parameter space. They are wrong for a design system, where the value of the spec is that there is exactly one of it.'],
 ]
 
 const CODE_SHIMMER = `.ds-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--bg-elevated) 25%,   /* neutral 300 */
-    var(--bg-subtle)   50%,   /* neutral 100 */
-    var(--bg-elevated) 75%
-  );
-  background-size: 200% 100%;
-  animation: ds-shimmer-sweep 1200ms linear infinite;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-sunken);            /* neutral 200 */
 }
 
+/* A soft band exactly one bone-width wide, peaking at neutral 100.
+   Sized in percentages, so every bone finishes its pass together. */
+.ds-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent       0%,
+    var(--bg-subtle) 50%,                  /* neutral 100 */
+    transparent     100%
+  );
+  transform: translateX(-100%);
+  animation: ds-shimmer-sweep 1000ms linear infinite;
+  will-change: transform;                  /* compositor-only, no repaint */
+}
+
+/* Peak enters at -0.5w and leaves at 3.5w, so it crosses the bone in a
+   quarter of the cycle and rests for the other three quarters. */
 @keyframes ds-shimmer-sweep {
-  from { background-position: -200% 0; }
-  to   { background-position:  200% 0; }
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(300%); }
 }`
 
 const CODE_WIPE = `@property --ds-wipe {
@@ -508,10 +563,12 @@ export default function Motion() {
 
       <DocSection id="demo" title="Skeleton loader">
         <P>
-          Shown on <code>card/payment-review</code>, the installment review screen.
-          It is a good test for the pattern because it mixes a photo, a merchant
-          name, and six label and figure pairs of very different widths, and
-          because every one of those values arrives from the server at once.
+          The shimmer is a replication of LinkedIn&apos;s feed skeleton, measured
+          frame by frame off a screen recording rather than guessed. It is shown
+          here on <code>card/payment-review</code>, the installment review screen,
+          which is a good test for the pattern because it mixes a photo, a
+          merchant name, and six label and figure pairs of very different widths,
+          and because every one of those values arrives from the server at once.
         </P>
         <DocCard>
           <CardHeader label="Live demo" />
@@ -528,12 +585,38 @@ export default function Motion() {
         </DocCard>
       </DocSection>
 
+      <DocSection id="measured" title="Measured source">
+        <P>
+          Everything in the shimmer row of the table above comes from sampling
+          pixel luminance across frames of a LinkedIn cold start, not from its
+          published CSS. The two rows worth reading are the last two.
+        </P>
+        <DocCard>
+          <SpecTable cols={['Reading', 'Value', 'How']} rows={MEASURED_ROWS} />
+        </DocCard>
+        <div style={{ height: 20 }} />
+        <P>
+          The duty cycle is the part that is easy to miss by eye. The band is
+          only on a given bone for about a quarter of the second. Most
+          reimplementations of this pattern run a band across the element
+          continuously, which looks busy next to the original.
+        </P>
+        <P>
+          The scaling test is the other one. At a single instant, a 1120px bone
+          and a 790px bone had their bright peaks at 58% and 61% of their own
+          widths. If one gradient were sweeping across the whole screen, both
+          peaks would have sat at the same x. They did not, so each bone carries
+          its own band, sized to itself.
+        </P>
+      </DocSection>
+
       <DocSection id="rationale" title="Why these values">
         <P>
           Neither <code>variables2.json</code> nor the Motion design file carries
           duration or easing tokens, and the General Skeleton Behaviour frame has
-          no keyframe data on it. So these numbers are a decision rather than an
-          extraction, and each one is worth being able to defend.
+          no keyframe data on it. The shimmer values below are therefore taken
+          from the measurement above. The reveal is this system&apos;s own, since
+          LinkedIn has no equivalent, and is reasoned rather than measured.
         </P>
         <DocCard>
           <SpecTable cols={['Decision', 'Reference point', 'Reasoning']} rows={RATIONALE_ROWS} />
