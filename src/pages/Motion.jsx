@@ -154,16 +154,26 @@ function Bone({ size, radius }) {
 /**
  * ParagraphBone — one bone per rendered line of a wrapping paragraph.
  *
- * Where TextBone measures a single string, this measures the real line boxes at
- * runtime with Range.getClientRects(), then draws a bone over each. So the bones
- * follow the actual wrap rather than a hardcoded set of line widths, and the
- * last line is short because the real last line is short, not because a preset
- * said so. Rects are merged by line, since inline spans split a line into
- * several rects.
+ * Where TextBone measures a single string, this finds where the real text breaks
+ * and draws a bone over each line, so the bones follow the true wrap and the
+ * last one is short because the last line is short.
+ *
+ * Three things make this fiddly enough to be worth spelling out:
+ *
+ *  - Ranging over the wrapper element returns a rect for its block box as well
+ *    as one per line fragment, and that block rect spans every line at once.
+ *    Only text nodes are ranged over here, so no block rect is ever produced.
+ *  - A run that wraps is one text node with two rects. A line built from several
+ *    runs is several rects at the same height. So fragments are grouped into
+ *    lines by vertical position, not by which node they came from.
+ *  - Line positions are derived from the fragments themselves rather than from
+ *    a computed line-height, which would have to be read off the right element
+ *    to be correct. Grouping by proximity needs no such assumption, and absorbs
+ *    the sub-pixel differences between bold and regular runs on one line.
  */
 function ParagraphBone({ fontSize = 14, children }) {
   const ref = useRef(null)
-  const [lines, setLines] = useState([])
+  const [rows, setRows] = useState([])
 
   useLayoutEffect(() => {
     let cancelled = false
@@ -171,33 +181,66 @@ function ParagraphBone({ fontSize = 14, children }) {
     const measure = () => {
       const el = ref.current
       if (!el || cancelled) return
-      const range = document.createRange()
-      range.selectNodeContents(el)
       const base = el.getBoundingClientRect()
-      const byLine = new Map()
-      for (const r of range.getClientRects()) {
-        if (r.width === 0 || r.height === 0) continue
-        const key = Math.round(r.top - base.top)
-        const left = r.left - base.left
-        const right = r.right - base.left
-        const cur = byLine.get(key)
-        if (cur) {
-          cur.left = Math.min(cur.left, left)
-          cur.right = Math.max(cur.right, right)
-        } else {
-          byLine.set(key, { top: r.top - base.top, height: r.height, left, right })
+      if (base.width === 0) return
+
+      // Text nodes only. Ranging over an element would also return its block rect.
+      const frags = []
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!node.nodeValue || !node.nodeValue.trim()) continue
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        for (const r of range.getClientRects()) {
+          if (r.width <= 0 || r.height <= 0) continue
+          frags.push({
+            centre: r.top + r.height / 2 - base.top,
+            left: r.left - base.left,
+            right: r.right - base.left,
+          })
         }
       }
-      setLines([...byLine.values()].sort((a, b) => a.top - b.top))
+
+      // Fragments within a few pixels of each other vertically are one line.
+      const LINE_TOLERANCE = 3
+      frags.sort((a, b) => a.centre - b.centre)
+      const lines = []
+      for (const f of frags) {
+        const last = lines[lines.length - 1]
+        if (last && Math.abs(f.centre - last.centre) <= LINE_TOLERANCE) {
+          last.left = Math.min(last.left, f.left)
+          last.right = Math.max(last.right, f.right)
+        } else {
+          lines.push({ centre: f.centre, left: f.left, right: f.right })
+        }
+      }
+
+      const next = lines
+        .map(l => ({
+          centre: l.centre,
+          left: Math.max(l.left, 0),
+          width: Math.min(l.right, base.width) - Math.max(l.left, 0),
+        }))
+        .filter(l => l.width > 0)
+
+      if (next.length) { setRows(next); return }
+
+      // Nothing measurable. Fall back to full-width bones on a computed grid.
+      const typeEl = el.firstElementChild || el
+      const lineHeight = parseFloat(getComputedStyle(typeEl).lineHeight) || fontSize * 1.5
+      const count = Math.max(1, Math.round(base.height / lineHeight))
+      setRows(Array.from({ length: count }, (_, i) => ({
+        centre: (i + 0.5) * lineHeight, left: 0, width: base.width,
+      })))
     }
 
     measure()
     // Re-measure once webfonts settle, since Source Sans Pro changes the wrap.
-    if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure).catch(() => {})
 
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
     if (ro && ref.current) ro.observe(ref.current)
-    return () => { cancelled = true; ro?.disconnect() }
+    return () => { cancelled = true; if (ro) ro.disconnect() }
   }, [children, fontSize])
 
   const boneHeight = Math.round(fontSize * 0.75)
@@ -205,7 +248,7 @@ function ParagraphBone({ fontSize = 14, children }) {
   return (
     <div style={{ position: 'relative', flex: '1 0 0', minWidth: 0 }}>
       <div ref={ref} style={{ visibility: 'hidden' }}>{children}</div>
-      {lines.map((l, i) => (
+      {rows.map((l, i) => (
         <span
           key={i}
           className="ds-shimmer"
@@ -213,8 +256,8 @@ function ParagraphBone({ fontSize = 14, children }) {
           style={{
             position: 'absolute',
             left: l.left,
-            width: Math.max(l.right - l.left, 0),
-            top: l.top + (l.height - boneHeight) / 2,
+            width: l.width,
+            top: l.centre - boneHeight / 2,
             height: boneHeight,
             borderRadius: 'var(--radius-full)',
           }}
