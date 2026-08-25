@@ -12,8 +12,8 @@
  * AnimateView from motion-plus, which is paid, and the effect does not need it.
  *
  * Colours are neutrals only, from Desktop/variables2.json:
- *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 500 #919191
- *   neutral 700 #545454  neutral 900 #1A1A1A  white
+ *   neutral 100 #F5F5F5  neutral 200 #E0E0E0  neutral 300 #D4D4D4
+ *   neutral 500 #919191  neutral 700 #545454  neutral 900 #1A1A1A  white
  * All are already bound in src/index.css, so this file references the tokens.
  */
 
@@ -39,9 +39,9 @@ const SECTIONS = [
    extraction, and the reasoning for each is in the "Why these values" section.
    ─────────────────────────────────────────────────────────────────────────── */
 
-const SHIMMER_CYCLE  = 1500   // ms, one full sweep
+const SHIMMER_CYCLE  = 1200   // ms, one full sweep
 const SHIMMER_EASING = 'linear'
-const SKELETON_HOLD  = 3000   // ms, exactly two cycles, so the reveal lands on a seam
+const SKELETON_HOLD  = 2400   // ms, exactly two cycles, so the reveal lands on a seam
 const WIPE_DURATION  = 400    // ms
 const WIPE_EASING    = 'cubic-bezier(0.4, 0, 0.2, 1)'  // Billease transition easing
 
@@ -55,8 +55,8 @@ const MOTION_CSS = `
   }
 
   @keyframes ds-shimmer-sweep {
-    from { transform: translateX(-100%); }
-    to   { transform: translateX(100%); }
+    from { background-position: -200% 0; }
+    to   { background-position:  200% 0; }
   }
 
   @keyframes ds-skeleton-wipe {
@@ -64,29 +64,17 @@ const MOTION_CSS = `
     to   { --ds-wipe: -100%; }
   }
 
-  /* neutral 200 bone, swept by a narrow feathered band of neutral 500.
-     The sweep only ever darkens the bone, so it cannot wash out against white
-     or dissolve into the neutral 100 merchant card. */
+  /* neutral 300 base, neutral 100 highlight. Both read against white and
+     against the neutral 100 merchant card, which is why the base is 300. */
   .ds-shimmer {
-    position: relative;
-    overflow: hidden;
-    background: var(--bg-sunken);
-  }
-  .ds-shimmer::after {
-    content: '';
-    position: absolute;
-    inset: 0;
     background: linear-gradient(
       90deg,
-      transparent 0%,
-      transparent 35%,
-      var(--bg-strong) 50%,
-      transparent 65%,
-      transparent 100%
+      var(--bg-elevated) 25%,
+      var(--bg-subtle)   50%,
+      var(--bg-elevated) 75%
     );
-    transform: translateX(-100%);
+    background-size: 200% 100%;
     animation: ds-shimmer-sweep ${SHIMMER_CYCLE}ms ${SHIMMER_EASING} infinite;
-    will-change: transform;
   }
 
   ::view-transition-group(${VIEW_NAME}) {
@@ -112,7 +100,7 @@ const MOTION_CSS = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ds-shimmer::after { animation: none; opacity: 0; }
+    .ds-shimmer { animation: none; }
     ::view-transition-old(${VIEW_NAME}),
     ::view-transition-new(${VIEW_NAME}) { animation: none; }
   }
@@ -403,80 +391,60 @@ function SpecTable({ cols, rows }) {
 }
 
 const SPEC_ROWS = [
-  ['Shimmer cycle',   '1500ms',                          'One full pass of the band across a placeholder.'],
+  ['Shimmer cycle',   '1200ms',                          'One full sweep of the highlight band across a placeholder.'],
   ['Shimmer easing',  'linear',                          'Constant speed, so the rhythm reads the same on a wide label and a narrow figure.'],
-  ['Shimmer repeat',  'infinite, restart',               'Restart, never alternate. A band that bounces back reads as scrubbing, not loading.'],
-  ['Mechanism',       'transform: translateX() on ::after', 'Compositor-only. Animating background-position repaints every frame, which this card would do fourteen times over.'],
-  ['Band',            '90deg, transparent 0/35%, n500 50%, transparent 65/100%', 'A narrow feathered band, roughly 30% of the width. A hard edge reads as a glitch, a soft one as light.'],
-  ['Travel',          'translateX(-100%) → translateX(100%)', 'The band enters from the left and exits right, in the direction of reading.'],
-  ['Bone colour',     'neutral 200 #E0E0E0',             'Same value the General Skeleton Behaviour frame draws bones at.'],
-  ['Highlight',       'neutral 500 #919191',             'The sweep only ever darkens. A bone can never wash out against white or dissolve into the neutral 100 merchant card.'],
-  ['Bone height',     '0.75 x font-size',                'Glyph height, not line height. The bone still occupies the full line box.'],
+  ['Shimmer repeat',  'infinite, restart',               'Restart, never alternate. A sweep that bounces back reads as scrubbing, not loading.'],
+  ['Gradient',        '90deg, n300 25%, n100 50%, n300 75%', 'Three stops over a background sized 200% × 100%.'],
+  ['Sweep',           'background-position -200% 0 → 200% 0', 'Slides the oversized gradient, so nothing is layered on top and the bone composites at any radius.'],
+  ['Base colour',     'neutral 300 #D4D4D4',             'Reads against white and against the neutral 100 merchant card.'],
+  ['Highlight',       'neutral 100 #F5F5F5',             'A light glint, not a dark shadow. ΔL* ≈ 11, visible without shouting.'],
+  ['Bone height',     '0.75 × font-size',           'Glyph height, not line height. The bone still occupies the full line box.'],
   ['Bone radius',     'var(--radius-full)',              'Pill, matching the placeholder lines in the Figma behaviour frame.'],
-  ['Skeleton hold',   '3000ms',                          'Exactly two cycles, so the reveal lands on a seam rather than mid-sweep.'],
+  ['Skeleton hold',   '2400ms',                          'Exactly two shimmer cycles, so the reveal lands on a seam rather than mid-sweep.'],
   ['Reveal',          'mask wipe, left to right',        'The skeleton is wiped off the top of the real card. No cross-fade, no movement.'],
   ['Reveal duration', '400ms',                           'Slightly longer than the 320ms screen push, because a soft-edged mask starts and ends gentler than a hard screen edge.'],
   ['Reveal easing',   'cubic-bezier(0.4, 0, 0.2, 1)',    'The same curve as the StepForwardBack screen transition.'],
-  ['Reduced motion',  'band hidden, bone static',        'The placeholder still shows, it just does not move.'],
+  ['Reduced motion',  'shimmer static, no wipe',         'The placeholder still shows, it just does not move.'],
 ]
 
 const RATIONALE_ROWS = [
-  ['1500ms cycle',
-   'Material, Ant Design and Vuetify all land between 1.4s and 1.6s.',
-   'Vuetify’s 1500ms default is confirmed in its own source. Three independent systems converging on the same window is better evidence than any single reference implementation, and 1500ms doubles cleanly into the 3000ms hold.'],
+  ['1200ms cycle',
+   'Between Facebook’s original 1000ms and Motion’s 1500ms.',
+   'This card animates fourteen placeholders at once. Below about 1000ms that many synchronised bones read as flicker; above about 1500ms the card reads as stalled rather than working. 1200ms holds both edges, and being a round multiple of 100 lets the hold duration land on a clean cycle boundary.'],
   ['linear, not ease-in-out',
-   'The Motion example uses easeInOut.',
-   'Easing parks the band off-element at both ends, creating a rest beat. That beat is a fixed share of the cycle but a variable share of each bone’s width, so on a card mixing a 150px label with a 60px figure the narrow bones visibly pulse out of step. Linear keeps the rhythm identical at every width.'],
-  ['translateX, not background-position',
-   'The Motion example animates background-position.',
-   'Transform is compositor-only. Background-position triggers a repaint on every frame, and this card animates fourteen placeholders at once. Same visual result, without the paint cost.'],
-  ['Darker highlight',
-   'An earlier pass swept toward neutral 100.',
-   'Sweeping lighter thinned the bones toward white at the peak of each pass, so they visibly faded rather than shimmered, and on the neutral 100 merchant card the highlight matched the container exactly. Sweeping toward neutral 500 means the bone only ever gains contrast, so it holds its shape against every surface this card uses.'],
-  ['Narrow feathered band',
-   'A three-stop gradient brightens the whole bone at once.',
-   'Stops at 0/35/50/65/100 confine the peak to roughly 30% of the width and feather both edges. The result reads as light travelling across the surface rather than the whole element pulsing.'],
-  ['90 degrees, not diagonal',
-   'The shipped Skeleton component uses 65.69deg, from Figma.',
-   'A diagonal’s apparent steepness changes with each element’s aspect ratio, so the same class looks different on a 40px circle and a 300px line. This card has both.'],
-  ['3000ms hold',
-   'The Motion example holds for 2500ms.',
-   'Two exact cycles. An arbitrary hold cuts the band in half mid-travel, which is visible. Landing the reveal on a seam means the band has just left the element when the wipe starts.'],
+   'Motion’s example uses easeInOut.',
+   'Ease-in-out parks the band off-element at both ends, which creates a rest beat. That beat is a fixed fraction of the cycle but a variable fraction of each bone’s width, so on a card that mixes a 150px label with a 60px figure the narrow bones visibly pulse out of step with the wide ones. Linear keeps the rhythm identical at every width. It also matches the shipped Skeleton component.'],
+  ['neutral 300 base',
+   'The behaviour frame in Figma draws bones at neutral 200.',
+   'Neutral 200 is also the value of border/subtle, and the merchant card sits on neutral 100. A neutral 200 bone on that card is close enough to its container that the highlight briefly erases the bone. Neutral 300 clears both surfaces this component actually uses.'],
+  ['Lighter highlight',
+   'The current Skeleton component sweeps toward neutral 500.',
+   'A darker sweep reads as a shadow crossing the surface. Every established implementation of this pattern sweeps lighter, because the mental model is a glint travelling over a dull surface. Neutral 100 gives a ΔL* of about 11, which is legible at 12px bone height without drawing attention away from the content that is arriving.'],
+  ['2400ms hold',
+   'Motion’s example holds for 2500ms.',
+   'Two exact cycles. At 2500ms the wipe would begin 100ms into a third sweep and cut the band in half mid-travel, which is visible. Landing the reveal on a seam means the shimmer has just left the element when the wipe starts.'],
   ['400ms wipe',
-   'The Motion example wipes over 600ms.',
-   '600ms is tuned to a full-viewport hero. Against the 320ms screen push already in this system, 600ms for a single card would make the smaller gesture the slowest thing on screen.'],
+   'Motion’s example wipes over 600ms.',
+   '600ms is tuned to a full-viewport hero. Against the 320ms screen push already in this system, 600ms for a single card would make the smaller gesture the slowest one on screen. 400ms keeps the card subordinate to the screen transition while giving the soft mask edge enough travel to read.'],
   ['No runtime controls',
    'The reference example ships sliders.',
-   'Sliders suit a gallery whose product is the parameter space. They are wrong for a design system, where the value of the spec is that there is exactly one of it.'],
+   'Sliders are right for a gallery whose product is the parameter space. They are wrong for a design system, where the value of the spec is that there is exactly one of it.'],
 ]
 
 const CODE_SHIMMER = `.ds-shimmer {
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-sunken);          /* neutral 200 */
-}
-
-/* A narrow, feathered band that only ever darkens the bone. */
-.ds-shimmer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
   background: linear-gradient(
     90deg,
-    transparent      0%,
-    transparent     35%,
-    var(--bg-strong) 50%,                /* neutral 500 */
-    transparent     65%,
-    transparent    100%
+    var(--bg-elevated) 25%,   /* neutral 300 */
+    var(--bg-subtle)   50%,   /* neutral 100 */
+    var(--bg-elevated) 75%
   );
-  transform: translateX(-100%);
-  animation: ds-shimmer-sweep 1500ms linear infinite;
-  will-change: transform;                /* compositor-only, no repaint */
+  background-size: 200% 100%;
+  animation: ds-shimmer-sweep 1200ms linear infinite;
 }
 
 @keyframes ds-shimmer-sweep {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(100%); }
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
 }`
 
 const CODE_WIPE = `@property --ds-wipe {
