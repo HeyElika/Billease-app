@@ -13,7 +13,10 @@ import { useState } from 'react'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import { PadlockClosed, PadlockOpen } from './cardIcons'
-import { DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note } from './docs'
+import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note } from './docs'
+
+/** Served from public/ so the file has a stable URL devs can share, not a data URI. */
+const LOTTIE_URL = '/motion/lock-badge.json'
 
 // ─── Values ───────────────────────────────────────────────────────────────────
 
@@ -249,6 +252,21 @@ const ACCESSIBILITY_RULES = [
    'Nothing about the locked state depends on having seen it arrive.'],
 ]
 
+const LOTTIE_ROWS = [
+  ['What it covers',
+   'The badge only: its entrance, and the shackle snapping shut. 370ms end to end at 60fps.'],
+  ['What it does not cover',
+   'The veil and the card settle. Lottie cannot express a backdrop blur, and the settle is on the card rather than the badge, so both stay native.'],
+  ['When to start it',
+   '120ms after the veil begins, which is where the badge starts in the full sequence. The shackle then fires 130ms into the file, landing at the 250ms the spec calls for.'],
+  ['Sizing',
+   'The composition is 48 by 48, the badge box, holding a 40px glyph. The 4px margin is deliberate: the shackle lifts above its own bounds as it snaps, and without that headroom it renders clipped flat.'],
+  ['Colour',
+   'The stroke ships white for the physical face. Override it to text/base for the light virtual face, through a KeyPath on lottie-android or a value provider on lottie-ios.'],
+  ['Markers',
+   'badge in at 0ms, shackle snap at 130ms, end at 370ms.'],
+]
+
 const ENGINEERING_ROWS = [
   ['Enter and exit are not mirrors',
    'They have different durations, different easings and opposite ordering. Implementing one and reversing it gives the wrong feel in the other direction.'],
@@ -326,6 +344,38 @@ export default function LockUnlock() {
           likely to be built wrong.
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
+
+        <div style={{ height: 24 }} />
+        <DocCard>
+          <CardHeader
+            label="Lottie asset"
+            action={
+              <a
+                href={LOTTIE_URL}
+                download="lock-badge.json"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', height: 32,
+                  padding: '0 12px', borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--bg-sunken)', color: 'var(--text-base)',
+                  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+                  textDecoration: 'none', flexShrink: 0,
+                }}
+              >
+                Download lock-badge.json
+              </a>
+            }
+          />
+          <RuleTable rows={LOTTIE_ROWS} labelWidth={220} />
+        </DocCard>
+        <div style={{ marginTop: 12 }}>
+          <Note title="Why the badge only.">
+            The locked state is four things moving against each other and only
+            the badge is self-contained. Exporting the whole choreography would
+            mean a Lottie timeline and a native transition to keep in step,
+            which is harder than writing the delays. Take the file for the
+            badge, keep the veil and the settle native.
+          </Note>
+        </div>
       </DocSection>
     </>
   )
