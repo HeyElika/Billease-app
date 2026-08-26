@@ -29,6 +29,19 @@ const EYE_TOTAL_MS = EYE_DOWN_MS + EYE_UP_MS
  * 14108:666 (access-card/menu/item). Not approximated.
  */
 const CARD = { w: 300, h: 190, radius: 'var(--radius-lg)', pad: 'var(--space-300)' }
+
+/**
+ * The locked treatment blurs the card and sits its lock and label on top in the
+ * card's own on-surface colours. A dark scrim would force white on every card,
+ * which is wrong on the light virtual face.
+ */
+const SURFACES = {
+  dark:  { icon: 'var(--icon-on-dark)', text: 'var(--text-on-dark)', veil: 'rgba(0,0,0,0.10)' },
+  light: { icon: 'var(--icon-base)',    text: 'var(--text-base)',    veil: 'rgba(255,255,255,0.10)' },
+}
+
+// The physical face is dark. The virtual face is light and takes SURFACES.light.
+const CARD_SURFACE = 'dark'
 const MENU = { itemW: 100, itemH: 78, tile: 50, icon: 20 }
 
 /** The revealed face fill, read from the node. Not a token in this repo. */
@@ -221,6 +234,8 @@ function MenuItem({ label, onClick, disabled, children }) {
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
+const SURFACE = SURFACES[CARD_SURFACE]
+
 function CardFlipDemo() {
   const [revealed, setRevealed] = useState(false)
   const [locked, setLocked] = useState(false)
@@ -247,14 +262,16 @@ function CardFlipDemo() {
           {locked && (
             <div style={{
               position: 'absolute', inset: 0, borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'rgba(0,0,0,0.55)', color: 'var(--text-on-dark)',
+              backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+              backgroundColor: SURFACE.veil,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 'var(--space-200)', fontFamily: 'var(--ds-font-family)',
             }}>
-              <LockGlyph size={24} color="var(--icon-on-dark)" />
-              <span style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>Card locked</span>
+              <LockGlyph size={24} color={SURFACE.icon} />
+              <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: SURFACE.text }}>Card locked</span>
             </div>
           )}
+
         </div>
 
         <div style={{ display: 'flex' }}>
@@ -324,7 +341,7 @@ const STATE_ROWS = [
   ['Front',            'The branded face. View details is enabled.'],
   ['Confirm identity', 'The biometric dialog. The card has not moved yet.'],
   ['Revealed',         'The back face, showing card number, expiry and CVV. The action reads Hide details.'],
-  ['Locked',           'Card locked. View details is disabled, and any revealed state is dropped.'],
+  ['Locked',           'The card blurs and carries a lock with Card locked. View details is disabled and any revealed state is dropped. The lock and label take the card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face. A dark scrim is not used, because it would force white on both.'],
 ]
 
 const ACCESSIBILITY_RULES = [
