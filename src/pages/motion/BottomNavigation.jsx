@@ -26,7 +26,7 @@ const BAR = { w: 360, h: 64, radius: 16 }
 const TABS = [
   { id: 'home',   label: 'Home',         on: 'home-fill',        off: 'home-outline'        },
   { id: 'loans',  label: 'Loans',        on: 'installment-fill', off: 'installment-outline' },
-  { id: 'qr',     label: 'Scan QR',      on: 'qr',               off: 'qr'                  },
+  { id: 'qr',     label: 'Scan QR',      on: 'qr',               off: 'qr', action: true    },
   { id: 'tx',     label: 'Transactions', on: 'statement-fill',   off: 'statement-outline'   },
   { id: 'help',   label: 'Support',      on: 'chat-fill',        off: 'chat-outline'        },
 ]
@@ -78,8 +78,8 @@ function BottomNavDemo() {
             const isActive = active === tab.id
             const stage = phase?.id === tab.id ? phase.stage : ''
             const colour = isActive ? 'var(--icon-brand-primary)' : 'var(--bg-strong)'
-            return (
-              <button key={tab.id} type="button" className={`bn-item ${stage}`} onClick={() => tap(tab.id)}>
+            const body = (
+              <>
                 <span className="bn-glyph">
                   <BilleaseIcon name={isActive ? tab.on : tab.off} size="md" color={colour} />
                 </span>
@@ -89,8 +89,13 @@ function BottomNavDemo() {
                 }}>
                   {tab.label}
                 </span>
-              </button>
+              </>
             )
+            // Scan QR opens the scanner rather than switching destination, so it
+            // has no active state and is inert here.
+            return tab.action
+              ? <div key={tab.id} className="bn-item" style={{ cursor: 'default' }}>{body}</div>
+              : <button key={tab.id} type="button" className={`bn-item ${stage}`} onClick={() => tap(tab.id)}>{body}</button>
           })}
         </div>
         <span style={{ fontFamily: 'var(--font-family)', fontSize: 12, color: 'var(--text-subtle)' }}>
@@ -126,6 +131,8 @@ const BEHAVIOR_RULES = [
    'A haptic fires when the finger lands, at the start of the dip, not on release.'],
   ['One destination is active',
    'Tapping a tab makes it the active one and clears the previous. Tapping the already-active tab still plays the press.'],
+  ['Scan QR is an action, not a destination',
+   'It opens the scanner rather than switching tab, so it never takes the active state. It is in the bar for reach, not because it is a place.'],
   ['Reduced motion drops the scale',
    'The colour still changes and the destination still switches. Only the dip is removed.'],
 ]
@@ -148,6 +155,7 @@ const STATE_ROWS = [
   ['Pressed',   'The icon at 90%, still in its inactive colour. 200ms.'],
   ['Active',    'The icon back at 100% in brand primary, with the filled glyph and a semibold label.'],
   ['Re-tapped', 'An already-active tab still dips and returns. The press is acknowledged even when nothing changes.'],
+  ['Scan QR',   'Never active. It stays in the inactive colour whatever is selected, because it opens the scanner rather than switching destination.'],
 ]
 
 const ACCESSIBILITY_RULES = [
