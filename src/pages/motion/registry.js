@@ -11,10 +11,12 @@ import SkeletonLoader from './SkeletonLoader'
 import CardFlip from './CardFlip'
 import CardCarousel from './CardCarousel'
 import LockUnlock from './LockUnlock'
+import BottomNavigation from './BottomNavigation'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
   'controls/card-flip': CardFlip,
   'navigation/card-carousel': CardCarousel,
   'controls/lock-unlock': LockUnlock,
+  'navigation/bottom-navigation': BottomNavigation,
 }
