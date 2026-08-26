@@ -17,7 +17,7 @@ import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockGlyph, LockedFace } from './cardIcons'
+import { LockToggleGlyph, LockedFace } from './cardIcons'
 import {
   DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note,
 } from './docs'
@@ -170,6 +170,7 @@ function MenuItem({ icon, label, onClick, disabled }) {
         disabled={disabled}
         style={{
           width: 50, height: 50, borderRadius: 12, border: 'none', padding: 0,
+          color: 'var(--icon-base)',
           backgroundColor: 'var(--bg-subtle)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
@@ -458,7 +459,7 @@ function CardCarouselDemo() {
                 />
                 <MenuItem
                   label={isLocked(activeCard.id) ? 'Unlock' : 'Lock'}
-                  icon={<LockGlyph color="var(--icon-base)" />}
+                  icon={<LockToggleGlyph locked={isLocked(activeCard.id)} />}
                   onClick={toggleLock}
                 />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />

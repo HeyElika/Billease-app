@@ -12,7 +12,7 @@
 import { useState } from 'react'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
-import { PadlockClosed, PadlockOpen } from './cardIcons'
+import { PadlockClosed, LockToggleGlyph } from './cardIcons'
 import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note } from './docs'
 
 /** Served from public/ so the files have stable URLs devs can share, not data URIs. */
@@ -93,17 +93,9 @@ const CSS = `
   }
   .lu-card.is-locked .lu-shackle { animation: lu-shackle-snap 240ms ${STANDARD} 250ms both; }
 
-  /* ── the menu glyph swaps between the two padlocks ── */
-  .lu-glyph { position: relative; width: 20px; height: 20px; }
-  .lu-glyph > * { position: absolute; top: 0; left: 0; transform-origin: 50% 65%; }
-  .lu-closed { opacity: 1; transform: none; transition: opacity 110ms linear 80ms, transform 260ms ${SPRING} 80ms; }
-  .lu-open   { opacity: 0; transform: rotate(10deg) scale(0.78); transition: opacity 90ms linear, transform 140ms ${ACCEL}; }
-  .lu-glyph.is-unlocked .lu-closed { opacity: 0; transform: rotate(-10deg) scale(0.78); transition: opacity 90ms linear, transform 140ms ${ACCEL}; }
-  .lu-glyph.is-unlocked .lu-open   { opacity: 1; transform: none; transition: opacity 110ms linear 80ms, transform 260ms ${SPRING} 80ms; }
-
   @media (prefers-reduced-motion: reduce) {
     .lu-card, .lu-shackle { animation: none !important; }
-    .lu-overlay, .lu-content, .lu-closed, .lu-open { transition-duration: 1ms !important; transition-delay: 0s !important; }
+    .lu-overlay, .lu-content { transition-duration: 1ms !important; transition-delay: 0s !important; }
   }
 `
 
@@ -164,10 +156,7 @@ function LockableCard({ face }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
           }}
         >
-          <span className={`lu-glyph${locked ? '' : ' is-unlocked'}`}>
-            <PadlockClosed size={20} />
-            <PadlockOpen size={20} />
-          </span>
+          <LockToggleGlyph locked={locked} size={20} />
         </button>
         <span style={{
           fontFamily: 'var(--ds-font-family)', fontSize: 'var(--text-md)',

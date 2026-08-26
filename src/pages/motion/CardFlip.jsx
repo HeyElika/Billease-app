@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockGlyph, LockedFace } from './cardIcons'
+import { LockToggleGlyph, LockedFace } from './cardIcons'
 import {
   DocSection, DocCard, P,
   DemoCard, RuleTable, UsageList, Note,
@@ -201,6 +201,7 @@ function MenuItem({ label, onClick, disabled, children }) {
         disabled={disabled}
         style={{
           width: MENU.tile, height: MENU.tile, borderRadius: 12, border: 'none',
+          color: 'var(--icon-base)',
           backgroundColor: 'var(--bg-subtle)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -259,7 +260,7 @@ function CardFlipDemo() {
             <EyeToggle revealed={revealed} color={locked ? 'var(--icon-disabled)' : 'var(--icon-base)'} />
           </MenuItem>
           <MenuItem label={locked ? 'Unlock' : 'Lock'} onClick={toggleLock}>
-            <LockGlyph color="var(--icon-base)" />
+            <LockToggleGlyph locked={locked} />
           </MenuItem>
           <MenuItem label="Manage" onClick={() => {}}>
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />

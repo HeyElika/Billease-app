@@ -32,9 +32,10 @@ export function LockGlyph({ size = 20, color = 'currentColor' }) {
  * weight and a keyhole. `shackleClass` marks the shackle path so it can snap
  * shut independently of the body.
  */
-export function PadlockClosed({ size = 20, shackleClass }) {
+export function PadlockClosed({ size = 20, shackleClass, className }) {
   return (
     <svg
+      className={className}
       viewBox="0 0 24 24"
       width={size}
       height={size}
@@ -53,9 +54,10 @@ export function PadlockClosed({ size = 20, shackleClass }) {
   )
 }
 
-export function PadlockOpen({ size = 20 }) {
+export function PadlockOpen({ size = 20, className }) {
   return (
     <svg
+      className={className}
       viewBox="0 0 24 24"
       width={size}
       height={size}
@@ -96,5 +98,52 @@ export function LockedFace({ surface = 'dark' }) {
       <LockGlyph size={24} color={tone.icon} />
       <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: tone.text }}>Card locked</span>
     </div>
+  )
+}
+
+/**
+ * LockToggleGlyph — the menu icon swapping between the two padlocks.
+ *
+ * Which glyph shows follows the design: the icon names the action, not the
+ * state. An unlocked card offers Lock and shows the closed padlock; a locked
+ * card offers Unlock and shows the open one.
+ *
+ * The swap is deliberately asymmetric. The leaving glyph snaps away, the
+ * arriving one waits 80ms then springs in.
+ */
+const TOGGLE_CSS = `
+  .be-lock-toggle { position: relative; display: inline-block; }
+  .be-lock-toggle > svg { position: absolute; top: 0; left: 0; transform-origin: 50% 65%; }
+  .be-lock-toggle .be-lock-closed {
+    opacity: 1; transform: none;
+    transition: opacity 110ms linear 80ms, transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1) 80ms;
+  }
+  .be-lock-toggle .be-lock-open {
+    opacity: 0; transform: rotate(10deg) scale(0.78);
+    transition: opacity 90ms linear, transform 140ms cubic-bezier(0.3, 0, 0.8, 0.15);
+  }
+  .be-lock-toggle.is-locked .be-lock-closed {
+    opacity: 0; transform: rotate(-10deg) scale(0.78);
+    transition: opacity 90ms linear, transform 140ms cubic-bezier(0.3, 0, 0.8, 0.15);
+  }
+  .be-lock-toggle.is-locked .be-lock-open {
+    opacity: 1; transform: none;
+    transition: opacity 110ms linear 80ms, transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1) 80ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .be-lock-toggle > svg { transition-duration: 1ms !important; transition-delay: 0s !important; }
+  }
+`
+
+export function LockToggleGlyph({ locked, size = 20 }) {
+  return (
+    <span
+      className={`be-lock-toggle${locked ? ' is-locked' : ''}`}
+      style={{ width: size, height: size }}
+    >
+      <style>{TOGGLE_CSS}</style>
+      <PadlockClosed size={size} className="be-lock-closed" />
+      <PadlockOpen size={size} className="be-lock-open" />
+    </span>
   )
 }
