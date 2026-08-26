@@ -15,8 +15,9 @@ import virtualArt from '../../assets/cards/virtual-card.png'
 import { PadlockClosed, PadlockOpen } from './cardIcons'
 import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note } from './docs'
 
-/** Served from public/ so the file has a stable URL devs can share, not a data URI. */
-const LOTTIE_URL = '/motion/lock-badge.json'
+/** Served from public/ so the files have stable URLs devs can share, not data URIs. */
+const LOTTIE_BADGE  = '/motion/lock-badge.json'
+const LOTTIE_TOGGLE = '/motion/lock-toggle.json'
 
 // ─── Values ───────────────────────────────────────────────────────────────────
 
@@ -228,7 +229,7 @@ const SPEC_ROWS = [
   ['Shackle',           '240ms standard, 250ms in, once the badge has landed'],
   ['Card settle, lock', '400ms standard, scale 1 to 0.968 and back'],
   ['Card settle, unlock', '340ms decelerate, scale 0.984 to 1.012 and back'],
-  ['Glyph swap',        'Outgoing 90ms linear with a 140ms accelerate rotate to 10 degrees at 0.78; incoming 110ms linear and 260ms spring, both 80ms in'],
+  ['Glyph swap',        'Outgoing 90ms linear with a 140ms accelerate rotate to 10 degrees at 0.78; incoming 110ms linear and 260ms spring, both 80ms in. Rotation about 50% by 65%.'],
   ['Badge size',        '48px box holding a 40px glyph, 4px above the label'],
   ['Label',             '14px regular, on the card’s own on-surface colour'],
   ['Reduced motion',    'No settle, no shackle, no spring. The state still changes.'],
@@ -267,6 +268,19 @@ const LOTTIE_ROWS = [
    'The stroke ships white for the physical face. Override it to text/base for the light virtual face, through a KeyPath on lottie-android or a value provider on lottie-ios.'],
   ['Markers',
    'badge in at 0ms, shackle snap at 130ms, end at 370ms.'],
+]
+
+const TOGGLE_ROWS = [
+  ['What it covers',
+   'The menu icon swapping between the closed and open padlock, both ways. Two 340ms segments in one file, 680ms in total.'],
+  ['Which segment',
+   'Play 0 to 340ms for lock to unlock, and 340 to 680ms for unlock to lock. Two segments rather than one played in reverse, because reversing would swap which glyph gets the accelerate curve and which gets the spring.'],
+  ['The stagger',
+   'The leaving glyph snaps away over 90ms opacity and a 140ms accelerate rotate to 10 degrees at 78%. The arriving one waits 80ms, then fades over 110ms and springs back over 260ms. They are not symmetrical and that is the character of it.'],
+  ['Sizing',
+   'The composition is 20 by 20, the glyph as it sits in the 50px menu tile. Rotation happens about 50% by 65%, and the scale is downward, so nothing leaves the box.'],
+  ['Colour',
+   'Ships white. Override to icon/base wherever the tile sits on a light surface.'],
 ]
 
 const ENGINEERING_ROWS = [
@@ -353,7 +367,7 @@ export default function LockUnlock() {
             label="Lottie asset"
             action={
               <a
-                href={LOTTIE_URL}
+                href={LOTTIE_BADGE}
                 download="lock-badge.json"
                 style={{
                   display: 'inline-flex', alignItems: 'center', height: 32,
@@ -369,13 +383,37 @@ export default function LockUnlock() {
           />
           <RuleTable rows={LOTTIE_ROWS} labelWidth={220} />
         </DocCard>
+        <div style={{ height: 8 }} />
+        <DocCard>
+          <CardHeader
+            label="Lottie asset"
+            action={
+              <a
+                href={LOTTIE_TOGGLE}
+                download="lock-toggle.json"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', height: 32,
+                  padding: '0 12px', borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--bg-sunken)', color: 'var(--text-base)',
+                  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+                  textDecoration: 'none', flexShrink: 0,
+                }}
+              >
+                Download lock-toggle.json
+              </a>
+            }
+          />
+          <RuleTable rows={TOGGLE_ROWS} labelWidth={220} />
+        </DocCard>
+
         <div style={{ marginTop: 12 }}>
           <Note title="Why the badge only.">
             The locked state is four things moving against each other and only
             the badge is self-contained. Exporting the whole choreography would
             mean a Lottie timeline and a native transition to keep in step,
             which is harder than writing the delays. Take the file for the
-            badge, keep the veil and the settle native.
+            badge, keep the veil and the settle native. The menu icon is the
+            opposite case: it depends on nothing around it, so it exports whole.
           </Note>
         </div>
       </DocSection>
