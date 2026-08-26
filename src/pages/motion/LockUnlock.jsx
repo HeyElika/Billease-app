@@ -252,33 +252,19 @@ const ACCESSIBILITY_RULES = [
 ]
 
 const LOTTIE_ROWS = [
-  ['What it covers',
-   'The badge only: its entrance, and the shackle snapping shut. 370ms end to end at 60fps.'],
-  ['What it does not cover',
-   'The veil, the card settle and the Card locked label. Lottie cannot express a backdrop blur, the settle is on the card rather than the badge, and the label shares the badge\'s entrance but sits outside the glyph. All three stay native.'],
-  ['The label',
-   'It takes the same entrance as the badge, opacity 220ms decelerate and transform 320ms spring, both 120ms in. Run it alongside the file rather than inside it.'],
-  ['When to start it',
-   '120ms after the veil begins, which is where the badge starts in the full sequence. The shackle then fires 130ms into the file, landing at the 250ms the spec calls for.'],
-  ['Sizing',
-   'The composition is 48 by 48, the badge box, holding a 40px glyph. The 4px margin is deliberate: the shackle lifts above its own bounds as it snaps, and without that headroom it renders clipped flat.'],
-  ['Colour',
-   'The stroke ships white for the physical face. Override it to text/base for the light virtual face, through a KeyPath on lottie-android or a value provider on lottie-ios.'],
-  ['Markers',
-   'badge in at 0ms, shackle snap at 130ms, end at 370ms.'],
+  ['Start it 120ms in',
+   'Not at the top of the sequence. The badge begins 120ms after the veil, which puts the shackle snap at the 250ms the spec calls for.'],
+  ['Everything else stays native',
+   'The file is the badge. The veil, the card settle and the Card locked label are not in it and still have to be built.'],
+  ['Override the colour',
+   'The stroke ships white. On the light virtual face it needs text/base, through a KeyPath on lottie-android or a value provider on lottie-ios.'],
 ]
 
 const TOGGLE_ROWS = [
-  ['What it covers',
-   'The menu icon swapping between the closed and open padlock, both ways. Two 340ms segments in one file, 680ms in total.'],
-  ['Which segment',
-   'Play 0 to 340ms for lock to unlock, and 340 to 680ms for unlock to lock. Two segments rather than one played in reverse, because reversing would swap which glyph gets the accelerate curve and which gets the spring.'],
-  ['The stagger',
-   'The leaving glyph snaps away over 90ms opacity and a 140ms accelerate rotate to 10 degrees at 78%. The arriving one waits 80ms, then fades over 110ms and springs back over 260ms. They are not symmetrical and that is the character of it.'],
-  ['Sizing',
-   'The composition is 20 by 20, the glyph as it sits in the 50px menu tile. Rotation happens about 50% by 65%, and the scale is downward, so nothing leaves the box.'],
-  ['Colour',
-   'Ships white. Override to icon/base wherever the tile sits on a light surface.'],
+  ['Play the right segment',
+   '0 to 340ms locks, 340 to 680ms unlocks. Do not play one in reverse to get the other: it swaps which glyph gets the accelerate curve and which gets the spring.'],
+  ['Override the colour',
+   'The stroke ships white. Use icon/base wherever the tile sits on a light surface.'],
 ]
 
 const ENGINEERING_ROWS = [
