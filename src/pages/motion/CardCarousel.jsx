@@ -39,6 +39,11 @@ const SPRING_DAMPING   = 0.85
 // documented duration-and-curve fallback. Native should use the spring.
 const FALLBACK_MS   = 250
 const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
+
+// Returning from an overscroll bounces slightly, so the boundary reads as a
+// boundary rather than a dead stop. The same spring the lock pattern uses.
+const EDGE_SPRING_MS   = 260
+const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 const REDUCED_MS    = 120      // within the 100 to 150ms reduced-motion range
 
 const EDGE_RESIST    = 0.25    // displayed overscroll = drag x 0.25
@@ -272,6 +277,7 @@ function CardCarouselDemo() {
   const [offset, setOffset] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
+  const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
   const [lockedIds, setLockedIds] = useState([])
 
   const startX = useRef(0)
@@ -348,7 +354,16 @@ function CardCarouselDemo() {
     }
 
     const changed = next !== active
-    setSettleMs(prefersReducedMotion() ? REDUCED_MS : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS))
+    // Released against an end with nothing to move to: bounce back.
+    const atEdge = !changed && ((active === 0 && offset > 0) || (active === last && offset < 0))
+    const reduced = prefersReducedMotion()
+
+    setSettleEase(atEdge && !reduced ? EDGE_SPRING_EASE : FALLBACK_EASE)
+    setSettleMs(
+      reduced ? REDUCED_MS
+        : atEdge ? EDGE_SPRING_MS
+          : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS)
+    )
     setActive(next)
     setOffset(0)
   }
@@ -363,6 +378,7 @@ function CardCarouselDemo() {
   // A tap on a peeking card selects it. Movement under the slop is still a tap.
   const onCardClick = (index) => {
     if (Math.abs(moved.current) > TAP_SLOP) return
+    setSettleEase(FALLBACK_EASE)
     setSettleMs(prefersReducedMotion() ? REDUCED_MS : SETTLE_COMMIT_MS)
     setActive(index)
   }
@@ -402,7 +418,7 @@ function CardCarouselDemo() {
                   transformOrigin: '0 0',
                   transform: `translate(${slot.x + offset}px, ${slot.y}px) scale(${slot.s})`,
                   // One track: every card takes the same offset, none animates alone.
-                  transition: dragging ? 'none' : `transform ${settleMs}ms ${FALLBACK_EASE}`,
+                  transition: dragging ? 'none' : `transform ${settleMs}ms ${settleEase}`,
                   willChange: 'transform',
                 }}
               >
@@ -479,7 +495,7 @@ const BEHAVIOR_RULES = [
   ['Selection changes on release, not during',
    'Through the drag the current card stays selected, the dots stay put and the content below does not switch. On a commit all three update, and they may start updating during the settle rather than waiting for it to finish.'],
   ['The ends resist, they do not loop',
-   'Dragging past the first or last card shows a quarter of the travel, up to about 28px, then returns to the boundary card on release.'],
+   'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
   ['Add card is a position, not an action',
    'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
   ['Gestures interrupt cleanly',
@@ -497,6 +513,7 @@ const SPEC_ROWS = [
   ['Curve fallback',     `${FALLBACK_MS}ms ${FALLBACK_EASE} where spring physics are unavailable`],
   ['Edge resistance',    `${EDGE_RESIST * 100}% of drag distance`],
   ['Max overscroll',     '24 to 32px'],
+  ['Edge spring-back',   `${EDGE_SPRING_MS}ms cubic-bezier(0.34, 1.4, 0.64, 1), a slight bounce`],
   ['Reduced motion',     '100 to 150ms, no spring or overshoot'],
   ['Centred card',       '300 x 190, radius-lg'],
   ['Peeking card',       '268 x 170, the same card at 89.3%'],
@@ -508,7 +525,7 @@ const STATE_ROWS = [
   ['During drag',   'The current card stays selected. Dots and the content below are unchanged.'],
   ['Commit',        'Selected card, dots and content all update. They may begin during the settle.'],
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
-  ['At either end', 'The track resists at a quarter of the drag and returns to the boundary card. The carousel never loops.'],
+  ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
   ['Locked',        'The card blurs and carries a lock with Card locked, View details is disabled, and a warning names the card that cannot be used. Lock is per card, so a locked card stays locked as others are swiped past. The lock and label take that card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face.'],
 ]
