@@ -282,6 +282,13 @@ export const MOTION_CATEGORIES = [
            'These values come from the cards handoff prototype. They are not in the Motion system Figma file, and they do not use the Billease standard curve.'],
         ],
       },
+      {
+        id: 'lock-unlock',
+        label: 'Lock and unlock',
+        definition: 'Freezing a card so it cannot be used, and releasing it again.',
+        spec: { duration: '400ms lock, 340ms unlock', easing: 'cubic-bezier(0.2, 0, 0, 1)' },
+        links: [{ label: 'Lock and unlock handoff', detail: 'Interactive prototype', url: 'https://claude.ai/code/artifact/e5166bcd-31c3-42e5-9908-242dcb93fc3c' }],
+      },
     ],
   },
   {

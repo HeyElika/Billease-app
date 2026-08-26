@@ -27,6 +27,32 @@ export function LockGlyph({ size = 20, color = 'currentColor' }) {
 }
 
 /**
+ * The card menu's padlock pair, closed and open, from the lock and unlock
+ * handoff. Stroke-based and matched to each other, so the two states share a
+ * weight and a keyhole. `shackleClass` marks the shackle path so it can snap
+ * shut independently of the body.
+ */
+export function PadlockClosed({ size = 20, shackleClass }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M2 16c0 -2.8284 0 -4.2426 0.87868 -5.1213C3.75736 10 5.17157 10 8 10h8c2.8284 0 4.2426 0 5.1213 0.8787C22 11.7574 22 13.1716 22 16s0 4.2426 -0.8787 5.1213C20.2426 22 18.8284 22 16 22H8c-2.82843 0 -4.24264 0 -5.12132 -0.8787C2 20.2426 2 18.8284 2 16Z" />
+      <path d="M12 14v4" strokeLinecap="round" />
+      <path className={shackleClass} d="M6 10V8c0 -3.31371 2.68629 -6 6 -6 3.3137 0 6 2.68629 6 6v2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function PadlockOpen({ size = 20 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M2 16C2 13.1716 2 11.7574 2.87868 10.8787C3.75736 10 5.17157 10 8 10H16C18.8284 10 20.2426 10 21.1213 10.8787C22 11.7574 22 13.1716 22 16C22 18.8284 22 20.2426 21.1213 21.1213C20.2426 22 18.8284 22 16 22H8C5.17157 22 3.75736 22 2.87868 21.1213C2 20.2426 2 18.8284 2 16Z" />
+      <path d="M6 10V8C6 4.68629 8.68629 2 12 2C13.777 2 15.3736 2.7725 16.4722 4" strokeLinecap="round" />
+      <path d="M12 14V18" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/**
  * The locked treatment. The card blurs behind a light veil and keeps its own
  * colour, so the lock and label take that card's on-surface tokens. A dark
  * scrim is deliberately not used: it would force white on every face, and the
