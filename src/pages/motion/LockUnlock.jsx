@@ -13,17 +13,9 @@ import { useState } from 'react'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import { PadlockClosed, LockToggleGlyph } from './cardIcons'
-import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadIcon } from './docs'
+import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadButton } from './docs'
 
 /** Served from public/ so the files have stable URLs devs can share, not data URIs. */
-/** Matches Button primary at size sm: 32px tall, 12px padding, radius-full. */
-const DOWNLOAD_BUTTON = {
-  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
-  padding: '0 12px', borderRadius: 'var(--radius-full)',
-  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
-  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
-  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
-}
 
 const LOTTIE_BADGE  = '/motion/lock-badge.json'
 const LOTTIE_TOGGLE = '/motion/lock-toggle.json'
@@ -349,16 +341,7 @@ export default function LockUnlock() {
         <DocCard>
           <CardHeader
             label="Lottie asset"
-            action={
-              <a
-                href={LOTTIE_BADGE}
-                download="lock-badge.json"
-                style={DOWNLOAD_BUTTON}
-              >
-                <DownloadIcon />
-                lock-badge.json
-              </a>
-            }
+            action={<DownloadButton href={LOTTIE_BADGE} name="lock-badge.json" />}
           />
           <RuleTable rows={LOTTIE_ROWS} labelWidth={220} bare />
         </DocCard>
@@ -366,16 +349,7 @@ export default function LockUnlock() {
         <DocCard>
           <CardHeader
             label="Lottie asset"
-            action={
-              <a
-                href={LOTTIE_TOGGLE}
-                download="lock-toggle.json"
-                style={DOWNLOAD_BUTTON}
-              >
-                <DownloadIcon />
-                lock-toggle.json
-              </a>
-            }
+            action={<DownloadButton href={LOTTIE_TOGGLE} name="lock-toggle.json" />}
           />
           <RuleTable rows={TOGGLE_ROWS} labelWidth={220} bare />
         </DocCard>

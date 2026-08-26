@@ -18,7 +18,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useToc } from '../../context/TocContext'
 import { findMotionPattern, DEFAULT_MOTION_PATH, MOTION_SECTIONS, figmaUrl } from '../../data/motion'
 import { MOTION_PAGES } from './registry'
-import { DocSection, DocCard, CardHeader, RuleTable, P } from './docs'
+import { DocSection, DocCard, CardHeader, RuleTable, P, DownloadButton } from './docs'
 
 const SPEC_LABELS = {
   duration: 'Duration',
@@ -111,20 +111,32 @@ function NotYetDocumented({ pattern }) {
         </DocSection>
       )}
 
-      {(figma || pattern.asset || pattern.links) && (
+      {pattern.asset && (
+        <DocSection id="asset" title="Lottie asset">
+          <P>
+            The animation ships as a Lottie file. Take the file rather than
+            rebuilding the motion natively, so every surface runs the same
+            timing.
+          </P>
+          <DocCard>
+            <CardHeader
+              label="Lottie asset"
+              action={<DownloadButton href={pattern.asset.url} name={pattern.asset.name} />}
+            />
+            {pattern.asset.rows && (
+              <RuleTable rows={pattern.asset.rows} labelWidth={220} bare />
+            )}
+          </DocCard>
+        </DocSection>
+      )}
+
+      {(figma || pattern.links) && (
         <DocSection id="source" title="Source">
           <DocCard>
             <CardHeader label="Where this lives" />
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {figma && (
                 <SourceLink href={figma} label="Motion system" detail={`Figma frame ${pattern.node}`} />
-              )}
-              {pattern.asset && (
-                <SourceLink
-                  href={pattern.asset.url}
-                  label={pattern.asset.name}
-                  detail="Lottie file, Google Drive"
-                />
               )}
               {(pattern.links ?? []).map(link => (
                 <SourceLink key={link.url} href={link.url} label={link.label} detail={link.detail} />

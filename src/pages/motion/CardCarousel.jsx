@@ -19,19 +19,11 @@ import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
 import { LockToggleGlyph } from './cardIcons'
 import {
-  DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadIcon,
+  DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadButton,
 } from './docs'
 
 const LOTTIE_DOT = '/motion/slider-dot.json'
 
-/** Matches Button primary at size sm. */
-const DOWNLOAD_BUTTON = {
-  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
-  padding: '0 12px', borderRadius: 'var(--radius-full)',
-  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
-  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
-  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
-}
 
 // ─── Values ───────────────────────────────────────────────────────────────────
 // Layout from Figma. Release, settle and edge behaviour from the carousel spec.
@@ -612,12 +604,7 @@ export default function CardCarousel() {
         <DocCard>
           <CardHeader
             label="Lottie asset"
-            action={
-              <a href={LOTTIE_DOT} download="slider-dot.json" style={DOWNLOAD_BUTTON}>
-                <DownloadIcon />
-                slider-dot.json
-              </a>
-            }
+            action={<DownloadButton href={LOTTIE_DOT} name="slider-dot.json" />}
           />
           <RuleTable rows={DOT_LOTTIE_ROWS} labelWidth={220} bare />
         </DocCard>

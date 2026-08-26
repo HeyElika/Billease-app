@@ -12,19 +12,11 @@ import manageIcon from '../../assets/cards/manage.svg'
 import { LockToggleGlyph } from './cardIcons'
 import {
   DocSection, DocCard, CardHeader, P,
-  DemoCard, RuleTable, UsageList, Note, DownloadIcon,
+  DemoCard, RuleTable, UsageList, Note, DownloadButton,
 } from './docs'
 
 const LOTTIE_EYE = '/motion/eye-toggle.json'
 
-/** Matches Button primary at size sm. */
-const DOWNLOAD_BUTTON = {
-  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
-  padding: '0 12px', borderRadius: 'var(--radius-full)',
-  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
-  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
-  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
-}
 
 // ─── Motion values ────────────────────────────────────────────────────────────
 
@@ -430,12 +422,7 @@ export default function CardFlip() {
         <DocCard>
           <CardHeader
             label="Lottie asset"
-            action={
-              <a href={LOTTIE_EYE} download="eye-toggle.json" style={DOWNLOAD_BUTTON}>
-                <DownloadIcon />
-                eye-toggle.json
-              </a>
-            }
+            action={<DownloadButton href={LOTTIE_EYE} name="eye-toggle.json" />}
           />
           <RuleTable rows={EYE_LOTTIE_ROWS} labelWidth={220} bare />
         </DocCard>

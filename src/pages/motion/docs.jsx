@@ -220,6 +220,25 @@ export function Note({ title, children }) {
   )
 }
 
+/** Matches Button primary at size sm: 32px tall, 12px padding, radius-full. */
+const DOWNLOAD_BUTTON = {
+  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
+  padding: '0 12px', borderRadius: 'var(--radius-full)',
+  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
+  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
+}
+
+/** A download button for a Lottie file, styled as a primary button. */
+export function DownloadButton({ href, name }) {
+  return (
+    <a href={href} download={name} style={DOWNLOAD_BUTTON}>
+      <DownloadIcon />
+      {name}
+    </a>
+  )
+}
+
 /** solar:download-linear — exact paths from the Iconify Solar set, not redrawn. */
 export function DownloadIcon({ size = 16 }) {
   return (

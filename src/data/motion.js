@@ -17,15 +17,12 @@
 export const MOTION_FILE_KEY = 'A4uFHah9JZUPVpYhCIkKpi'
 
 /**
- * Lottie files live in Drive, not in the repo. Each loader links to its own
- * file and nothing else. These are Drive links, so whoever opens them needs
- * access.
+ * Loader Lotties, served from public/ so the files have stable URLs devs can
+ * download or point a build at, with no Drive access to request. Names match
+ * the source files.
  */
-export const LOTTIE_PAGE_LOADER =
-  'https://drive.google.com/file/d/1ExDtGdw9bb6v15Cc6Ua66EkWTm29aan_/view'
-
-export const LOTTIE_SPINNER =
-  'https://drive.google.com/file/d/1QZaNt5RsgYBBU3ZMDDdUJ1XVwVGGf0jQ/view?usp=drive_link'
+export const LOTTIE_PAGE_LOADER = '/motion/page-loader.json'
+export const LOTTIE_SPINNER     = '/motion/spinner.json'
 
 export function figmaUrl(node) {
   if (!node) return null
@@ -82,7 +79,20 @@ export const MOTION_CATEGORIES = [
         label: 'Page loader',
         definition: 'A full-screen looping animation shown while a whole page fetches or renders.',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'page-loader.json', url: LOTTIE_PAGE_LOADER },
+        asset: {
+          name: 'page-loader.json',
+          url: LOTTIE_PAGE_LOADER,
+          rows: [
+            ['Composition', '1500 × 1125, 30fps, 33 frames'],
+            ['Loop length', '1100ms, loops seamlessly'],
+            ['Layers', 'Three dots, named Left, Middle and Right'],
+            ['Dot', 'Filled circle, bg/secondary #265CE5'],
+            ['Geometry', 'Dots sit 2.1× their own diameter apart and travel 0.9× their diameter vertically'],
+            ['Timing', 'Position is keyed on every frame, so the rise and fall is baked into the file rather than driven by an easing curve'],
+            ['Phase', 'Each dot peaks at a different point in the loop, so the wave reads as travelling across the row'],
+            ['Sizing', 'Scale the whole composition to the box you need. Spacing and travel are proportional to the dot, so they hold at any size'],
+          ],
+        },
         notes: [
           ['Behavior',
            'Loops indefinitely until the fetch or render completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
@@ -95,7 +105,20 @@ export const MOTION_CATEGORIES = [
         label: 'Inline spinner',
         definition: 'A micro loading indicator inside an existing component, signalling background processing without taking over the screen.',
         spec: { duration: 'Loops until the fetch completes', easing: 'Lottie timeline' },
-        asset: { name: 'Spinner', url: LOTTIE_SPINNER },
+        asset: {
+          name: 'spinner.json',
+          url: LOTTIE_SPINNER,
+          rows: [
+            ['Composition', '1500 × 1125, 30fps, 33 frames'],
+            ['Loop length', '1100ms, loops seamlessly'],
+            ['Layers', 'A static track and a rotating arc'],
+            ['Base geometry', 'Drawn at 48 × 48: radius 23, stroke 2, so the stroke stays 1/24 of the box at any size'],
+            ['Track', 'Full circle, stroke #535353 at 20% opacity'],
+            ['Arc', 'Quarter circle, stroke bg/secondary #265CE5, round cap'],
+            ['Rotation', 'Arc rotates 0 → 360° over 32 frames, linear, so the speed never changes across the loop'],
+            ['Sizing', 'Scale the whole composition to the box you need'],
+          ],
+        },
         notes: [
           ['Behavior',
            'Loops indefinitely until the fetch completes. There is no fixed duration: it is dismissed by the data arriving, not by a timer.'],
