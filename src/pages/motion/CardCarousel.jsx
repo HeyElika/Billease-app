@@ -19,8 +19,19 @@ import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
 import { LockToggleGlyph, LockedFace } from './cardIcons'
 import {
-  DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note,
+  DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadIcon,
 } from './docs'
+
+const LOTTIE_DOT = '/motion/slider-dot.json'
+
+/** Matches Button primary at size sm. */
+const DOWNLOAD_BUTTON = {
+  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
+  padding: '0 12px', borderRadius: 'var(--radius-full)',
+  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
+  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
+}
 
 // ─── Values ───────────────────────────────────────────────────────────────────
 // Layout from Figma. Release, settle and edge behaviour from the carousel spec.
@@ -44,6 +55,11 @@ const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 // boundary rather than a dead stop. The same spring the lock pattern uses.
 const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
+
+// Dots grow and recolour rather than swapping. Same standard curve as the settle.
+const DOT_MS   = 140
+const DOT_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
+const DOT = { active: 8, inactive: 6 }
 const REDUCED_MS    = 120      // within the 100 to 150ms reduced-motion range
 
 const EDGE_RESIST    = 0.25    // displayed overscroll = drag x 0.25
@@ -438,10 +454,11 @@ function CardCarouselDemo() {
             <span
               key={card.id}
               style={{
-                width: i === active ? 8 : 6,
-                height: i === active ? 8 : 6,
+                width: i === active ? DOT.active : DOT.inactive,
+                height: i === active ? DOT.active : DOT.inactive,
                 borderRadius: 'var(--radius-full)',
                 backgroundColor: i === active ? 'var(--bg-secondary)' : 'var(--bg-selected)',
+                transition: `width ${DOT_MS}ms ${DOT_EASE}, height ${DOT_MS}ms ${DOT_EASE}, background-color ${DOT_MS}ms ${DOT_EASE}`,
               }}
             />
           ))}
@@ -520,6 +537,7 @@ const SPEC_ROWS = [
   ['Peeking card',       '268 x 170, the same card at 89.3%'],
   ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
+  ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
 ]
 
 const STATE_ROWS = [
@@ -540,6 +558,15 @@ const ACCESSIBILITY_RULES = [
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
   ['Motion is never required',
    'Which card is chosen is carried by the content below it, not by having seen the track move.'],
+]
+
+const DOT_LOTTIE_ROWS = [
+  ['Play the right segment',
+   '0 to 140ms activates a dot, 140 to 280ms deactivates it. The file is one dot, not the row.'],
+  ['The row is layout',
+   'How many dots there are and how they sit, 8px apart and centred, is not in the file. Only the dot changing state is.'],
+  ['Colours are baked in',
+   'It ships bg/selected growing into bg/secondary, the on-light pair. For dots over a card, override to alpha-white 20% and bg/base.'],
 ]
 
 const ENGINEERING_ROWS = [
@@ -622,6 +649,20 @@ export default function CardCarousel() {
           likely to be built wrong.
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
+
+        <div style={{ height: 32 }} />
+        <DocCard>
+          <CardHeader
+            label="Lottie asset"
+            action={
+              <a href={LOTTIE_DOT} download="slider-dot.json" style={DOWNLOAD_BUTTON}>
+                <DownloadIcon />
+                slider-dot.json
+              </a>
+            }
+          />
+          <RuleTable rows={DOT_LOTTIE_ROWS} labelWidth={220} bare />
+        </DocCard>
       </DocSection>
     </>
   )
