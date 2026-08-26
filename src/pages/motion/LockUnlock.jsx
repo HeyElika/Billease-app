@@ -13,12 +13,12 @@ import { useState } from 'react'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import { PadlockClosed, LockToggleGlyph } from './cardIcons'
-import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note } from './docs'
+import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadIcon } from './docs'
 
 /** Served from public/ so the files have stable URLs devs can share, not data URIs. */
 /** Matches Button primary at size sm: 32px tall, 12px padding, radius-full. */
 const DOWNLOAD_BUTTON = {
-  display: 'inline-flex', alignItems: 'center', height: 32,
+  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
   padding: '0 12px', borderRadius: 'var(--radius-full)',
   backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
   fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
@@ -355,7 +355,8 @@ export default function LockUnlock() {
                 download="lock-badge.json"
                 style={DOWNLOAD_BUTTON}
               >
-                Download lock-badge.json
+                <DownloadIcon />
+                lock-badge.json
               </a>
             }
           />
@@ -371,7 +372,8 @@ export default function LockUnlock() {
                 download="lock-toggle.json"
                 style={DOWNLOAD_BUTTON}
               >
-                Download lock-toggle.json
+                <DownloadIcon />
+                lock-toggle.json
               </a>
             }
           />

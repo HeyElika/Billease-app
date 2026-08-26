@@ -9,11 +9,22 @@ import { useEffect, useRef, useState } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockToggleGlyph, LockedFace } from './cardIcons'
+import { LockToggleGlyph } from './cardIcons'
 import {
-  DocSection, DocCard, P,
-  DemoCard, RuleTable, UsageList, Note,
+  DocSection, DocCard, CardHeader, P,
+  DemoCard, RuleTable, UsageList, Note, DownloadIcon,
 } from './docs'
+
+const LOTTIE_EYE = '/motion/eye-toggle.json'
+
+/** Matches Button primary at size sm. */
+const DOWNLOAD_BUTTON = {
+  display: 'inline-flex', alignItems: 'center', gap: 8, height: 32,
+  padding: '0 12px', borderRadius: 'var(--radius-full)',
+  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
+  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
+}
 
 // ─── Motion values ────────────────────────────────────────────────────────────
 
@@ -226,13 +237,6 @@ function MenuItem({ label, onClick, disabled, children }) {
 
 function CardFlipDemo() {
   const [revealed, setRevealed] = useState(false)
-  const [locked, setLocked] = useState(false)
-
-  const toggleLock = () => {
-    const next = !locked
-    setLocked(next)
-    if (next) setRevealed(false)   // the reveal does not survive a lock
-  }
 
   return (
     <DemoCard label="View details">
@@ -246,23 +250,19 @@ function CardFlipDemo() {
               <div className="be-face be-face--back"><CardBack /></div>
             </div>
           </div>
-
-          {locked && <LockedFace surface="dark" />}
-
         </div>
 
         <div style={{ display: 'flex' }}>
           <MenuItem
             label={revealed ? 'Hide details' : 'View details'}
             onClick={() => setRevealed(v => !v)}
-            disabled={locked}
           >
-            <EyeToggle revealed={revealed} color={locked ? 'var(--icon-disabled)' : 'var(--icon-base)'} />
+            <EyeToggle revealed={revealed} color="var(--icon-base)" />
           </MenuItem>
-          <MenuItem label={locked ? 'Unlock' : 'Lock'} onClick={toggleLock}>
-            <LockToggleGlyph locked={locked} />
+          <MenuItem label="Lock" disabled>
+            <LockToggleGlyph locked={false} />
           </MenuItem>
-          <MenuItem label="Manage" onClick={() => {}}>
+          <MenuItem label="Manage" disabled>
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />
           </MenuItem>
         </div>
@@ -330,6 +330,15 @@ const ACCESSIBILITY_RULES = [
    'Reveal and conceal are state changes on the same control, so the button label carries the state and the change is announced.'],
   ['Motion is never required',
    'The label alone tells the user which state they are in. Nothing depends on having seen the card turn.'],
+]
+
+const EYE_LOTTIE_ROWS = [
+  ['One file, both directions',
+   'Play it forward for view to hide, and in reverse for hide to view. The squash is symmetrical, so reversing is correct here, unlike the lock toggle.'],
+  ['The flip stays native',
+   'The file is the eye only. The card turning over is not in it.'],
+  ['Override the colour',
+   'The fill ships white. Use icon/base wherever the tile sits on a light surface.'],
 ]
 
 const ENGINEERING_ROWS = [
@@ -411,6 +420,20 @@ export default function CardFlip() {
           implementation is most likely to go wrong.
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={220} />
+
+        <div style={{ height: 32 }} />
+        <DocCard>
+          <CardHeader
+            label="Lottie asset"
+            action={
+              <a href={LOTTIE_EYE} download="eye-toggle.json" style={DOWNLOAD_BUTTON}>
+                <DownloadIcon />
+                eye-toggle.json
+              </a>
+            }
+          />
+          <RuleTable rows={EYE_LOTTIE_ROWS} labelWidth={220} bare />
+        </DocCard>
       </DocSection>
     </>
   )
