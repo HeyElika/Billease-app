@@ -32,7 +32,7 @@ export function LockGlyph({ size = 20, color = 'currentColor' }) {
  * scrim is deliberately not used: it would force white on every face, and the
  * light virtual face needs icon/base and text/base.
  */
-export const SURFACES = {
+const SURFACES = {
   dark:  { icon: 'var(--icon-on-dark)', text: 'var(--text-on-dark)', veil: 'rgba(0,0,0,0.10)' },
   light: { icon: 'var(--icon-base)',    text: 'var(--text-base)',    veil: 'rgba(255,255,255,0.10)' },
 }
