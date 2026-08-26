@@ -25,3 +25,30 @@ export function LockGlyph({ size = 20, color = 'currentColor' }) {
     </svg>
   )
 }
+
+/**
+ * The locked treatment. The card blurs behind a light veil and keeps its own
+ * colour, so the lock and label take that card's on-surface tokens. A dark
+ * scrim is deliberately not used: it would force white on every face, and the
+ * light virtual face needs icon/base and text/base.
+ */
+export const SURFACES = {
+  dark:  { icon: 'var(--icon-on-dark)', text: 'var(--text-on-dark)', veil: 'rgba(0,0,0,0.10)' },
+  light: { icon: 'var(--icon-base)',    text: 'var(--text-base)',    veil: 'rgba(255,255,255,0.10)' },
+}
+
+export function LockedFace({ surface = 'dark' }) {
+  const tone = SURFACES[surface] ?? SURFACES.dark
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, borderRadius: 'var(--radius-lg)',
+      backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+      backgroundColor: tone.veil,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 'var(--space-200)', fontFamily: 'var(--ds-font-family)',
+    }}>
+      <LockGlyph size={24} color={tone.icon} />
+      <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: tone.text }}>Card locked</span>
+    </div>
+  )
+}

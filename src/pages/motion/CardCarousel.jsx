@@ -17,7 +17,7 @@ import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockGlyph } from './cardIcons'
+import { LockGlyph, LockedFace } from './cardIcons'
 import {
   DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note,
 } from './docs'
@@ -65,7 +65,7 @@ const prefersReducedMotion = () =>
 
 const CARDS = [
   {
-    id: 'physical', kind: 'art', art: cardArt, last4: '3354',
+    id: 'physical', kind: 'art', art: cardArt, last4: '3354', surface: 'dark',
     tx: [
       { merchant: 'Jollibee BGC Branch', meta: 'Credit line • Card 3354 • Purchase • 17:09', amount: '- ₱334.00' },
       { merchant: 'Mercury Drug',        meta: 'Credit line • Card 3354 • Purchase • 16:50', amount: '- ₱763.00' },
@@ -73,7 +73,7 @@ const CARDS = [
     ],
   },
   {
-    id: 'virtual', kind: 'art', art: virtualArt, cloud: true,
+    id: 'virtual', kind: 'art', art: virtualArt, cloud: true, surface: 'light',
     tx: [
       { merchant: 'FreshMart Grocery',    meta: 'Credit line • Card 5764 • Purchase • 16:29', amount: '- ₱200.00', failed: true },
       { merchant: 'Ace Hardware & Home',  meta: 'Credit line • Card 5764 • Purchase • 11:09', amount: '- ₱154.00' },
@@ -152,20 +152,25 @@ function AddCard() {
 // ─── Below the carousel ───────────────────────────────────────────────────────
 // access-card/menu/item (14108:666) and transaction-widget (49002:20669).
 
-function MenuItem({ icon, label }) {
+function MenuItem({ icon, label, onClick }) {
   return (
     <div style={{
       width: 100, height: 78,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       gap: 'var(--space-200)',
     }}>
-      <div style={{
-        width: 50, height: 50, borderRadius: 12,
-        backgroundColor: 'var(--bg-subtle)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          width: 50, height: 50, borderRadius: 12, border: 'none', padding: 0,
+          backgroundColor: 'var(--bg-subtle)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: onClick ? 'pointer' : 'default',
+        }}
+      >
         {icon}
-      </div>
+      </button>
       <span style={{
         width: 100, textAlign: 'center', fontFamily: 'var(--ds-font-family)',
         fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)',
@@ -238,6 +243,7 @@ function CardCarouselDemo() {
   const [offset, setOffset] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
+  const [lockedIds, setLockedIds] = useState([])
 
   const startX = useRef(0)
   const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
@@ -318,6 +324,13 @@ function CardCarouselDemo() {
     setOffset(0)
   }
 
+  const activeCard = CARDS[active]
+  const isLocked = (id) => lockedIds.includes(id)
+  const toggleLock = () => {
+    const id = activeCard.id
+    setLockedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
   // A tap on a peeking card selects it. Movement under the slop is still a tap.
   const onCardClick = (index) => {
     if (Math.abs(moved.current) > TAP_SLOP) return
@@ -367,6 +380,7 @@ function CardCarouselDemo() {
                 {card.kind === 'add'
                   ? <AddCard />
                   : <ArtCard art={card.art} last4={card.last4} cloud={card.cloud} />}
+                {isLocked(card.id) && <LockedFace surface={card.surface} />}
               </div>
             )
           })}
@@ -393,7 +407,11 @@ function CardCarouselDemo() {
             <>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <MenuItem label="View details" icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />} />
-                <MenuItem label="Lock" icon={<LockGlyph color="var(--icon-base)" />} />
+                <MenuItem
+                  label={isLocked(activeCard.id) ? 'Unlock' : 'Lock'}
+                  icon={<LockGlyph color="var(--icon-base)" />}
+                  onClick={toggleLock}
+                />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
               </div>
               <TransactionWidget card={CARDS[active]} />
@@ -458,6 +476,7 @@ const STATE_ROWS = [
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag and returns to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
+  ['Locked',        'The card blurs and carries a lock with Card locked. Lock is per card, so a locked card stays locked as others are swiped past. The lock and label take that card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face.'],
 ]
 
 const ACCESSIBILITY_RULES = [
@@ -499,7 +518,8 @@ export default function CardCarousel() {
             high-velocity flick, the carousel commits to the adjacent card.
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. The content below
-            belongs to whichever card is centred.
+            belongs to whichever card is centred. Lock the green card to see the
+            locked treatment take its colours from the card it sits on.
           </Note>
         </div>
       </DocSection>

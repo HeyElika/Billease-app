@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockGlyph } from './cardIcons'
+import { LockGlyph, LockedFace } from './cardIcons'
 import {
   DocSection, DocCard, P,
   DemoCard, RuleTable, UsageList, Note,
@@ -30,18 +30,6 @@ const EYE_TOTAL_MS = EYE_DOWN_MS + EYE_UP_MS
  */
 const CARD = { w: 300, h: 190, radius: 'var(--radius-lg)', pad: 'var(--space-300)' }
 
-/**
- * The locked treatment blurs the card and sits its lock and label on top in the
- * card's own on-surface colours. A dark scrim would force white on every card,
- * which is wrong on the light virtual face.
- */
-const SURFACES = {
-  dark:  { icon: 'var(--icon-on-dark)', text: 'var(--text-on-dark)', veil: 'rgba(0,0,0,0.10)' },
-  light: { icon: 'var(--icon-base)',    text: 'var(--text-base)',    veil: 'rgba(255,255,255,0.10)' },
-}
-
-// The physical face is dark. The virtual face is light and takes SURFACES.light.
-const CARD_SURFACE = 'dark'
 const MENU = { itemW: 100, itemH: 78, tile: 50, icon: 20 }
 
 /** The revealed face fill, read from the node. Not a token in this repo. */
@@ -234,7 +222,6 @@ function MenuItem({ label, onClick, disabled, children }) {
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
-const SURFACE = SURFACES[CARD_SURFACE]
 
 function CardFlipDemo() {
   const [revealed, setRevealed] = useState(false)
@@ -259,18 +246,7 @@ function CardFlipDemo() {
             </div>
           </div>
 
-          {locked && (
-            <div style={{
-              position: 'absolute', inset: 0, borderRadius: 'var(--radius-lg)',
-              backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-              backgroundColor: SURFACE.veil,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 'var(--space-200)', fontFamily: 'var(--ds-font-family)',
-            }}>
-              <LockGlyph size={24} color={SURFACE.icon} />
-              <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: SURFACE.text }}>Card locked</span>
-            </div>
-          )}
+          {locked && <LockedFace surface="dark" />}
 
         </div>
 
