@@ -199,28 +199,33 @@ function EyeToggle({ revealed, color }) {
 
 // ─── access-card/menu/item ────────────────────────────────────────────────────
 
+/**
+ * access-card/menu/item.
+ *
+ * With no onClick the tile renders as plain content rather than a button: it
+ * looks exactly the same, it simply is not clickable or focusable. That is not
+ * the disabled state, which greys out and belongs to a card that is locked.
+ */
 function MenuItem({ label, onClick, disabled, children }) {
+  const interactive = Boolean(onClick) && !disabled
+  const tile = {
+    width: MENU.tile, height: MENU.tile, borderRadius: 12, border: 'none',
+    color: disabled ? 'var(--icon-disabled)' : 'var(--icon-base)',
+    backgroundColor: 'var(--bg-subtle)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: 0,
+    cursor: interactive ? 'pointer' : 'default',
+    opacity: disabled ? 0.4 : 1,
+  }
   return (
     <div style={{
       width: MENU.itemW, height: MENU.itemH,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       gap: 'var(--space-200)',
     }}>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        style={{
-          width: MENU.tile, height: MENU.tile, borderRadius: 12, border: 'none',
-          color: 'var(--icon-base)',
-          backgroundColor: 'var(--bg-subtle)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.4 : 1, padding: 0,
-        }}
-      >
-        {children}
-      </button>
+      {interactive
+        ? <button type="button" onClick={onClick} style={tile}>{children}</button>
+        : <div style={tile} aria-hidden={!disabled || undefined}>{children}</div>}
       <span style={{
         width: MENU.itemW, textAlign: 'center',
         fontFamily: 'var(--ds-font-family)', fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5,
@@ -259,10 +264,10 @@ function CardFlipDemo() {
           >
             <EyeToggle revealed={revealed} color="var(--icon-base)" />
           </MenuItem>
-          <MenuItem label="Lock" disabled>
+          <MenuItem label="Lock">
             <LockToggleGlyph locked={false} />
           </MenuItem>
-          <MenuItem label="Manage" disabled>
+          <MenuItem label="Manage">
             <img src={manageIcon} alt="" width={MENU.icon} height={MENU.icon} style={{ display: 'block' }} />
           </MenuItem>
         </div>
