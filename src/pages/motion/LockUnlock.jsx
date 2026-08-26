@@ -16,6 +16,15 @@ import { PadlockClosed, LockToggleGlyph } from './cardIcons'
 import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note } from './docs'
 
 /** Served from public/ so the files have stable URLs devs can share, not data URIs. */
+/** Matches Button primary at size sm: 32px tall, 12px padding, radius-full. */
+const DOWNLOAD_BUTTON = {
+  display: 'inline-flex', alignItems: 'center', height: 32,
+  padding: '0 12px', borderRadius: 'var(--radius-full)',
+  backgroundColor: 'var(--bg-primary)', color: 'var(--text-on-dark)',
+  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
+  lineHeight: 1.5, textDecoration: 'none', flexShrink: 0,
+}
+
 const LOTTIE_BADGE  = '/motion/lock-badge.json'
 const LOTTIE_TOGGLE = '/motion/lock-toggle.json'
 
@@ -358,13 +367,7 @@ export default function LockUnlock() {
               <a
                 href={LOTTIE_BADGE}
                 download="lock-badge.json"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', height: 32,
-                  padding: '0 12px', borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--bg-sunken)', color: 'var(--text-base)',
-                  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
-                  textDecoration: 'none', flexShrink: 0,
-                }}
+                style={DOWNLOAD_BUTTON}
               >
                 Download lock-badge.json
               </a>
@@ -380,13 +383,7 @@ export default function LockUnlock() {
               <a
                 href={LOTTIE_TOGGLE}
                 download="lock-toggle.json"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', height: 32,
-                  padding: '0 12px', borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--bg-sunken)', color: 'var(--text-base)',
-                  fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 600,
-                  textDecoration: 'none', flexShrink: 0,
-                }}
+                style={DOWNLOAD_BUTTON}
               >
                 Download lock-toggle.json
               </a>
