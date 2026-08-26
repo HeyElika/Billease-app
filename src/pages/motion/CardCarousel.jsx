@@ -17,7 +17,7 @@ import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import cloudIcon from '../../assets/cards/cloud.svg'
 import manageIcon from '../../assets/cards/manage.svg'
-import { LockToggleGlyph, LockedFace } from './cardIcons'
+import { LockToggleGlyph } from './cardIcons'
 import {
   DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadIcon,
 } from './docs'
@@ -205,33 +205,6 @@ function MenuItem({ icon, label, onClick, disabled }) {
   )
 }
 
-/**
- * The locked card's warning. Built inline rather than with the DS Alert because
- * that component's warning variant uses bg/warning-subtle, while these screens
- * use bg/warning-bold.
- */
-function LockedAlert({ last4 }) {
-  return (
-    <div style={{
-      width: 320, boxSizing: 'border-box',
-      backgroundColor: 'var(--bg-warning-bold)',
-      borderRadius: 12,
-      padding: 'var(--space-400)',
-      display: 'flex', alignItems: 'center', gap: 'var(--space-300)',
-      fontFamily: 'var(--ds-font-family)',
-    }}>
-      <div style={{ display: 'flex', flex: '1 0 0', minWidth: 0, gap: 'var(--space-200)', alignItems: 'flex-start' }}>
-        <span style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2, boxSizing: 'border-box' }}>
-          <BilleaseIcon name="status-warning" size="xs" color="var(--icon-warning-bold)" />
-        </span>
-        <p style={{ margin: 0, flex: '1 0 0', minWidth: 0, fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>
-          Your card ending in •• {last4} cannot be used for in-store purchases while being locked.
-        </p>
-      </div>
-    </div>
-  )
-}
-
 function TransactionItem({ tx }) {
   const amountColor = tx.failed ? 'var(--text-error)' : 'var(--text-base)'
   return (
@@ -295,7 +268,6 @@ function CardCarouselDemo() {
   const [dragging, setDragging] = useState(false)
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
   const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
-  const [lockedIds, setLockedIds] = useState([])
 
   const startX = useRef(0)
   const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
@@ -385,13 +357,6 @@ function CardCarouselDemo() {
     setOffset(0)
   }
 
-  const activeCard = CARDS[active]
-  const isLocked = (id) => lockedIds.includes(id)
-  const toggleLock = () => {
-    const id = activeCard.id
-    setLockedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
-  }
-
   // A tap on a peeking card selects it. Movement under the slop is still a tap.
   const onCardClick = (index) => {
     if (Math.abs(moved.current) > TAP_SLOP) return
@@ -442,7 +407,6 @@ function CardCarouselDemo() {
                 {card.kind === 'add'
                   ? <AddCard />
                   : <ArtCard art={card.art} last4={card.last4} cloud={card.cloud} />}
-                {isLocked(card.id) && <LockedFace surface={card.surface} />}
               </div>
             )
           })}
@@ -471,17 +435,11 @@ function CardCarouselDemo() {
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <MenuItem
                   label="View details"
-                  disabled={isLocked(activeCard.id)}
-                  icon={<BilleaseIcon name="show" size="sm" color={isLocked(activeCard.id) ? 'var(--icon-disabled)' : 'var(--icon-base)'} />}
+                  icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
                 />
-                <MenuItem
-                  label={isLocked(activeCard.id) ? 'Unlock' : 'Lock'}
-                  icon={<LockToggleGlyph locked={isLocked(activeCard.id)} />}
-                  onClick={toggleLock}
-                />
+                <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
               </div>
-              {isLocked(activeCard.id) && <LockedAlert last4={activeCard.last4} />}
               <TransactionWidget card={CARDS[active]} />
             </>
           )}
@@ -546,7 +504,7 @@ const STATE_ROWS = [
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
-  ['Locked',        'The card blurs and carries a lock with Card locked, View details is disabled, and a warning names the card that cannot be used. Lock is per card, so a locked card stays locked as others are swiped past. The lock and label take that card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face.'],
+  ['Locked',        'A locked card keeps its slot and still swipes. Lock is held per card, so it stays locked as others move past. The treatment itself is documented under Lock and unlock.'],
 ]
 
 const ACCESSIBILITY_RULES = [
