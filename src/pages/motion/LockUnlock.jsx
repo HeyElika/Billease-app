@@ -359,7 +359,7 @@ export default function LockUnlock() {
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
 
-        <div style={{ height: 24 }} />
+        <div style={{ height: 32 }} />
         <DocCard>
           <CardHeader
             label="Lottie asset"
@@ -373,9 +373,9 @@ export default function LockUnlock() {
               </a>
             }
           />
-          <RuleTable rows={LOTTIE_ROWS} labelWidth={220} />
+          <RuleTable rows={LOTTIE_ROWS} labelWidth={220} bare />
         </DocCard>
-        <div style={{ height: 8 }} />
+        <div style={{ height: 16 }} />
         <DocCard>
           <CardHeader
             label="Lottie asset"
@@ -389,7 +389,7 @@ export default function LockUnlock() {
               </a>
             }
           />
-          <RuleTable rows={TOGGLE_ROWS} labelWidth={220} />
+          <RuleTable rows={TOGGLE_ROWS} labelWidth={220} bare />
         </DocCard>
 
         <div style={{ marginTop: 12 }}>

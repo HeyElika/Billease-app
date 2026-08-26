@@ -5,12 +5,13 @@
  * to each other and to the component docs pages.
  */
 
+import { Fragment } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 
 export function DocSection({ id, title, children }) {
   return (
-    <section id={id} style={{ marginBottom: 48 }}>
-      <h2 style={{ fontFamily: 'var(--font-family)', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 16px' }}>
+    <section id={id} style={{ marginBottom: 72 }}>
+      <h2 style={{ fontFamily: 'var(--font-family)', fontSize: 20, fontWeight: 700, color: 'var(--text-base)', margin: '0 0 20px' }}>
         {title}
       </h2>
       {children}
@@ -156,9 +157,16 @@ function RefreshIcon({ size = 16 }) {
   )
 }
 
-export function RuleTable({ rows, labelWidth = 240 }) {
+/**
+ * Two-column table of rule name and description.
+ *
+ * Wraps itself in a DocCard by default. Pass `bare` when it already sits inside
+ * one, or the two borders and radii stack and show as a doubled edge.
+ */
+export function RuleTable({ rows, labelWidth = 240, bare = false }) {
+  const Wrap = bare ? Fragment : DocCard
   return (
-    <DocCard>
+    <Wrap>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
           {rows.map((row, i, arr) => (
@@ -169,7 +177,7 @@ export function RuleTable({ rows, labelWidth = 240 }) {
           ))}
         </tbody>
       </table>
-    </DocCard>
+    </Wrap>
   )
 }
 
