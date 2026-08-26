@@ -73,7 +73,7 @@ const CARDS = [
     ],
   },
   {
-    id: 'virtual', kind: 'art', art: virtualArt, cloud: true, surface: 'light',
+    id: 'virtual', kind: 'art', art: virtualArt, cloud: true, surface: 'light', last4: '5764',
     tx: [
       { merchant: 'FreshMart Grocery',    meta: 'Credit line • Card 5764 • Purchase • 16:29', amount: '- ₱200.00', failed: true },
       { merchant: 'Ace Hardware & Home',  meta: 'Credit line • Card 5764 • Purchase • 11:09', amount: '- ₱154.00' },
@@ -152,7 +152,7 @@ function AddCard() {
 // ─── Below the carousel ───────────────────────────────────────────────────────
 // access-card/menu/item (14108:666) and transaction-widget (49002:20669).
 
-function MenuItem({ icon, label, onClick }) {
+function MenuItem({ icon, label, onClick, disabled }) {
   return (
     <div style={{
       width: 100, height: 78,
@@ -162,21 +162,50 @@ function MenuItem({ icon, label, onClick }) {
       <button
         type="button"
         onClick={onClick}
+        disabled={disabled}
         style={{
           width: 50, height: 50, borderRadius: 12, border: 'none', padding: 0,
           backgroundColor: 'var(--bg-subtle)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: onClick ? 'pointer' : 'default',
+          cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
         }}
       >
         {icon}
       </button>
       <span style={{
         width: 100, textAlign: 'center', fontFamily: 'var(--ds-font-family)',
-        fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)',
+        fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5,
+        color: disabled ? 'var(--text-disabled)' : 'var(--text-base)',
       }}>
         {label}
       </span>
+    </div>
+  )
+}
+
+/**
+ * The locked card's warning. Built inline rather than with the DS Alert because
+ * that component's warning variant uses bg/warning-subtle, while these screens
+ * use bg/warning-bold.
+ */
+function LockedAlert({ last4 }) {
+  return (
+    <div style={{
+      width: 320, boxSizing: 'border-box',
+      backgroundColor: 'var(--bg-warning-bold)',
+      borderRadius: 12,
+      padding: 'var(--space-400)',
+      display: 'flex', alignItems: 'center', gap: 'var(--space-300)',
+      fontFamily: 'var(--ds-font-family)',
+    }}>
+      <div style={{ display: 'flex', flex: '1 0 0', minWidth: 0, gap: 'var(--space-200)', alignItems: 'flex-start' }}>
+        <span style={{ width: 20, height: 20, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2, boxSizing: 'border-box' }}>
+          <BilleaseIcon name="status-warning" size="xs" color="var(--icon-warning-bold)" />
+        </span>
+        <p style={{ margin: 0, flex: '1 0 0', minWidth: 0, fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>
+          Your card ending in •• {last4} cannot be used for in-store purchases while being locked.
+        </p>
+      </div>
     </div>
   )
 }
@@ -406,7 +435,11 @@ function CardCarouselDemo() {
           {CARDS[active].kind !== 'add' && (
             <>
               <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <MenuItem label="View details" icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />} />
+                <MenuItem
+                  label="View details"
+                  disabled={isLocked(activeCard.id)}
+                  icon={<BilleaseIcon name="show" size="sm" color={isLocked(activeCard.id) ? 'var(--icon-disabled)' : 'var(--icon-base)'} />}
+                />
                 <MenuItem
                   label={isLocked(activeCard.id) ? 'Unlock' : 'Lock'}
                   icon={<LockGlyph color="var(--icon-base)" />}
@@ -414,6 +447,7 @@ function CardCarouselDemo() {
                 />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
               </div>
+              {isLocked(activeCard.id) && <LockedAlert last4={activeCard.last4} />}
               <TransactionWidget card={CARDS[active]} />
             </>
           )}
@@ -476,7 +510,7 @@ const STATE_ROWS = [
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag and returns to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
-  ['Locked',        'The card blurs and carries a lock with Card locked. Lock is per card, so a locked card stays locked as others are swiped past. The lock and label take that card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face.'],
+  ['Locked',        'The card blurs and carries a lock with Card locked, View details is disabled, and a warning names the card that cannot be used. Lock is per card, so a locked card stays locked as others are swiped past. The lock and label take that card\'s own on-surface colours: on-dark on the physical face, icon/base and text/base on the light virtual face.'],
 ]
 
 const ACCESSIBILITY_RULES = [
