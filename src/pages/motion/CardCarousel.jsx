@@ -325,6 +325,10 @@ function CardCarouselDemo() {
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
   const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
 
+  // What the transactions answer to: the selection, but only once the card has
+  // actually arrived. The carousel moves alone until then.
+  const [settled, setSettled] = useState(active)
+
   const startX = useRef(0)
   const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
   const moved = useRef(0)
@@ -332,6 +336,12 @@ function CardCarouselDemo() {
   const trackRef = useRef(null)
 
   const last = CARDS.length - 1
+
+  /** The card landing is what releases the content. Nothing is timed against it. */
+  const onCardSettled = (e) => {
+    if (e.propertyName !== 'transform') return
+    setSettled(active)
+  }
 
   /** Where the track actually is right now, mid-settle included. */
   const currentOffset = () => {
@@ -429,6 +439,7 @@ function CardCarouselDemo() {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
+          onTransitionEnd={onCardSettled}
           style={{
             position: 'relative',
             width: STAGE.w,
@@ -516,7 +527,7 @@ function CardCarouselDemo() {
               <TransactionsHeading />
               <div>
                 <TransactionsDate />
-                <ContextualContent value={active} skeleton={<TransactionsSkeleton />}>
+                <ContextualContent value={settled} skeleton={<TransactionsSkeleton />}>
                   {card => <TransactionRows card={CARDS[card]} />}
                 </ContextualContent>
                 <TransactionsFooter />
@@ -552,22 +563,24 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected, the dots stay put and the transactions are untouched. Which card is selected, and which list is the one being read, is settled on release.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
-  ['The card leads, the content follows',
-   `The carousel owns the selection and the transactions answer to it. The card snaps into place with the screen to itself for ${TX.holdMs}ms, then the current rows fade out over ${TX.exitMs}ms, the data is replaced once they are hidden, and the new rows fade in over ${TX.enterMs}ms. One movement in two parts, not two animations racing each other.`],
-  ['The hold is what makes it read as following',
-   `${TX.holdMs}ms of the card moving alone. Start the rows on the same frame as the card and the two compete; let the card get clear first and the content plainly comes after it, which is the actual relationship between them.`],
+  ['The card arrives first, alone',
+   'The rows do not move while the card does. The carousel has the screen to itself from the first frame of the drag to the last frame of the settle, so there is only ever one thing to watch and it is the thing being handled.'],
+  ['Then a hold, then the change',
+   `${TX.holdMs}ms after the card has come to rest, the transactions change. The pause is what makes it read as an answer: the selection is plainly made, and then the content that depends on it quietly updates.`],
+  ['The two sets cross, they never take turns',
+   `The old rows and the new ones fade through each other over ${TX.fadeMs}ms, so there is no frame with an empty section. Fading one out, waiting, then fading the other in reads as a reload, whatever the durations are.`],
   ['The rows do not respond to the drag at all',
    'They answer for the committed selection, and through a gesture nothing has been committed. Nothing is interpolated towards the incoming list, and a drag that snaps back plays nothing, because there was never anything to undo.'],
   ['The frame of the section never moves',
    'The action row, the heading, the date the rows are grouped under and the footer all hold their place. What changes is the rows, which is the only part that actually belongs to one card. The action row is the same on every card, so it is never faded out and back in: where cards differ, the control changes its label or its state in place.'],
-  ['Only one set of rows is ever visible',
-   'The old rows are fully hidden before the data changes. Nothing is read through anything else, no line of text is replaced under the eye, and there is only ever one answer on the screen to the question the carousel is asking.'],
+  ['Opacity carries all of it',
+   'Nothing translates. The rows are not arriving from anywhere: the same container is showing different data, and a slide would say otherwise.'],
   ['It is one block, not a set of rows',
    'One movement over the whole list, no stagger and no per-row animation. This runs every time somebody browses their cards, so it has to stay fast and unremarkable.'],
   ['Opacity carries it, movement only nudges',
    `${TX.shift}px. Enough to give the change a direction, far too little to read as anything arriving from elsewhere.`],
-  ['The height moves while the section is empty',
-   `The incoming rows are measured out of sight during the fade out, so the section eases to its new height over ${TX.heightMs}ms while there is nothing in it. Sizing on the swap instead is what makes a handover step: the box jumps, then the content arrives into it.`],
+  ['The height moves with the crossfade',
+   `Both sets are in the tree together, so a section that changes height eases over ${TX.heightMs}ms alongside the fade rather than stepping when one list replaces the other.`],
   ['Rapid swipes resolve to the last card',
    'A second change replaces both halves of the first rather than queueing behind it, so swiping A to B to C ends on C. Nothing is ever waiting its turn to play.'],
   ['Waiting for data keeps the shape',
@@ -599,19 +612,17 @@ const SPEC_ROWS = [
   ['Pattern',            'Contextual content transition, in src/motion'],
   ['What holds still',   'The section, the action row, the heading, the date and the footer'],
   ['What changes',       'The rows, as one block'],
-  ['Starts on',          'The commit, measured from the card settle beginning'],
-  ['Hold',               `${TX.holdMs}ms, the card moving alone before anything below it reacts`],
-  ['Rows out',           `${TX.holdMs} to ${TX.holdMs + TX.exitMs}ms, opacity 1 to 0 with translateY 0 to -${TX.shift}px, accelerate`],
-  ['Data swap',          `${TX.holdMs + TX.exitMs}ms, once the old rows are hidden`],
-  ['Rows in',            `${TX.holdMs + TX.exitMs} to ${TX.holdMs + TX.exitMs + TX.enterMs}ms, opacity 0 to 1 with translateY ${TX.shift}px to 0, decelerate`],
-  ['Overlap',            'None. One set of rows on screen at a time.'],
-  ['Height',             `${TX.holdMs} to ${TX.holdMs + TX.heightMs}ms, decelerate, measured from the incoming rows during the fade out`],
-  ['Accelerate',         ACCELERATE],
+  ['Starts on',          'The card settle finishing, not the commit and not the drag'],
+  ['Hold',               `${TX.holdMs}ms after the card has landed`],
+  ['Crossfade',          `${TX.fadeMs}ms, both directions at once, opacity only`],
+  ['Overlap',            'Full. The old rows are still on screen as the new ones come up, so the section is never empty.'],
+  ['Movement',           'None'],
+  ['Height',             `${TX.heightMs}ms decelerate, running with the crossfade so a taller list does not step`],
   ['Decelerate',         DECELERATE],
-  ['Against the settle', `The card runs 0 to ${SETTLE_COMMIT_MS}ms, so it is most of the way home before the rows start leaving, and they land at ${TX.holdMs + TX.exitMs + TX.enterMs}ms`],
+  ['Accelerate',         `${ACCELERATE}, used by the skeleton crossfade`],
+  ['End to end',         `${SETTLE_COMMIT_MS} + ${TX.holdMs} + ${TX.fadeMs}ms from the release, of which the transactions are the last ${TX.fadeMs}ms`],
   ['Stagger',            'None. One movement over the whole list.'],
   ['Not yet loaded',     `Skeleton loader in the shape of the rows, faded in over ${TX.skeletonMs}ms at the height the section already had, crossfading to the content over ${TX.crossfadeMs}ms when it arrives`],
-  ['Height change',      `${TX.heightMs}ms decelerate, only when the two lists differ in height`],
   ['Rows reduced motion', `${TX.reducedMs}ms opacity, no movement. The swap, the skeleton and the height all still happen.`],
   ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
@@ -619,7 +630,8 @@ const SPEC_ROWS = [
 const STATE_ROWS = [
   ['During drag',   'The current card stays selected, the dots are unchanged, and the transactions below are untouched. Only the cards move.'],
   ['Cancelled drag', 'The card snaps back and nothing else happens: no fade, no data change, no loading, no opacity reset. Only a committed change reaches the content.'],
-  ['Commit',        `The selected card and the dots update. The rows hold for ${TX.holdMs}ms, then fade out by ${TX.holdMs + TX.exitMs}ms, are replaced there, and are back in by ${TX.holdMs + TX.exitMs + TX.enterMs}ms.`],
+  ['Commit',        'The selected card and the dots update. The transactions do not move yet.'],
+  ['Settled',       `${TX.holdMs}ms after the card lands, the old and new rows cross over ${TX.fadeMs}ms.`],
   ['Waiting',       'Data not loaded yet: the section holds its height and shows the skeleton loader in the shape of the rows until it arrives.'],
   ['Snap back',     'Nothing changes. The track returns to the card it started on and the rows are never touched.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
@@ -634,8 +646,8 @@ const ACCESSIBILITY_RULES = [
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
-  ['Only one set of rows is ever readable',
-   'The list on its way out is hidden from assistive technology, and the data is not replaced until it has gone, so neither a reader nor an eye is asked to hold two sets of transactions at once.'],
+  ['Only the current rows are read',
+   'The list on its way out is hidden from assistive technology and taken out of the tab order for the 180ms it is fading, so the page never reads two sets of transactions even while both are on screen.'],
   ['Motion is never the explanation',
    'Under reduced motion the rows change with a 1ms opacity step and no movement at all. Which card you are looking at is told by the card, the dots and the content itself, never by the transition.'],
   ['Motion is never required',
@@ -656,8 +668,10 @@ const ENGINEERING_ROWS = [
    'The handover lives in src/motion as ContextualContent: give it the committed selection, a render function for the content, and optionally whether that content is loaded and a skeleton to stand in for it. Every carousel and picker with content hanging off a selection should use it rather than reimplementing the choreography, which is where the drift starts.'],
   ['Never drive it from drag position',
    'It takes a committed selection, not a gesture. Wiring it to drag progress is what produces two datasets on screen at once and content that changes for a swipe the user then cancelled.'],
-  ['Measure the incoming content before you show it',
-   'During the fade out, the incoming content is in the tree but out of sight, purely so the height has something to ease towards. Without it the section is sized on the swap, which steps: the box jumps and the new content arrives into it. Nothing about that copy is visible or reachable.'],
+  ['Wait for the parent to arrive',
+   'The pattern takes a settled selection, not a committed one. The carousel reports the card only when its transform transition ends, which is why nothing below it moves while it is still travelling. Feeding it the commit instead puts two animations on screen at once.'],
+  ['Both sets in the tree, one commit',
+   'The incoming content is mounted alongside the outgoing one, which is what lets them cross and gives the height something to ease between. Rendering them in sequence instead is what leaves a hole in the middle.'],
   ['Spring first, curve as fallback',
    'Settle with a spring that carries the release velocity through, so the motion continues the gesture rather than starting a new animation. Where spring physics are not available, a 250ms cubic-bezier(0.2, 0, 0, 1) is close enough. The demo on this page uses that fallback, since CSS cannot carry velocity into a transition.'],
   ['Distance and velocity, not one or the other',
@@ -686,10 +700,10 @@ export default function CardCarousel() {
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
-            The card leads and the transactions follow. Swipe, and the card has
-            the screen to itself for a moment before the rows fade out, the data
-            changes once they are hidden, and the new ones fade in. A drag that
-            snaps back changes nothing at all.
+            The card leads and the transactions follow. Swipe, let the card come
+            to rest, and a moment later the rows quietly cross to the new set.
+            Nothing below the carousel moves while the card is travelling, and a
+            drag that snaps back changes nothing at all.
           </Note>
         </div>
       </DocSection>
