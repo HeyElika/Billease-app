@@ -375,8 +375,11 @@ function CardCarouselDemo() {
           }}
         >
           {CARDS.map((card, i) => {
-            const offset = i - active
-            const slot = SLOTS[String(offset)]
+            // Slot relative to the centred card. Named apart from the drag
+            // offset below: both live in this scope and one shadowing the
+            // other silently stops the track following the finger.
+            const rel = i - active
+            const slot = SLOTS[String(rel)]
             if (!slot) return null
             return (
               <div
