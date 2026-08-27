@@ -6,23 +6,22 @@
  * leads and the dependent content follows:
  *
  *   selection committed
- *     → the parent starts moving
- *     → the current content fades out, 60ms behind it
- *     → the incoming content fades up through it as it goes
- *     → the height eases under both, so nothing steps
+ *     → the parent starts settling
+ *     → the current content fades out
+ *     → the data is replaced once it is fully hidden
+ *     → the new content fades in
  *
- * The two halves overlap. The outgoing content is under a tenth of its opacity
- * by the time the incoming one starts, so no line is ever read through another,
- * but there is no empty beat in the middle either: one dissolves into the next.
- * A hard sequence of out, then swap, then in, reads as a reload, which is the
- * thing this exists to avoid.
+ * Only one set of content is ever visible. What keeps that from stepping is the
+ * height: the incoming content is measured out of sight during the exit, so the
+ * section eases to its new size before anything appears in it, rather than
+ * jumping at the moment the data changes.
  *
  * It reacts to a committed selection, never to a gesture in progress. Pass the
  * value only once the parent has decided; a drag that is cancelled must never
  * reach this, and there is nothing here to undo if it does not.
  *
- * Interruption cancels, it never queues. A selection that changes again mid
- * handover replaces both halves, so swiping A to B to C ends on C.
+ * Interruption cancels, it never queues. What gets drawn is read at the moment
+ * the exit ends, so swiping A to B to C shows C and B is never drawn.
  *
  * Written for the card carousel's transactions and kept general, since account
  * pickers and the other carousels have the same parent-and-dependent shape.
@@ -35,20 +34,19 @@ const M = CONTEXTUAL_MOTION
 
 const CSS = `
   .cx-region { position: relative; transition: height ${M.heightMs}ms ${DECELERATE}; }
-  /* Whatever is on its way out, and any placeholder, sit over the region rather
-     than in it, so the incoming content is what the height is measured from and
-     there is nothing to reflow when they go. */
+  /* Anything that is not the content itself sits over the region rather than in
+     it: the placeholder, and the copy of the incoming content that exists only
+     to be measured. Neither can affect the layout it is being measured for. */
   .cx-over { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+  .cx-measure { visibility: hidden; }
 
-  /* Leaving drops fast and holds the tail, so it is out of the way before the
-     arrival starts rather than fading in step with it. */
   @keyframes cx-exit  { from { opacity: 1; } to { opacity: 0; transform: translateY(-${M.shift}px); } }
   @keyframes cx-enter { from { opacity: 0; transform: translateY(${M.shift}px); } to { opacity: 1; } }
   @keyframes cx-fade-in  { from { opacity: 0; } }
   @keyframes cx-fade-out { to   { opacity: 0; } }
 
-  .cx-exit  { animation: cx-exit  ${M.exitMs}ms ${DECELERATE} ${M.exitDelay}ms both; }
-  .cx-enter { animation: cx-enter ${M.enterMs}ms ${DECELERATE} ${M.enterDelay}ms both; }
+  .cx-exit  { animation: cx-exit  ${M.exitMs}ms ${ACCELERATE} both; }
+  .cx-enter { animation: cx-enter ${M.enterMs}ms ${DECELERATE} both; }
   .cx-skeleton-in  { animation: cx-fade-in  ${M.skeletonMs}ms ${DECELERATE} both; }
   .cx-skeleton-out { animation: cx-fade-out ${M.crossfadeMs}ms ${ACCELERATE} both; }
   .cx-content-in   { animation: cx-fade-in  ${M.crossfadeMs}ms ${DECELERATE} both; }
@@ -75,33 +73,22 @@ const CSS = `
  * @param children  render function, called with the value to draw.
  */
 export default function ContextualContent({ value, ready = true, skeleton = null, children }) {
-  const [state, setState] = useState(() => ({
-    shown: value,
-    leaving: null,
-    entering: false,
-    placeholder: !ready,
-    turn: 0,
-  }))
-
-  // Adjusted during render rather than in an effect: the incoming content has
-  // to be in the tree on the same commit as the outgoing one, or the height has
-  // nothing to ease between and the section steps instead of moving.
-  if (state.shown !== value) {
-    setState(s => ({
-      shown: value,
-      leaving: { value: s.shown },   // replaces anything already on its way out
-      entering: true,
-      placeholder: !ready,
-      turn: s.turn + 1,
-    }))
-  }
-
-  const { shown, leaving, entering, placeholder, turn } = state
+  // `shown` trails `value` for as long as the outgoing content is still on
+  // screen. Everything else is derived from the two.
+  const [shown, setShown] = useState(value)
+  const [entering, setEntering] = useState(false)
+  // The placeholder outlives `ready` by one crossfade, so it can fade under the
+  // content rather than being cut.
+  const [placeholder, setPlaceholder] = useState(!ready)
 
   const regionRef = useRef(null)
   const contentRef = useRef(null)
+  const measureRef = useRef(null)
   const height = useRef(null)
 
+  // Exiting is not a state: it is the gap between what is selected and what is
+  // drawn. Nothing to reset, and nothing to get stuck in.
+  const exiting = value !== shown
   const waiting = placeholder && !ready      // data not there yet
   const arriving = placeholder && ready      // the crossfade out of the placeholder
 
@@ -109,10 +96,14 @@ export default function ContextualContent({ value, ready = true, skeleton = null
    * Height is a measurement, not a decision, so it is written to the node. It
    * is pinned to the old value, flushed and set to the new one, which is what
    * the transition runs between, then released so a stale number cannot clip.
+   *
+   * During the exit it is measured from the incoming content, which is in the
+   * tree but out of sight. That is the whole reason that copy exists: the
+   * section reaches its new size while it is empty, so nothing steps when the
+   * data is swapped in.
    */
   useLayoutEffect(() => {
     const region = regionRef.current
-    const content = contentRef.current
     if (!region) return
     // Waiting on data: hold the height the region already had. This is the one
     // thing that keeps the page from collapsing and springing back open.
@@ -120,9 +111,10 @@ export default function ContextualContent({ value, ready = true, skeleton = null
       if (height.current !== null) region.style.height = `${height.current}px`
       return
     }
-    if (!content) return
+    const source = exiting ? measureRef.current : contentRef.current
+    if (!source) return
     const from = height.current
-    const to = content.offsetHeight
+    const to = source.offsetHeight
     if (to > 0) height.current = to
     if (from === null || from === to || to === 0) {
       region.style.height = 'auto'
@@ -131,21 +123,24 @@ export default function ContextualContent({ value, ready = true, skeleton = null
     region.style.height = `${from}px`
     void region.offsetHeight      // flush, or the browser only sees the last value
     region.style.height = `${to}px`
-  }, [shown, placeholder, waiting])
+  }, [shown, exiting, placeholder, waiting])
 
-  const onLeft = (e) => {
+  const onExited = (e) => {
     if (e.target !== e.currentTarget) return
-    setState(s => ({ ...s, leaving: null }))
+    // Whatever is selected now, not what was selected when this started.
+    setShown(value)
+    setEntering(true)
+    setPlaceholder(!ready)
   }
 
-  const onArrived = (e) => {
+  const onEntered = (e) => {
     if (e.target !== e.currentTarget) return
-    setState(s => ({ ...s, entering: false }))
+    setEntering(false)
   }
 
   const onPlaceholderGone = (e) => {
     if (e.target !== e.currentTarget) return
-    setState(s => ({ ...s, placeholder: false }))
+    setPlaceholder(false)
   }
 
   return (
@@ -162,24 +157,26 @@ export default function ContextualContent({ value, ready = true, skeleton = null
       <style>{CSS}</style>
 
       <div
-        key={`cx-in-${turn}`}
+        key={`cx-${shown}`}
         ref={contentRef}
-        className={arriving ? 'cx-content-in' : entering ? 'cx-enter' : undefined}
+        className={
+          exiting ? 'cx-exit'
+            : arriving ? 'cx-content-in'
+              : entering ? 'cx-enter'
+                : undefined
+        }
         style={waiting ? { visibility: 'hidden' } : undefined}
-        aria-hidden={waiting ? 'true' : undefined}
-        onAnimationEnd={onArrived}
+        aria-hidden={exiting || waiting ? 'true' : undefined}
+        onAnimationEnd={exiting ? onExited : onEntered}
       >
         {children(shown)}
       </div>
 
-      {leaving && (
-        <div
-          key={`cx-out-${turn}`}
-          className="cx-over cx-exit"
-          aria-hidden="true"
-          onAnimationEnd={onLeft}
-        >
-          {children(leaving.value)}
+      {/* Measured, never seen: it gives the height somewhere to go while the
+          old content is still fading, so the swap lands at the right size. */}
+      {exiting && ready && (
+        <div ref={measureRef} className="cx-over cx-measure" aria-hidden="true">
+          {children(value)}
         </div>
       )}
 
