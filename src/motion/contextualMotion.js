@@ -14,19 +14,22 @@ export const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
  *   parent settle   0 ─────────────── 280
  *   hold            0 ─ 70
  *   old content         70 ───────── 270
- *   new content         70 ─────────────── 350
+ *   new content              130 ─────────────── 410
  *
  * The region is a clipped viewport, and what moves through it is each set of
  * content whole. Never the values inside it: a mask or a fade applied across
  * the content itself cuts through the rows, and a row that is half one card and
  * half another is worse than any transition is good.
  *
- * The arrival carries the movement. The set that is leaving barely moves and is
- * mostly gone by the time the new one is halfway in, so what you watch is the
- * incoming content sliding into place rather than two panels changing shifts.
+ * The arrival carries the movement, and it waits a beat before it begins. The
+ * old set is already on its way out when the new one starts arriving, so what
+ * you watch is the incoming content sliding into place rather than two panels
+ * changing shifts. The beat is short enough that the two still overlap and the
+ * region is never empty.
  */
 export const CONTEXTUAL_MOTION = {
   holdMs: 70,        // after the commit, before anything moves
+  enterDelay: 60,    // the arrival waits this long after the exit starts
   exitMs: 200,       // the old set, which mostly just goes
   enterMs: 280,      // the new set, which is the thing being watched
   exitShift: 12,     // px: enough to leave with, no more

@@ -57,7 +57,12 @@ const CSS = `
     will-change: transform, opacity;
   }
   .cx-out-next, .cx-out-prev { animation-duration: ${M.exitMs}ms; }
-  .cx-in-next,  .cx-in-prev  { animation-duration: ${M.enterMs}ms; }
+  /* The arrival waits a beat after the exit has started, so the new content is
+     seen to come in rather than to have been there all along. */
+  .cx-in-next,  .cx-in-prev  {
+    animation-duration: ${M.enterMs}ms;
+    animation-delay: ${M.holdMs + M.enterDelay}ms;
+  }
   .cx-out-next { animation-name: cx-out-next; }
   .cx-in-next  { animation-name: cx-in-next;  }
   .cx-out-prev { animation-name: cx-out-prev; }
