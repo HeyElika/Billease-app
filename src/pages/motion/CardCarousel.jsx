@@ -553,13 +553,13 @@ const BEHAVIOR_RULES = [
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
   ['The list moves as one piece',
-   `The transaction area is a clipped viewport. The whole of the old list glides ${TX.shift}px out of it as the whole of the new list glides ${TX.shift}px in, over ${TX.slideMs}ms, the two crossing through each other. Both are complete the entire time.`],
+   `The transaction area is a clipped viewport. The new list slides ${TX.enterShift}px into it over ${TX.enterMs}ms while the old one leaves by ${TX.exitShift}px over ${TX.exitMs}ms. Both are complete the entire time.`],
   ['Nothing inside a row is ever animated',
    'Not the merchant, not the amount, not the status, not the icon. Anything applied across the content instead of to the list as a whole cuts through the rows, and a row showing one card\u2019s merchant beside another card\u2019s amount is worse than any transition is good. Seeing part of two lists is fine. Seeing a hybrid of them is not.'],
   ['It goes the way the card went',
    `Swipe to the next card, right to left, and the old list leaves to the left while the new one comes in from the right. Swipe back and it mirrors.`],
-  ['The travel is a nudge, not a journey',
-   `${TX.shift}px against the card\u2019s 296px. Small enough that what you notice is the content having changed rather than an animation having run, which is the point: this is a change of context, not an event.`],
+  ['The arrival carries the movement',
+   `The set that is leaving barely moves, ${TX.exitShift}px, and is mostly gone by the time the new one is halfway in. What you watch is the incoming transactions sliding into place, not two panels changing shifts.`],
   ['A hold first, so the card is the thing that moved',
    `${TX.holdMs}ms between the commit and the lists moving. Long enough that the card is plainly leading, short enough that the two still read as one movement.`],
   ['The rows do not respond to the drag at all',
@@ -567,13 +567,13 @@ const BEHAVIOR_RULES = [
   ['The frame of the section never moves',
    'The action row, the heading, the date the rows are grouped under and the footer all hold their place. What changes is the rows, which is the only part that actually belongs to one card. The action row is the same on every card, so it is never faded out and back in: where cards differ, the control changes its label or its state in place.'],
   ['They cross, they do not take turns',
-   'The incoming list is already appearing while the outgoing one is still on its way out. The two are on screen together for most of it, which is what makes it a glide rather than a panel leaving and another arriving.'],
+   'Both start on the same frame, so the incoming list is already arriving while the outgoing one is still leaving. The region is never empty and there is no beat between the two.'],
   ['The clip is not an effect',
-   'The viewport is clipped only so nothing escapes the section while the lists move. It is never a visible edge, and there is no wipe: at 10px of travel there is nothing to see crossing the boundary.'],
+   'The viewport is clipped only so nothing escapes the section while the lists move. It is never a visible edge and there is no wipe: the boundary does nothing but contain.'],
   ['It is one block, not a set of rows',
    'One movement over the whole list, no stagger and no per-row animation. This runs every time somebody browses their cards, so it has to stay fast and unremarkable.'],
   ['Opacity carries it, movement only nudges',
-   `${TX.shift}px. Enough to give the change a direction, far too little to read as anything arriving from elsewhere.`],
+   `${TX.enterShift}px in, ${TX.exitShift}px out, against the card\u2019s 296px. Plainly a slide, and plainly a smaller one than the card\u2019s.`],
   ['The section does not resize while it runs',
    'It is held at whichever of the two lists is taller for as long as both are on screen, and released when the old one goes. Nothing about the height animates: a region growing under a transition reads as the page moving, which is the opposite of replacing content in place.'],
   ['Rapid swipes resolve to the last card',
@@ -609,14 +609,14 @@ const SPEC_ROWS = [
   ['What changes',       'The rows, as one block'],
   ['Starts on',          'The commit, not the drag'],
   ['Hold',               `${TX.holdMs}ms before anything moves`],
-  ['Glide',              `${TX.slideMs}ms, ${DECELERATE}, no spring and no overshoot`],
-  ['Outgoing list',      `translateX 0 to -${TX.shift}px going next, 0 to ${TX.shift}px going back, with opacity 1 to 0`],
-  ['Incoming list',      `translateX ${TX.shift}px to 0 going next, -${TX.shift}px to 0 going back, with opacity 0 to 1`],
+  ['Easing',             `${DECELERATE}, no spring and no overshoot`],
+  ['Outgoing list',      `${TX.exitMs}ms, translateX 0 to -${TX.exitShift}px going next and 0 to ${TX.exitShift}px going back, with opacity 1 to 0`],
+  ['Incoming list',      `${TX.enterMs}ms, translateX ${TX.enterShift}px to 0 going next and -${TX.enterShift}px to 0 going back, with opacity 0 to 1`],
   ['What is animated',   'The list, as one element. Never a row, a label, an amount, a status or an icon.'],
   ['Viewport',           'The transaction area, clipped so nothing escapes it. Never a visible edge, and never a wipe.'],
   ['Overlap',            'Full. Both lists run together, so the incoming one is appearing before the outgoing one has gone.'],
   ['Height',             'Not animated. Held at the taller of the two lists while both are on screen.'],
-  ['Against the settle', `The card runs 0 to ${SETTLE_COMMIT_MS}ms and the lists ${TX.holdMs} to ${TX.holdMs + TX.slideMs}ms, so the handover finishes just after the card comes to rest`],
+  ['Against the settle', `The card runs 0 to ${SETTLE_COMMIT_MS}ms and the new list ${TX.holdMs} to ${TX.holdMs + TX.enterMs}ms, so it is still arriving as the card comes to rest`],
   ['Stagger',            'None. One movement over the whole list.'],
   ['Not yet loaded',     `Skeleton loader in the shape of the rows, faded in over ${TX.skeletonMs}ms at the height the section already had, crossfading to the content over ${TX.crossfadeMs}ms when it arrives`],
   ['Rows reduced motion', `${TX.reducedMs}ms opacity, no movement. The swap, the skeleton and the height all still happen.`],
@@ -626,7 +626,7 @@ const SPEC_ROWS = [
 const STATE_ROWS = [
   ['During drag',   'The current card stays selected, the dots are unchanged, and the transactions below are untouched. Only the cards move.'],
   ['Cancelled drag', 'The card snaps back and nothing else happens: no fade, no data change, no loading, no opacity reset. Only a committed change reaches the content.'],
-  ['Commit',        `The selected card and the dots update, and ${TX.holdMs}ms later the old list glides ${TX.shift}px out of the transaction viewport as the new one glides in, over ${TX.slideMs}ms.`],
+  ['Commit',        `The selected card and the dots update, and ${TX.holdMs}ms later the new list slides into the transaction viewport over ${TX.enterMs}ms as the old one leaves.`],
   ['Waiting',       'Data not loaded yet: the section holds its height and shows the skeleton loader in the shape of the rows until it arrives.'],
   ['Snap back',     'Nothing changes. The track returns to the card it started on and the rows are never touched.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
@@ -698,10 +698,9 @@ export default function CardCarousel() {
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
             The card leads and the transactions follow. Swipe, and a moment
-            later the whole list glides a few pixels out of the transaction
-            viewport the same way the card went, as the next one glides in
-            through it. Both lists stay whole throughout, and a drag that snaps
-            back changes nothing at all.
+            later the new list slides into the transaction viewport the same way
+            the card went, as the old one leaves behind it. Both lists stay whole
+            throughout, and a drag that snaps back changes nothing at all.
           </Note>
         </div>
       </DocSection>

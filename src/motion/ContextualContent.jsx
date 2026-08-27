@@ -8,8 +8,8 @@
  *   selection committed
  *     → the parent starts settling
  *     → a short hold, so the parent is plainly the thing that moved
- *     → the old content moves out of a clipped viewport as the new one moves
- *       in, each of them whole
+ *     → the new content slides into a clipped viewport as the old one leaves,
+ *       each of them whole
  *
  * The region is the viewport and the content is what travels through it. That
  * distinction is the whole pattern: whatever is being handed over moves as one
@@ -44,19 +44,20 @@ const CSS = `
      the layout, and so neither can push the other around while they cross. */
   .cx-over { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
 
-  @keyframes cx-out-next { from { transform: none; opacity: 1; } to { transform: translateX(-${M.shift}px); opacity: 0; } }
-  @keyframes cx-in-next  { from { transform: translateX(${M.shift}px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes cx-out-prev { from { transform: none; opacity: 1; } to { transform: translateX(${M.shift}px); opacity: 0; } }
-  @keyframes cx-in-prev  { from { transform: translateX(-${M.shift}px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes cx-out-next { from { transform: none; opacity: 1; } to { transform: translateX(-${M.exitShift}px); opacity: 0; } }
+  @keyframes cx-in-next  { from { transform: translateX(${M.enterShift}px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes cx-out-prev { from { transform: none; opacity: 1; } to { transform: translateX(${M.exitShift}px); opacity: 0; } }
+  @keyframes cx-in-prev  { from { transform: translateX(-${M.enterShift}px); opacity: 0; } to { transform: none; opacity: 1; } }
 
   .cx-in-next, .cx-out-next, .cx-in-prev, .cx-out-prev {
-    animation-duration: ${M.slideMs}ms;
     animation-timing-function: ${DECELERATE};
     animation-delay: ${M.holdMs}ms;
     animation-fill-mode: both;
     /* The transform belongs to the whole set. Nothing inside it moves. */
     will-change: transform, opacity;
   }
+  .cx-out-next, .cx-out-prev { animation-duration: ${M.exitMs}ms; }
+  .cx-in-next,  .cx-in-prev  { animation-duration: ${M.enterMs}ms; }
   .cx-out-next { animation-name: cx-out-next; }
   .cx-in-next  { animation-name: cx-in-next;  }
   .cx-out-prev { animation-name: cx-out-prev; }

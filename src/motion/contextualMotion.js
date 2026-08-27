@@ -13,22 +13,24 @@ export const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
  *
  *   parent settle   0 ─────────────── 280
  *   hold            0 ─ 70
- *   glide               70 ───────────── 310
+ *   old content         70 ───────── 270
+ *   new content         70 ─────────────── 350
  *
  * The region is a clipped viewport, and what moves through it is each set of
  * content whole. Never the values inside it: a mask or a fade applied across
  * the content itself cuts through the rows, and a row that is half one card and
  * half another is worse than any transition is good.
  *
- * The travel is small on purpose. It is there to say the context changed, not
- * to be watched: at 10px the two sets read as one settling into the other
- * rather than as panels being exchanged. The clip is only there so nothing
- * escapes the section; it should never be visible as an edge.
+ * The arrival carries the movement. The set that is leaving barely moves and is
+ * mostly gone by the time the new one is halfway in, so what you watch is the
+ * incoming content sliding into place rather than two panels changing shifts.
  */
 export const CONTEXTUAL_MOTION = {
   holdMs: 70,        // after the commit, before anything moves
-  slideMs: 240,      // one set out, the other in, together
-  shift: 10,         // px each set travels: a nudge, not a journey
+  exitMs: 200,       // the old set, which mostly just goes
+  enterMs: 280,      // the new set, which is the thing being watched
+  exitShift: 12,     // px: enough to leave with, no more
+  enterShift: 40,    // px: a slide, not a nudge
   skeletonMs: 120,   // fading a placeholder in, when the data is not there yet
   crossfadeMs: 180,  // placeholder to content, once it arrives
   reducedMs: 1,
