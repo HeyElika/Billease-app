@@ -48,6 +48,13 @@ const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 
+// The transactions belong to the centred card, so they are re-read on every
+// commit. They fade up rather than cutting, which separates new content from
+// content that merely moved. Short enough to land with the card settling.
+const CONTENT_MS   = 200
+const CONTENT_RISE = 6      // px
+const CONTENT_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
+
 // Dots grow and recolour rather than swapping. Same standard curve as the settle.
 const DOT_MS   = 140
 const DOT_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
@@ -96,17 +103,46 @@ const CARDS = [
   { id: 'add', kind: 'add' },
 ]
 
+const CSS = `
+  @keyframes cc-content-in {
+    from { opacity: 0; transform: translateY(${CONTENT_RISE}px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .cc-content { animation: cc-content-in ${CONTENT_MS}ms ${CONTENT_EASE} both; }
+  /* Reduced motion keeps the fade and drops the rise: the content still reads
+     as replaced, without anything travelling. */
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes cc-content-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .cc-content { animation-duration: ${REDUCED_MS}ms; }
+  }
+`
+
 // ─── Card faces ───────────────────────────────────────────────────────────────
 
-function Dot() {
+/**
+ * The masked digits. Both the dots and the number take the card's own
+ * on-surface colours: white on the physical face, base on the light virtual
+ * one (I49002:20606;14839:3523 and I49002:20631;14839:3797). The card art is
+ * not always dark, so neither is the text on it.
+ */
+const SURFACE_INK = {
+  dark:  { text: 'var(--text-on-dark)', dot: 'var(--icon-on-dark)' },
+  light: { text: 'var(--text-base)',    dot: 'var(--icon-base)'    },
+}
+
+function Dot({ color }) {
   return (
     <span style={{ width: 8, height: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} aria-hidden="true">
-      <span style={{ width: 3.33, height: 3.33, borderRadius: '50%', backgroundColor: '#fff' }} />
+      <span style={{ width: 3.33, height: 3.33, borderRadius: '50%', backgroundColor: color }} />
     </span>
   )
 }
 
-function ArtCard({ art, last4, cloud }) {
+function ArtCard({ art, last4, cloud, surface = 'dark' }) {
+  const ink = SURFACE_INK[surface]
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', fontFamily: 'var(--ds-font-family)' }}>
       <img
@@ -132,10 +168,12 @@ function ArtCard({ art, last4, cloud }) {
           display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-end',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-100)' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center' }}><Dot /><Dot /></span>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <Dot color={ink.dot} /><Dot color={ink.dot} />
+            </span>
             <span style={{
               fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5,
-              color: 'var(--text-on-dark)', whiteSpace: 'nowrap',
+              color: ink.text, whiteSpace: 'nowrap',
             }}>
               {last4}
             </span>
@@ -360,6 +398,7 @@ function CardCarouselDemo() {
   return (
     <DemoCard label="Card carousel" stageStyle={{ padding: '24px 0 32px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+        <style>{CSS}</style>
         <div
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -401,7 +440,7 @@ function CardCarouselDemo() {
               >
                 {card.kind === 'add'
                   ? <AddCard />
-                  : <ArtCard art={card.art} last4={card.last4} cloud={card.cloud} />}
+                  : <ArtCard art={card.art} last4={card.last4} cloud={card.cloud} surface={card.surface} />}
               </div>
             )
           })}
@@ -435,7 +474,9 @@ function CardCarouselDemo() {
                 <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
                 <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
               </div>
-              <TransactionWidget card={CARDS[active]} />
+              <div key={CARDS[active].id} className="cc-content">
+                <TransactionWidget card={CARDS[active]} />
+              </div>
             </>
           )}
         </div>
@@ -467,6 +508,8 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected, the dots stay put and the content below does not switch. On a commit all three update, and they may start updating during the settle rather than waiting for it to finish.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
+  ['The content below fades in, it does not cut',
+   `When the centred card changes, the transactions belonging to it fade up over ${CONTENT_MS}ms with a ${CONTENT_RISE}px rise. The card travels, the content does not: it is replaced, and the fade is what says so. The action row is the same for every card and is left alone.`],
   ['Add card is a position, not an action',
    'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
   ['Gestures interrupt cleanly',
@@ -491,11 +534,13 @@ const SPEC_ROWS = [
   ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
+  ['Content transition', `${CONTENT_MS}ms ${CONTENT_EASE}, opacity 0 to 1 with a ${CONTENT_RISE}px rise. Runs on the transactions only, on commit. Reduced motion keeps the fade at ${REDUCED_MS}ms and drops the rise.`],
+  ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
 
 const STATE_ROWS = [
   ['During drag',   'The current card stays selected. Dots and the content below are unchanged.'],
-  ['Commit',        'Selected card, dots and content all update. They may begin during the settle.'],
+  ['Commit',        `Selected card, dots and content all update. They may begin during the settle. The transactions fade up over ${CONTENT_MS}ms rather than appearing outright.`],
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
@@ -549,9 +594,10 @@ export default function CardCarousel() {
             Below 60px the card snaps back. At 60px or beyond, or on a
             high-velocity flick, the carousel commits to the adjacent card.
             Nothing eases while the pointer is down, and a new drag during a
-            settle takes over from where the track had reached. The content below
-            belongs to whichever card is centred. Lock the green card to see the
-            locked treatment take its colours from the card it sits on.
+            settle takes over from where the track had reached. Drag past either
+            end and the track gives a quarter of the distance, then bounces back.
+            The transactions below belong to whichever card is centred and fade
+            up as it changes.
           </Note>
         </div>
       </DocSection>
