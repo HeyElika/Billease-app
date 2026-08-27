@@ -48,10 +48,11 @@ const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 
-// The transactions belong to the centred card, so they are a second track that
-// moves with the first. One screen of transactions per card, and the two tracks
-// are linked by how far through the gesture they are rather than by pixels:
-// their pitches differ, so matching pixels would put them out of step.
+// What sits under the card belongs to the card, so it is a second track that
+// moves with the first: one screen per card, laid out in a row. The two tracks
+// are linked by how far through the gesture they are rather than by pixels,
+// because their pitches differ. Nothing is mounted or unmounted as the
+// selection changes, so there is no reflow for the settle to jump through.
 const CARD_PITCH    = 296        // card centre to card centre
 const CONTENT_PITCH = 360        // one screen of content per card
 const CONTENT_INSET = 20         // the widget's own margin inside the screen
@@ -452,52 +453,47 @@ function CardCarouselDemo() {
         </div>
 
         {/* Everything below follows the centred card. */}
-        <div style={{ width: STAGE.w, display: 'flex', flexDirection: 'column', gap: 'var(--space-700)', marginTop: 'var(--space-700)' }}>
-          {CARDS[active].kind !== 'add' && (
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <MenuItem
-                label="View details"
-                icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
-              />
-              <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
-              <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
-            </div>
-          )}
-
-          {/* The transactions are a second track. It carries the same gesture as
-              the card row, so the list for the next card is already on its way in
-              while that card is still being dragged. */}
-          <div style={{ width: STAGE.w, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ width: STAGE.w, marginTop: 'var(--space-700)' }}>
+          {/* Everything under the card is one screen per card, laid out in a row
+              and moved by the same gesture as the card track. Nothing is added or
+              removed as the selection changes: only the offset moves, so there is
+              no reflow to jump through. */}
+          <div style={{ width: STAGE.w, overflow: 'hidden' }}>
             <div
               style={{
-                position: 'relative',
-                transform: `translateX(${contentOffset}px)`,
+                display: 'flex',
+                alignItems: 'flex-start',
+                width: CARDS.length * CONTENT_PITCH,
+                transform: `translateX(${-active * CONTENT_PITCH + contentOffset}px)`,
                 // Settles with the card, on the same duration and curve.
                 transition: dragging ? 'none' : `transform ${settleMs}ms ${settleEase}`,
                 willChange: 'transform',
               }}
             >
-              {/* The centred card's list stays in the flow, so it sets the height. */}
-              <div style={{ padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box' }}>
-                <TransactionWidget card={CARDS[active]} />
-              </div>
-              {/* The neighbours ride alongside, one screen apart. */}
-              {CARDS.map((card, i) => {
-                const rel = i - active
-                if (rel === 0 || !card.tx) return null
-                return (
-                  <div
-                    key={card.id}
-                    aria-hidden="true"
-                    style={{
-                      position: 'absolute', top: 0, left: rel * CONTENT_PITCH,
-                      width: CONTENT_PITCH, padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box',
-                    }}
-                  >
-                    <TransactionWidget card={card} />
-                  </div>
-                )
-              })}
+              {CARDS.map((card, i) => (
+                <div
+                  key={card.id}
+                  aria-hidden={i === active ? undefined : 'true'}
+                  inert={i === active ? undefined : true}
+                  style={{
+                    width: CONTENT_PITCH, flexShrink: 0, boxSizing: 'border-box',
+                    padding: `0 ${CONTENT_INSET}px`,
+                    display: 'flex', flexDirection: 'column', gap: 'var(--space-700)',
+                  }}
+                >
+                  {card.kind !== 'add' && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <MenuItem
+                        label="View details"
+                        icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
+                      />
+                      <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
+                      <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
+                    </div>
+                  )}
+                  <TransactionWidget card={card} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -529,8 +525,10 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected and the dots stay put. The transactions move with the gesture, but moving is not switching: which card is selected, and which list is the one being read, is settled on release.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
-  ['The transactions are a second track',
-   'The list belongs to the card, so it travels with it. Dragging moves both tracks at once: the next card\u2019s transactions are already coming in from the same side as the card itself, and the current ones are on their way out. The list is never dropped and re-added, it is carried.'],
+  ['Everything under the card is a second track',
+   'The action row and the transactions belong to the card, so they travel with it as one screen per card. Dragging moves both tracks at once: the next card\u2019s content is already coming in from the same side as the card itself while the current content is on its way out. Nothing is dropped and re-added, it is carried.'],
+  ['Nothing is added or removed mid-gesture',
+   'Every card\u2019s screen of content is laid out from the start and only the offset moves. Mounting the incoming content on commit, or unmounting the outgoing content, reflows the page underneath the settle and shows as a jump.'],
   ['The tracks are linked by progress, not by pixels',
    `A card moves ${CARD_PITCH}px from one position to the next and a screen of content moves ${CONTENT_PITCH}px, so matching them pixel for pixel would put them out of step by the end of the gesture. The content covers the same fraction of its travel as the card covers of its own, which is ${CONTENT_RATIO.toFixed(2)}x the drag.`],
   ['The content settles with the card',
@@ -563,6 +561,7 @@ const SPEC_ROWS = [
   ['Content pitch',      `${CONTENT_PITCH}px, one screen of transactions per card, ${CONTENT_INSET}px inset either side`],
   ['Content tracking',   `${CONTENT_RATIO.toFixed(3)}x the drag, so both tracks are the same fraction through their own travel`],
   ['Content settle',     'The card\u2019s own duration and curve, whichever applies to that release'],
+  ['Content mounting',   'All screens are laid out up front. Only the track offset changes, so a commit never reflows the content.'],
   ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
 
@@ -571,7 +570,7 @@ const STATE_ROWS = [
   ['Commit',        'The selected card and the dots update, and both tracks settle onto the new position on the same curve.'],
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
-  ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
+  ['Add card',      'The dashed placeholder centred, over an empty screen: no action row and no transactions, because there is nothing to act on yet. The region keeps its height, so arriving at the add card does not pull the page up.'],
   ['Locked',        'A locked card keeps its slot and still swipes. Lock is held per card, so it stays locked as others move past. The treatment itself is documented under Lock and unlock.'],
 ]
 
@@ -582,8 +581,8 @@ const ACCESSIBILITY_RULES = [
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
-  ['Only the centred list is exposed',
-   'The neighbouring transactions ride alongside so they can be seen coming in, but they are hidden from assistive technology. Only the list belonging to the centred card is readable, or the same screen reads three sets of transactions at once.'],
+  ['Only the centred screen is exposed',
+   'The neighbouring content rides alongside so it can be seen coming in, but it is hidden from assistive technology and taken out of the tab order. Only the screen belonging to the centred card is reachable, or the page reads three sets of transactions and three action rows at once.'],
   ['Motion is never required',
    'Which card is chosen is carried by the content below it, not by having seen the track move.'],
 ]
