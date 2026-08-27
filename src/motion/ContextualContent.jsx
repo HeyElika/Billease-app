@@ -8,13 +8,18 @@
  *   selection committed
  *     → the parent starts settling
  *     → a short hold, so the parent is plainly the thing that moved
- *     → a soft-edged mask crosses the region the same way the parent went,
- *       taking the old content off behind it and leaving the new one in place
+ *     → the old content moves out of a clipped viewport as the new one moves
+ *       in, each of them whole
  *
- * It is a replacement, not a fade. Both sets are on screen for the whole of it,
- * each carrying half of the same mask, so the region is full from the first
- * frame to the last. Nothing is ever seen to empty and refill, which is what
- * makes a dependent region look like it reloaded.
+ * The region is the viewport and the content is what travels through it. That
+ * distinction is the whole pattern: whatever is being handed over moves as one
+ * piece, and nothing is ever applied across the content itself. A mask or a
+ * fade laid over the content cuts through its rows, and a row showing one
+ * selection's label beside another's value is worse than any transition is
+ * good.
+ *
+ * Both sets are present for the handover, so the region is never empty. Seeing
+ * part of each is fine. Seeing a hybrid of the two is not.
  *
  * It reacts to a committed selection, never to a gesture in progress. Pass the
  * value only once the parent has decided; a drag that is cancelled must never
@@ -32,53 +37,30 @@ import { ACCELERATE, DECELERATE, CONTEXTUAL_MOTION } from './contextualMotion'
 
 const M = CONTEXTUAL_MOTION
 
-/**
- * The mask is twice the width of the region and slides across it. One half is
- * opaque, the other transparent, with ${M.feather * 2}px of gradient between them: that
- * soft edge is the difference between a replacement and a wipe.
- *
- * The two sets carry mirrored masks, so wherever one is hidden the other is
- * shown and the region is covered at every instant.
- */
-const EDGE = (dir) => `linear-gradient(to ${dir}, #000 calc(50% - ${M.feather}px), transparent calc(50% + ${M.feather}px))`
-
-const MASKED = (image) => `
-    -webkit-mask-image: ${image};
-            mask-image: ${image};
-    -webkit-mask-size: 200% 100%;
-            mask-size: 200% 100%;
-    -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-`
-
 const CSS = `
-  .cx-region { position: relative; }
-  /* Whatever is on its way out, and any placeholder, sit over the region rather
-     than in it, so the incoming content is what holds the layout. */
+  /* The viewport. Everything that happens, happens inside it. */
+  .cx-region { position: relative; overflow: hidden; }
+  /* The set on its way out is taken out of the flow so the incoming one holds
+     the layout, and so neither can push the other around while they cross. */
   .cx-over { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
 
-  @keyframes cx-wipe-fwd {
-    from { -webkit-mask-position: 0% 0;   mask-position: 0% 0;   }
-    to   { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
-  }
-  @keyframes cx-wipe-back {
-    from { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
-    to   { -webkit-mask-position: 0% 0;   mask-position: 0% 0;   }
-  }
+  @keyframes cx-out-next { from { transform: none; opacity: 1; } to { transform: translateX(-${M.shift}px); opacity: 0; } }
+  @keyframes cx-in-next  { from { transform: translateX(${M.shift}px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes cx-out-prev { from { transform: none; opacity: 1; } to { transform: translateX(${M.shift}px); opacity: 0; } }
+  @keyframes cx-in-prev  { from { transform: translateX(-${M.shift}px); opacity: 0; } to { transform: none; opacity: 1; } }
 
   .cx-in-next, .cx-out-next, .cx-in-prev, .cx-out-prev {
-    animation-duration: ${M.wipeMs}ms;
+    animation-duration: ${M.slideMs}ms;
     animation-timing-function: ${DECELERATE};
     animation-delay: ${M.holdMs}ms;
     animation-fill-mode: both;
+    /* The transform belongs to the whole set. Nothing inside it moves. */
+    will-change: transform, opacity;
   }
-  /* Next: the card went right to left, so the edge does too. The new content is
-     uncovered from the right as the old one is covered from the right. */
-  .cx-in-next  { animation-name: cx-wipe-fwd;  ${MASKED(EDGE('left'))} }
-  .cx-out-next { animation-name: cx-wipe-fwd;  ${MASKED(EDGE('right'))} }
-  /* Previous mirrors it. */
-  .cx-in-prev  { animation-name: cx-wipe-back; ${MASKED(EDGE('right'))} }
-  .cx-out-prev { animation-name: cx-wipe-back; ${MASKED(EDGE('left'))} }
+  .cx-out-next { animation-name: cx-out-next; }
+  .cx-in-next  { animation-name: cx-in-next;  }
+  .cx-out-prev { animation-name: cx-out-prev; }
+  .cx-in-prev  { animation-name: cx-in-prev;  }
 
   .cx-skeleton-in  { animation: cx-fade-in  ${M.skeletonMs}ms ${DECELERATE} both; }
   .cx-skeleton-out { animation: cx-fade-out ${M.crossfadeMs}ms ${ACCELERATE} both; }
@@ -89,18 +71,14 @@ const CSS = `
   /* Motion is never what tells you which selection you are looking at, so all
      of it can go: the content simply changes. */
   @media (prefers-reduced-motion: reduce) {
-    .cx-in-next, .cx-out-next, .cx-in-prev, .cx-out-prev {
-      animation-duration: ${M.reducedMs}ms;
-      animation-delay: 0ms;
-      -webkit-mask-image: none;
-              mask-image: none;
-    }
+    .cx-in-next, .cx-out-next, .cx-in-prev, .cx-out-prev,
     .cx-skeleton-in, .cx-skeleton-out, .cx-content-in {
       animation-duration: ${M.reducedMs}ms;
       animation-delay: 0ms;
     }
   }
 `
+
 
 /**
  * @param value     the committed selection. Changing it runs a handover.

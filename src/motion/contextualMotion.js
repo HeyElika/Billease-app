@@ -13,17 +13,17 @@ export const DECELERATE = 'cubic-bezier(0.05, 0.7, 0.1, 1)'
  *
  *   parent settle   0 ─────────────── 280
  *   hold            0 ─ 70
- *   mask                70 ───────────── 310
+ *   slide               70 ─────────── 290
  *
- * The content is not faded out and back in. A soft-edged mask travels across
- * the region in the direction the parent moved, taking the old content off
- * behind it and leaving the new content in its place, so the region is full
- * from the first frame to the last and nothing is ever seen to reload.
+ * The region is a clipped viewport, and what moves through it is each set of
+ * content whole. Never the values inside it: a mask or a fade applied across
+ * the content itself cuts through the rows, and a row that is half one card and
+ * half another is worse than any transition is good.
  */
 export const CONTEXTUAL_MOTION = {
-  holdMs: 70,        // after the commit, before the mask starts
-  wipeMs: 240,       // the mask crossing the region
-  feather: 10,       // px either side of the edge, so 20px of soft gradient
+  holdMs: 70,        // after the commit, before anything moves
+  slideMs: 220,      // one set out, the other in, together
+  shift: 20,         // px each set travels, in the direction the parent went
   skeletonMs: 120,   // fading a placeholder in, when the data is not there yet
   crossfadeMs: 180,  // placeholder to content, once it arrives
   reducedMs: 1,
