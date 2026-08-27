@@ -6,7 +6,7 @@
  * leads and the dependent content follows:
  *
  *   selection committed
- *     → the parent starts settling
+ *     → the parent starts settling, and moves alone for 100ms
  *     → the current content fades out
  *     → the data is replaced once it is fully hidden
  *     → the new content fades in
@@ -33,7 +33,7 @@ import { ACCELERATE, DECELERATE, CONTEXTUAL_MOTION } from './contextualMotion'
 const M = CONTEXTUAL_MOTION
 
 const CSS = `
-  .cx-region { position: relative; transition: height ${M.heightMs}ms ${DECELERATE}; }
+  .cx-region { position: relative; transition: height ${M.heightMs}ms ${DECELERATE} ${M.holdMs}ms; }
   /* Anything that is not the content itself sits over the region rather than in
      it: the placeholder, and the copy of the incoming content that exists only
      to be measured. Neither can affect the layout it is being measured for. */
@@ -45,7 +45,9 @@ const CSS = `
   @keyframes cx-fade-in  { from { opacity: 0; } }
   @keyframes cx-fade-out { to   { opacity: 0; } }
 
-  .cx-exit  { animation: cx-exit  ${M.exitMs}ms ${ACCELERATE} both; }
+  /* The hold: the parent has the screen to itself for ${M.holdMs}ms before
+     anything below it reacts. */
+  .cx-exit  { animation: cx-exit  ${M.exitMs}ms ${ACCELERATE} ${M.holdMs}ms both; }
   .cx-enter { animation: cx-enter ${M.enterMs}ms ${DECELERATE} both; }
   .cx-skeleton-in  { animation: cx-fade-in  ${M.skeletonMs}ms ${DECELERATE} both; }
   .cx-skeleton-out { animation: cx-fade-out ${M.crossfadeMs}ms ${ACCELERATE} both; }
