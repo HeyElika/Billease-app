@@ -49,17 +49,19 @@ const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 
 // The transactions are dependent content, not part of the carousel: they answer
-// the question the carousel asks. So the section holds its place and crossfades
-// once the selection is settled, rather than travelling with the gesture. It is
-// quieter than the carousel on purpose, and secondary to it.
+// the question the carousel asks. The section stays exactly where it is and the
+// rows inside it refresh once the selection settles. Nothing here is a panel
+// arriving: the heading, the date and the footer never move, a row the new card
+// shares with the old one is not touched at all, and the area is never empty,
+// so there is nothing to read as a page being loaded.
 const CONTENT_INSET = 20         // the widget's own margin inside the screen
-const FADE_OUT_MS   = 100
-const FADE_IN_MS    = 140
-const FADE_MS       = FADE_OUT_MS + FADE_IN_MS     // 240, one region, no stagger
-const FADE_OUT_EASE = 'cubic-bezier(0.4, 0, 1, 1)' // accelerating away
-const FADE_IN_EASE  = 'cubic-bezier(0, 0, 0.2, 1)' // natural ease-out
-const HEIGHT_MS     = 200                          // only when the lists differ in height
-const FADE_REDUCED_MS = 60
+const ROW_MS        = 180
+const ROW_STAGGER   = 20         // per row, so the last one lands at 220ms
+const ROW_SHIFT     = 4          // px, the whole of the movement
+const ROW_EASE      = 'cubic-bezier(0, 0, 0.2, 1)'   // ease-out
+const ROW_DIM       = 0.4        // the two sets pass each other here
+const HEIGHT_MS     = 200        // only when the lists differ in height
+const ROW_REDUCED_MS = 60
 
 // Dots grow and recolour rather than swapping. Same standard curve as the settle.
 const DOT_MS   = 140
@@ -110,17 +112,34 @@ const CARDS = [
 ]
 
 const CSS = `
-  /* One region, one fade. Rows are never staggered: the list changes as a
-     single piece of content, which is what makes it read as dependent on the
-     card rather than as a list of its own. */
-  .cc-fade        { opacity: 1; transition: opacity ${FADE_IN_MS}ms ${FADE_IN_EASE}; }
-  .cc-fade.is-out { opacity: 0; transition: opacity ${FADE_OUT_MS}ms ${FADE_OUT_EASE}; }
-  /* Height is written from the measured list, so a longer or shorter one eases
-     instead of snapping. Equal lists never animate. */
-  .cc-fade-box    { overflow: hidden; transition: height ${HEIGHT_MS}ms ${FADE_IN_EASE}; }
+  /* Out and in run together, so the rows are never blank between them: the
+     outgoing set is still at ${ROW_DIM} while the incoming set is already past it.
+     Both move by the same ${ROW_SHIFT}px, which is small enough to read as a refresh
+     rather than as something arriving. */
+  @keyframes tx-row-out {
+    0%   { opacity: 1; transform: none; }
+    60%  { opacity: ${ROW_DIM}; }
+    100% { opacity: 0; transform: translateY(-${ROW_SHIFT}px); }
+  }
+  @keyframes tx-row-in {
+    from { opacity: ${ROW_DIM}; transform: translateY(${ROW_SHIFT}px); }
+    to   { opacity: 1; transform: none; }
+  }
+  /* The outgoing rows are lifted out of the flow and left exactly where they
+     were, so the incoming ones hold their final positions from the first frame
+     and a row that both cards share never moves. */
+  .tx-rows    { position: relative; transition: height ${HEIGHT_MS}ms ${ROW_EASE}; }
+  .tx-leaving { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+  .tx-row.is-out { animation: tx-row-out ${ROW_MS}ms ${ROW_EASE} both; }
+  .tx-row.is-in  { animation: tx-row-in  ${ROW_MS}ms ${ROW_EASE} both; }
   @media (prefers-reduced-motion: reduce) {
-    .cc-fade, .cc-fade.is-out { transition-duration: ${FADE_REDUCED_MS}ms; }
-    .cc-fade-box { transition: none; }
+    @keyframes tx-row-out { to { opacity: 0; } }
+    @keyframes tx-row-in  { from { opacity: ${ROW_DIM}; } }
+    .tx-row.is-out, .tx-row.is-in {
+      animation-duration: ${ROW_REDUCED_MS}ms;
+      animation-delay: 0ms !important;
+    }
+    .tx-rows { transition: none; }
   }
 `
 
@@ -286,19 +305,46 @@ function TransactionsHeading() {
   )
 }
 
-function TransactionList({ card }) {
-  if (!card.tx) return null
+/** The date the rows are grouped under. It names the group, so it holds still. */
+function TransactionsDate() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', borderRadius: 'var(--radius-lg)', fontFamily: 'var(--ds-font-family)' }}>
-      <div style={{ height: 28, display: 'flex', alignItems: 'center', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-200)', width: '100%' }}>
-        <span style={{ fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>Today</span>
-      </div>
-      {card.tx.map(tx => <TransactionItem key={tx.merchant} tx={tx} />)}
-      <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%' }}>
-        <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
-      </div>
+    <div style={{ height: 28, display: 'flex', alignItems: 'center', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-200)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
+      <span style={{ fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>Today</span>
     </div>
   )
+}
+
+function TransactionsFooter() {
+  return (
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
+      <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
+    </div>
+  )
+}
+
+/**
+ * The rows themselves. `state` is a map of merchant to 'in' or 'out'; anything
+ * missing from it is a row both cards have, and is left alone.
+ */
+function TransactionRows({ rows, state, hidden }) {
+  return rows.map((tx, i) => {
+    const phase = state?.[tx.merchant]
+    return (
+      <div
+        key={tx.merchant}
+        className={phase ? `tx-row is-${phase}` : 'tx-row'}
+        style={{
+          // Only the incoming rows are staggered, and barely.
+          animationDelay: phase === 'in' ? `${i * ROW_STAGGER}ms` : undefined,
+          // A shared row is already drawn by the list underneath; this copy only
+          // holds the space so the rows above it do not move.
+          visibility: hidden && !phase ? 'hidden' : undefined,
+        }}
+      >
+        <TransactionItem tx={tx} />
+      </div>
+    )
+  })
 }
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
@@ -310,10 +356,12 @@ function CardCarouselDemo() {
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
   const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
 
-  // The list on screen, which trails the selection: it is swapped while it is
-  // invisible, between the two halves of the fade.
+  // Which card's rows are on screen, plus the set of rows on their way out and
+  // the phase each row is in. Rows in neither set belong to both cards and are
+  // left where they are.
   const [shown, setShown] = useState(active)
-  const [fade, setFade] = useState('idle')   // idle | out | in
+  const [leaving, setLeaving] = useState(null)   // { rows, state } or null
+  const [phases, setPhases] = useState(null)     // merchant -> 'in'
   const boxRef = useRef(null)
   const listRef = useRef(null)
   const boxHeight = useRef(null)   // last measured list height
@@ -327,24 +375,37 @@ function CardCarouselDemo() {
   const last = CARDS.length - 1
 
   /**
-   * Start the handover. Calling it again while a fade is already running does
-   * nothing: the fade resolves against whichever card is active when the
-   * outgoing half ends, so rapid swipes land on the last one rather than
-   * queueing a transition each.
+   * Refresh the rows under the newly selected card.
+   *
+   * The new rows go in immediately, so the area is never empty and never waits
+   * on anything. The old ones are lifted out of the flow and fade where they
+   * stand. A row both cards have is in neither set: it is the same element in
+   * the same place and nothing is played on it.
+   *
+   * Called again mid-refresh it simply recomputes against what is on screen
+   * now, so rapid swipes leave one refresh, ending on the card you stopped at.
    */
-  const beginHandover = (to) => {
-    if (to !== shown) setFade('out')
+  const refreshRows = (to) => {
+    if (to === shown) return
+    const before = CARDS[shown].tx ?? []
+    const after = CARDS[to].tx ?? []
+    const beforeKeys = new Set(before.map(t => t.merchant))
+    const afterKeys = new Set(after.map(t => t.merchant))
+
+    const outgoing = before.filter(t => !afterKeys.has(t.merchant))
+    setLeaving(outgoing.length
+      ? { rows: before, state: Object.fromEntries(outgoing.map(t => [t.merchant, 'out'])) }
+      : null)
+    setPhases(Object.fromEntries(
+      after.filter(t => !beforeKeys.has(t.merchant)).map(t => [t.merchant, 'in'])
+    ))
+    setShown(to)
   }
 
-  /** The two halves are driven by the fade itself, so there are no timers. */
-  const onFadeEnd = (e) => {
-    if (e.propertyName !== 'opacity' || e.target !== e.currentTarget) return
-    if (fade === 'out') {
-      setShown(active)       // whichever card is active now, not when it started
-      setFade('in')
-    } else if (fade === 'in') {
-      setFade('idle')
-    }
+  /** The outgoing rows share a duration, so the first one to end ends them all. */
+  const onLeaveEnd = (e) => {
+    if (e.animationName && !e.animationName.includes('tx-row-out')) return
+    setLeaving(null)
   }
 
 
@@ -424,7 +485,7 @@ function CardCarouselDemo() {
         : atEdge ? EDGE_SPRING_MS
           : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS)
     )
-    beginHandover(next)
+    refreshRows(next)
     setActive(next)
     setOffset(0)
   }
@@ -434,7 +495,7 @@ function CardCarouselDemo() {
     if (Math.abs(moved.current) > TAP_SLOP) return
     setSettleEase(FALLBACK_EASE)
     setSettleMs(prefersReducedMotion() ? REDUCED_MS : SETTLE_COMMIT_MS)
-    beginHandover(index)
+    refreshRows(index)
     setActive(index)
   }
 
@@ -529,10 +590,8 @@ function CardCarouselDemo() {
           ))}
         </div>
 
-        {/* Below the card: the action row and the heading name what you are
-            looking at and are the same on every card, so they hold their place.
-            The list underneath is dependent content: it stays put too, and hands
-            over by fading once the selection has settled. */}
+        {/* Below the card: dependent content. The whole section is anchored,
+            and the rows inside it refresh once the selection has settled. */}
         <div style={{ width: STAGE.w, marginTop: 'var(--space-700)', padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box' }}>
           <div
             style={{
@@ -552,28 +611,33 @@ function CardCarouselDemo() {
               <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
               <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
             </div>
-            <TransactionsHeading />
-          </div>
-
-          {/* One list, in one place. The box carries the height so a longer or
-              shorter list eases rather than snapping the page. */}
-          <div
-            ref={boxRef}
-            className="cc-fade-box"
-            style={{ marginTop: 'var(--space-400)' }}
-            onTransitionEnd={e => {
-              // Released back to auto so a stale measurement cannot clip.
-              if (e.propertyName === 'height' && e.target === e.currentTarget) {
-                e.currentTarget.style.height = 'auto'
-              }
-            }}
-          >
-            <div
-              ref={listRef}
-              className={`cc-fade${fade === 'out' ? ' is-out' : ''}`}
-              onTransitionEnd={onFadeEnd}
-            >
-              <TransactionList card={CARDS[shown]} />
+            {/* The section is one structure that stays put. Only the rows in the
+                middle of it change, and only once the selection has settled. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-400)' }}>
+              <TransactionsHeading />
+              <div>
+                <TransactionsDate />
+                <div
+                  ref={boxRef}
+                  className="tx-rows"
+                  onTransitionEnd={e => {
+                    // Released back to auto so a stale measurement cannot clip.
+                    if (e.propertyName === 'height' && e.target === e.currentTarget) {
+                      e.currentTarget.style.height = 'auto'
+                    }
+                  }}
+                >
+                  <div ref={listRef}>
+                    <TransactionRows rows={CARDS[shown].tx ?? []} state={phases} />
+                  </div>
+                  {leaving && (
+                    <div className="tx-leaving" aria-hidden="true" onAnimationEnd={onLeaveEnd}>
+                      <TransactionRows rows={leaving.rows} state={leaving.state} hidden />
+                    </div>
+                  )}
+                </div>
+                <TransactionsFooter />
+              </div>
             </div>
           </div>
         </div>
@@ -606,17 +670,23 @@ const BEHAVIOR_RULES = [
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
   ['The transactions are dependent content, not part of the carousel',
-   'The carousel is the question and the list is the answer. It sits below in a fixed place and never slides sideways with the cards. Only one thing is being dragged, and it is the cards.'],
+   'The carousel is the question and the list is the answer. The section is anchored: it never slides sideways with the cards and it is never faded out as a layer. Only one thing is being dragged, and it is the cards.'],
+  ['The frame of the section never moves',
+   'The action row, the heading, the date the rows are grouped under and the footer all hold their place. What changes is the rows, which is the only part that actually belongs to one card.'],
   ['The list does not change during the drag',
-   'Through the gesture it keeps showing the card that is still selected. A drag that is snapped back changes nothing at all, so a list that had already started swapping would have to swap back.'],
-  ['It hands over once the selection settles',
-   `On a commit the list fades out over ${FADE_OUT_MS}ms, is replaced while nothing is visible, and the new one fades in over ${FADE_IN_MS}ms on a natural ease-out. ${FADE_MS}ms in total, quieter than the carousel and secondary to it.`],
-  ['The list changes as one region',
-   'One fade over the whole section. Rows are never staggered or animated one by one: staggering would make the list the subject, when the card is the subject and the list is what follows from it.'],
+   'Through the gesture it keeps showing the card that is still selected. A drag that is snapped back changes nothing at all, so rows that had already started changing would have to change back.'],
+  ['Rows refresh in place once the selection settles',
+   `On a commit the new rows take their final positions at once and rise the last ${ROW_SHIFT}px into them from ${ROW_DIM} opacity, while the rows they replace lift the same ${ROW_SHIFT}px and fade away. ${ROW_MS}ms on an ease-out. Both are on screen throughout, so the area never passes through empty.`],
+  ['A row the two cards share is not touched',
+   'Rows are matched between the old list and the new one. Anything present in both keeps its element and its position and plays nothing at all, so a refresh only moves what actually changed.'],
+  ['The movement is small enough to read as a refresh',
+   `${ROW_SHIFT}px, and never a full fade from nothing. Larger movement or a fade from zero would read as a panel arriving, which is the wrong story: the data is being updated under the card, not replaced by another screen.`],
+  ['Stagger stays under the threshold of noticing',
+   `${ROW_STAGGER}ms between rows, so the last of three lands ${2 * ROW_STAGGER}ms after the first. Enough to keep the rows from moving as one slab, not enough to read as a sequence.`],
   ['Height eases, it does not snap',
    `A longer or shorter list takes the section to its new height over ${HEIGHT_MS}ms rather than jumping, so nothing below it is thrown down the page. Lists of the same length never animate.`],
   ['Rapid swipes resolve to the last card',
-   'A second commit during a handover does not queue a second one. The fade resolves against whichever card is selected when the outgoing half ends, so three quick swipes give one handover, to the card you finished on.'],
+   'A second commit during a refresh does not queue another. It recomputes against what is on screen at that moment, so three quick swipes leave one refresh, ending on the card you stopped at.'],
   ['Add card is a position, not an action',
    'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
   ['Gestures interrupt cleanly',
@@ -641,22 +711,24 @@ const SPEC_ROWS = [
   ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
-  ['What holds still',   'The section itself, the action row and the heading. Nothing below the carousel translates.'],
-  ['List fade out',      `${FADE_OUT_MS}ms ${FADE_OUT_EASE}`],
-  ['List fade in',       `${FADE_IN_MS}ms ${FADE_IN_EASE}, a natural ease-out`],
-  ['List handover',      `${FADE_MS}ms in total, starting on the commit. The swap happens between the halves, while nothing is visible.`],
-  ['Height change',      `${HEIGHT_MS}ms ${FADE_IN_EASE}, only when the two lists differ in height`],
-  ['List reduced motion', `${FADE_REDUCED_MS}ms each way, and the height change is dropped`],
-  ['Stagger',            'None. The list is one region.'],
+  ['What holds still',   'The section, the action row, the heading, the date and the footer. Nothing below the carousel translates.'],
+  ['What changes',       'The rows, and only those that differ between the two cards'],
+  ['Outgoing rows',      `Opacity 1 to ${ROW_DIM} and away, ${ROW_SHIFT}px up, ${ROW_MS}ms ${ROW_EASE}`],
+  ['Incoming rows',      `Opacity ${ROW_DIM} to 1, ${ROW_SHIFT}px up into place, ${ROW_MS}ms ${ROW_EASE}`],
+  ['Overlap',            'Full. Both sets run together, so the area is never blank.'],
+  ['Stagger',            `${ROW_STAGGER}ms per row on the incoming set only, so a three-row list is done at ${ROW_MS + 2 * ROW_STAGGER}ms`],
+  ['Shared rows',        'Untouched. Same element, same position, no animation.'],
+  ['Height change',      `${HEIGHT_MS}ms ${ROW_EASE}, only when the two lists differ in height`],
+  ['Rows reduced motion', `${ROW_REDUCED_MS}ms, opacity only, no movement and no stagger`],
   ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
 
 const STATE_ROWS = [
   ['During drag',   'The current card stays selected, the dots are unchanged, and the transactions below are untouched. Only the cards move.'],
-  ['Commit',        `The selected card and the dots update. The list hands over in place: out, replaced, in, ${FADE_MS}ms end to end.`],
-  ['Snap back',     'Nothing changes. The track returns to the card it started on and the list is never touched.'],
+  ['Commit',        `The selected card and the dots update, and the rows refresh in place: what changed lifts ${ROW_SHIFT}px away as what replaces it rises ${ROW_SHIFT}px into position, ${ROW_MS}ms.`],
+  ['Snap back',     'Nothing changes. The track returns to the card it started on and the rows are never touched.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
-  ['Add card',      'The dashed placeholder centred, with nothing below it: there is nothing to act on yet, so the action row and the heading fade out on the settle and the list hands over to an empty one.'],
+  ['Add card',      'The dashed placeholder centred, with nothing below it: there is nothing to act on yet, so the whole section fades out on the settle as its rows leave.'],
   ['Locked',        'A locked card keeps its slot and still swipes. Lock is held per card, so it stays locked as others move past. The treatment itself is documented under Lock and unlock.'],
 ]
 
@@ -667,8 +739,8 @@ const ACCESSIBILITY_RULES = [
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
-  ['One list is on the page at a time',
-   'The transactions are replaced in place rather than kept alongside, so nothing hidden sits in the tab order and the page never carries two sets of transactions at once.'],
+  ['Only the current rows are read',
+   'The rows on their way out are hidden from assistive technology while they fade, so the page never reads two sets of transactions at once. Nothing hidden is left in the tab order.'],
   ['Motion is never required',
    'Which card is chosen is carried by the content below it, not by having seen the track move.'],
 ]
@@ -711,9 +783,10 @@ export default function CardCarousel() {
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
-            Everything below the carousel holds its place. The list belongs to
-            whichever card you finish on, and hands over where it stands once
-            the card has settled, rather than travelling with the gesture.
+            Everything below the carousel holds its place. Once the card has
+            settled, the rows that differ refresh where they stand: the old ones
+            lift away as the new ones rise into position, four pixels, with
+            anything the two cards share left exactly as it was.
           </Note>
         </div>
       </DocSection>
