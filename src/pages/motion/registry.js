@@ -8,6 +8,8 @@
  */
 
 import SkeletonLoader from './SkeletonLoader'
+import PageLoader from './PageLoader'
+import InlineSpinner from './InlineSpinner'
 import CardFlip from './CardFlip'
 import CardCarousel from './CardCarousel'
 import LockUnlock from './LockUnlock'
@@ -15,6 +17,8 @@ import BottomNavigation from './BottomNavigation'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
+  'loader/page': PageLoader,
+  'loader/spinner': InlineSpinner,
   'controls/card-flip': CardFlip,
   'navigation/card-carousel': CardCarousel,
   'controls/lock-unlock': LockUnlock,
