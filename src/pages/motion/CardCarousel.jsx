@@ -48,12 +48,16 @@ const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 
-// The transactions belong to the centred card, so they are re-read on every
-// commit. They fade up rather than cutting, which separates new content from
-// content that merely moved. Short enough to land with the card settling.
-const CONTENT_MS   = 200
-const CONTENT_RISE = 6      // px
-const CONTENT_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
+// The transactions belong to the centred card, so a commit replaces them. Both
+// sets are on screen for the swap: the outgoing one leaves along the direction
+// of travel while the incoming one arrives behind it from the other side. The
+// exit is short and the entrance carries the weight, so the eye is handed from
+// one set to the other rather than watching an empty gap.
+const CONTENT_OUT_MS = 90
+const CONTENT_IN_MS  = 150
+const CONTENT_MS     = CONTENT_OUT_MS + CONTENT_IN_MS   // 240, inside the card settle
+const CONTENT_SHIFT  = 16      // px travelled, both ways
+const CONTENT_EASE   = 'cubic-bezier(0.2, 0, 0, 1)'
 
 // Dots grow and recolour rather than swapping. Same standard curve as the settle.
 const DOT_MS   = 140
@@ -104,19 +108,36 @@ const CARDS = [
 ]
 
 const CSS = `
-  @keyframes cc-content-in {
-    from { opacity: 0; transform: translateY(${CONTENT_RISE}px); }
-    to   { opacity: 1; transform: none; }
-  }
-  .cc-content { animation: cc-content-in ${CONTENT_MS}ms ${CONTENT_EASE} both; }
-  /* Reduced motion keeps the fade and drops the rise: the content still reads
-     as replaced, without anything travelling. */
+  /* Forward: the new card came from the right, so its content does too and the
+     old content leaves to the left. Back mirrors it. */
+  @keyframes cc-leave-left   { to   { opacity: 0; transform: translateX(-${CONTENT_SHIFT}px); } }
+  @keyframes cc-leave-right  { to   { opacity: 0; transform: translateX(${CONTENT_SHIFT}px); } }
+  @keyframes cc-enter-right  { from { opacity: 0; transform: translateX(${CONTENT_SHIFT}px); } }
+  @keyframes cc-enter-left   { from { opacity: 0; transform: translateX(-${CONTENT_SHIFT}px); } }
+
+  .cc-swap { position: relative; }
+  /* The set on its way out is lifted out of the flow so the incoming one holds
+     the height. No bottom edge, so it keeps its own. */
+  .cc-leaving { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; }
+
+  .cc-leaving, .cc-entering { animation-timing-function: ${CONTENT_EASE}; animation-fill-mode: both; }
+  .cc-leaving  { animation-duration: ${CONTENT_OUT_MS}ms; }
+  .cc-entering { animation-duration: ${CONTENT_IN_MS}ms; animation-delay: ${CONTENT_OUT_MS}ms; }
+
+  .cc-fwd  .cc-leaving  { animation-name: cc-leave-left;  }
+  .cc-fwd  .cc-entering { animation-name: cc-enter-right; }
+  .cc-back .cc-leaving  { animation-name: cc-leave-right; }
+  .cc-back .cc-entering { animation-name: cc-enter-left;  }
+
+  /* Reduced motion crossfades in place: the content still reads as replaced,
+     with nothing travelling. */
   @media (prefers-reduced-motion: reduce) {
-    @keyframes cc-content-in {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    .cc-content { animation-duration: ${REDUCED_MS}ms; }
+    @keyframes cc-leave-left   { to   { opacity: 0; } }
+    @keyframes cc-leave-right  { to   { opacity: 0; } }
+    @keyframes cc-enter-right  { from { opacity: 0; } }
+    @keyframes cc-enter-left   { from { opacity: 0; } }
+    .cc-leaving  { animation-duration: ${REDUCED_MS / 2}ms; }
+    .cc-entering { animation-duration: ${REDUCED_MS / 2}ms; animation-delay: ${REDUCED_MS / 2}ms; }
   }
 `
 
@@ -299,6 +320,10 @@ function CardCarouselDemo() {
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
   const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
 
+  // The set of transactions on its way out, kept on screen for the swap. It is
+  // dropped when the incoming set finishes arriving, so nothing is timed twice.
+  const [swap, setSwap] = useState(null)   // { card, dir: 1 forward, -1 back }
+
   const startX = useRef(0)
   const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
   const moved = useRef(0)
@@ -306,6 +331,15 @@ function CardCarouselDemo() {
   const trackRef = useRef(null)
 
   const last = CARDS.length - 1
+
+  /** Hand the transactions from one card to the next. */
+  const swapContent = (from, to) => {
+    if (from === to) return
+    // The add card has no content, so coming off it there is nothing to send
+    // out. The arrival still runs, which is why the direction is kept.
+    setSwap({ card: CARDS[from].kind === 'add' ? null : CARDS[from], dir: to > from ? 1 : -1 })
+  }
+
 
   /** Where the track actually is right now, mid-settle included. */
   const currentOffset = () => {
@@ -383,6 +417,7 @@ function CardCarouselDemo() {
         : atEdge ? EDGE_SPRING_MS
           : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS)
     )
+    swapContent(active, next)
     setActive(next)
     setOffset(0)
   }
@@ -392,6 +427,7 @@ function CardCarouselDemo() {
     if (Math.abs(moved.current) > TAP_SLOP) return
     setSettleEase(FALLBACK_EASE)
     setSettleMs(prefersReducedMotion() ? REDUCED_MS : SETTLE_COMMIT_MS)
+    swapContent(active, index)
     setActive(index)
   }
 
@@ -465,19 +501,42 @@ function CardCarouselDemo() {
         {/* Everything below follows the centred card. */}
         <div style={{ width: 320, display: 'flex', flexDirection: 'column', gap: 'var(--space-700)', marginTop: 'var(--space-700)' }}>
           {CARDS[active].kind !== 'add' && (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <MenuItem
-                  label="View details"
-                  icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
-                />
-                <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
-                <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
-              </div>
-              <div key={CARDS[active].id} className="cc-content">
-                <TransactionWidget card={CARDS[active]} />
-              </div>
-            </>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <MenuItem
+                label="View details"
+                icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
+              />
+              <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
+              <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
+            </div>
+          )}
+
+          {/* Held open while a set is leaving, so landing on the add card lets
+              the old transactions go rather than cutting them. */}
+          {(CARDS[active].kind !== 'add' || swap?.card) && (
+            <div className={`cc-swap ${swap?.dir === -1 ? 'cc-back' : 'cc-fwd'}`}>
+              {swap?.card && (
+                <div
+                  className="cc-leaving"
+                  aria-hidden="true"
+                  // Normally the arrival is the last thing to finish and clears
+                  // the swap. Landing on the add card there is no arrival, so
+                  // the exit clears it instead.
+                  onAnimationEnd={CARDS[active].kind === 'add' ? () => setSwap(null) : undefined}
+                >
+                  <TransactionWidget card={swap.card} />
+                </div>
+              )}
+              {CARDS[active].kind !== 'add' && (
+                <div
+                  key={CARDS[active].id}
+                  className={swap ? 'cc-entering' : undefined}
+                  onAnimationEnd={() => setSwap(null)}
+                >
+                  <TransactionWidget card={CARDS[active]} />
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -508,8 +567,10 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected, the dots stay put and the content below does not switch. On a commit all three update, and they may start updating during the settle rather than waiting for it to finish.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
-  ['The content below fades in, it does not cut',
-   `When the centred card changes, the transactions belonging to it fade up over ${CONTENT_MS}ms with a ${CONTENT_RISE}px rise. The card travels, the content does not: it is replaced, and the fade is what says so. The action row is the same for every card and is left alone.`],
+  ['One set of transactions replaces the other',
+   `Both sets are on screen for the swap. The outgoing one leaves along the direction of travel over ${CONTENT_OUT_MS}ms while the incoming one arrives from the other side over ${CONTENT_IN_MS}ms, so the eye is handed from one to the next instead of watching a gap. The action row is the same for every card and is left alone.`],
+  ['The content follows the direction of the swipe',
+   'Swipe to the next card and its transactions come in from the right as the old ones leave to the left. Going back mirrors it. The content moves the way the cards moved, so the swap reads as the same gesture continuing rather than an unrelated animation.'],
   ['Add card is a position, not an action',
    'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
   ['Gestures interrupt cleanly',
@@ -534,13 +595,16 @@ const SPEC_ROWS = [
   ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
-  ['Content transition', `${CONTENT_MS}ms ${CONTENT_EASE}, opacity 0 to 1 with a ${CONTENT_RISE}px rise. Runs on the transactions only, on commit. Reduced motion keeps the fade at ${REDUCED_MS}ms and drops the rise.`],
+  ['Content out',        `${CONTENT_OUT_MS}ms ${CONTENT_EASE}, fading to 0 while travelling ${CONTENT_SHIFT}px against the incoming card`],
+  ['Content in',         `${CONTENT_IN_MS}ms ${CONTENT_EASE} after the exit, arriving from ${CONTENT_SHIFT}px on the side the new card came from`],
+  ['Content total',      `${CONTENT_MS}ms, inside the ${SETTLE_COMMIT_MS}ms card settle. Runs on the transactions only, on commit.`],
+  ['Content reduced motion', `A ${REDUCED_MS}ms crossfade in place. Nothing travels.`],
   ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
 
 const STATE_ROWS = [
   ['During drag',   'The current card stays selected. Dots and the content below are unchanged.'],
-  ['Commit',        `Selected card, dots and content all update. They may begin during the settle. The transactions fade up over ${CONTENT_MS}ms rather than appearing outright.`],
+  ['Commit',        `Selected card, dots and content all update. They may begin during the settle. The outgoing transactions leave and the new ones arrive behind them, ${CONTENT_MS}ms end to end.`],
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
   ['Add card',      'The dashed placeholder centred. No action row and no transactions, because there is nothing to act on yet.'],
@@ -596,8 +660,9 @@ export default function CardCarousel() {
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
-            The transactions below belong to whichever card is centred and fade
-            up as it changes.
+            The transactions below belong to whichever card is centred: on a
+            commit one set leaves and the next arrives from the side the card
+            came from.
           </Note>
         </div>
       </DocSection>
