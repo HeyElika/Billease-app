@@ -254,23 +254,30 @@ function TransactionItem({ tx }) {
   )
 }
 
-function TransactionWidget({ card }) {
+/**
+ * The widget splits in two. The heading names the section and holds still; only
+ * the list underneath belongs to one card and travels with it.
+ */
+function TransactionsHeading() {
+  return (
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', gap: 'var(--space-200)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
+      <span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, lineHeight: 1.25, color: 'var(--text-base)', whiteSpace: 'nowrap' }}>
+        Transactions for this card
+      </span>
+    </div>
+  )
+}
+
+function TransactionList({ card }) {
   if (!card.tx) return null
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-400)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
-      <div style={{ height: 24, display: 'flex', alignItems: 'center', gap: 'var(--space-200)', width: '100%' }}>
-        <span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, lineHeight: 1.25, color: 'var(--text-base)', whiteSpace: 'nowrap' }}>
-          Transactions for this card
-        </span>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', borderRadius: 'var(--radius-lg)', fontFamily: 'var(--ds-font-family)' }}>
+      <div style={{ height: 28, display: 'flex', alignItems: 'center', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-200)', width: '100%' }}>
+        <span style={{ fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>Today</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', borderRadius: 'var(--radius-lg)' }}>
-        <div style={{ height: 28, display: 'flex', alignItems: 'center', paddingTop: 'var(--space-300)', paddingBottom: 'var(--space-200)', width: '100%' }}>
-          <span style={{ fontSize: 'var(--text-md)', fontWeight: 400, lineHeight: 1.5, color: 'var(--text-base)' }}>Today</span>
-        </div>
-        {card.tx.map(tx => <TransactionItem key={tx.merchant} tx={tx} />)}
-        <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%' }}>
-          <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
-        </div>
+      {card.tx.map(tx => <TransactionItem key={tx.merchant} tx={tx} />)}
+      <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%' }}>
+        <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
       </div>
     </div>
   )
@@ -452,13 +459,38 @@ function CardCarouselDemo() {
           ))}
         </div>
 
-        {/* Everything below follows the centred card. */}
+        {/* Below the card: the action row and the section heading name what you
+            are looking at, so they hold still. Only the list belongs to one card
+            and travels with it. Both stay mounted whatever is centred, and fade
+            on the settle when the add card lands, so nothing reflows. */}
         <div style={{ width: STAGE.w, marginTop: 'var(--space-700)' }}>
-          {/* Everything under the card is one screen per card, laid out in a row
-              and moved by the same gesture as the card track. Nothing is added or
-              removed as the selection changes: only the offset moves, so there is
-              no reflow to jump through. */}
-          <div style={{ width: STAGE.w, overflow: 'hidden' }}>
+          <div
+            style={{
+              padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box',
+              display: 'flex', flexDirection: 'column', gap: 'var(--space-700)',
+              opacity: CARDS[active].tx ? 1 : 0,
+              pointerEvents: CARDS[active].tx ? undefined : 'none',
+              transition: `opacity ${settleMs}ms ${settleEase}`,
+            }}
+            aria-hidden={CARDS[active].tx ? undefined : 'true'}
+            inert={CARDS[active].tx ? undefined : true}
+          >
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <MenuItem
+                label="View details"
+                icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
+              />
+              <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
+              <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
+            </div>
+            <TransactionsHeading />
+          </div>
+
+          {/* The lists are one screen per card, laid out in a row and moved by the
+              same gesture as the card track. Nothing is added or removed as the
+              selection changes: only the offset moves, so there is no reflow to
+              jump through. */}
+          <div style={{ width: STAGE.w, overflow: 'hidden', marginTop: 'var(--space-400)' }}>
             <div
               style={{
                 display: 'flex',
@@ -478,20 +510,9 @@ function CardCarouselDemo() {
                   style={{
                     width: CONTENT_PITCH, flexShrink: 0, boxSizing: 'border-box',
                     padding: `0 ${CONTENT_INSET}px`,
-                    display: 'flex', flexDirection: 'column', gap: 'var(--space-700)',
                   }}
                 >
-                  {card.kind !== 'add' && (
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <MenuItem
-                        label="View details"
-                        icon={<BilleaseIcon name="show" size="sm" color="var(--icon-base)" />}
-                      />
-                      <MenuItem label="Lock" icon={<LockToggleGlyph locked={false} />} />
-                      <MenuItem label="Manage" icon={<img src={manageIcon} alt="" width={20} height={20} style={{ display: 'block' }} />} />
-                    </div>
-                  )}
-                  <TransactionWidget card={card} />
+                  <TransactionList card={card} />
                 </div>
               ))}
             </div>
@@ -525,10 +546,12 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected and the dots stay put. The transactions move with the gesture, but moving is not switching: which card is selected, and which list is the one being read, is settled on release.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
-  ['Everything under the card is a second track',
-   'The action row and the transactions belong to the card, so they travel with it as one screen per card. Dragging moves both tracks at once: the next card\u2019s content is already coming in from the same side as the card itself while the current content is on its way out. Nothing is dropped and re-added, it is carried.'],
+  ['The list travels, the frame around it does not',
+   'The action row and the Transactions for this card heading name what you are looking at and are the same on every card, so they hold still. Only the list belongs to one card, so only the list moves with it.'],
+  ['The list is a second track',
+   'One list per card, laid out in a row and moved by the same gesture as the cards. Dragging brings the next card\u2019s transactions in from the same side as the card itself while the current ones leave. The list is never dropped and re-added, it is carried.'],
   ['Nothing is added or removed mid-gesture',
-   'Every card\u2019s screen of content is laid out from the start and only the offset moves. Mounting the incoming content on commit, or unmounting the outgoing content, reflows the page underneath the settle and shows as a jump.'],
+   'Every card\u2019s list is laid out from the start, and the action row and heading stay mounted whatever is centred. Mounting the incoming list on commit, or unmounting the outgoing one, reflows the page underneath the settle and shows as a jump.'],
   ['The tracks are linked by progress, not by pixels',
    `A card moves ${CARD_PITCH}px from one position to the next and a screen of content moves ${CONTENT_PITCH}px, so matching them pixel for pixel would put them out of step by the end of the gesture. The content covers the same fraction of its travel as the card covers of its own, which is ${CONTENT_RATIO.toFixed(2)}x the drag.`],
   ['The content settles with the card',
@@ -558,7 +581,8 @@ const SPEC_ROWS = [
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
   ['Card pitch',         `${CARD_PITCH}px centre to centre`],
-  ['Content pitch',      `${CONTENT_PITCH}px, one screen of transactions per card, ${CONTENT_INSET}px inset either side`],
+  ['Content pitch',      `${CONTENT_PITCH}px, one list per card, ${CONTENT_INSET}px inset either side`],
+  ['What holds still',    'The action row and the section heading. They are the same on every card.'],
   ['Content tracking',   `${CONTENT_RATIO.toFixed(3)}x the drag, so both tracks are the same fraction through their own travel`],
   ['Content settle',     'The card\u2019s own duration and curve, whichever applies to that release'],
   ['Content mounting',   'All screens are laid out up front. Only the track offset changes, so a commit never reflows the content.'],
@@ -566,11 +590,11 @@ const SPEC_ROWS = [
 ]
 
 const STATE_ROWS = [
-  ['During drag',   'The current card stays selected and the dots are unchanged. Both tracks move: the neighbouring card and its transactions come into view together.'],
-  ['Commit',        'The selected card and the dots update, and both tracks settle onto the new position on the same curve.'],
+  ['During drag',   'The current card stays selected and the dots are unchanged. The card and its list move together; the action row and the heading above the list stay where they are.'],
+  ['Commit',        'The selected card and the dots update, and the card and its list settle onto the new position on the same curve.'],
   ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
-  ['Add card',      'The dashed placeholder centred, over an empty screen: no action row and no transactions, because there is nothing to act on yet. The region keeps its height, so arriving at the add card does not pull the page up.'],
+  ['Add card',      'The dashed placeholder centred, with nothing below it: there is nothing to act on yet, so the action row and the heading fade out on the settle and the list slot is empty. The region keeps its height, so arriving at the add card does not pull the page up.'],
   ['Locked',        'A locked card keeps its slot and still swipes. Lock is held per card, so it stays locked as others move past. The treatment itself is documented under Lock and unlock.'],
 ]
 
@@ -581,8 +605,8 @@ const ACCESSIBILITY_RULES = [
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
-  ['Only the centred screen is exposed',
-   'The neighbouring content rides alongside so it can be seen coming in, but it is hidden from assistive technology and taken out of the tab order. Only the screen belonging to the centred card is reachable, or the page reads three sets of transactions and three action rows at once.'],
+  ['Only the centred list is exposed',
+   'The neighbouring lists ride alongside so they can be seen coming in, but they are hidden from assistive technology and taken out of the tab order. Only the list belonging to the centred card is reachable, or the page reads three sets of transactions at once.'],
   ['Motion is never required',
    'Which card is chosen is carried by the content below it, not by having seen the track move.'],
 ]
@@ -625,9 +649,9 @@ export default function CardCarousel() {
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
-            The transactions belong to whichever card is centred and travel
-            with it, so the next list is already on its way in while you are
-            still dragging.
+            The action row and the heading below the carousel hold still. The
+            list belongs to whichever card is centred and travels with it, so
+            the next one is already on its way in while you are still dragging.
           </Note>
         </div>
       </DocSection>
