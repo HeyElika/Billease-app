@@ -11,7 +11,7 @@
  * resistance and interruption, none of which the prototype implemented.
  */
 
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
@@ -48,15 +48,18 @@ const FALLBACK_EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 const EDGE_SPRING_MS   = 260
 const EDGE_SPRING_EASE = 'cubic-bezier(0.34, 1.4, 0.64, 1)'
 
-// What sits under the card belongs to the card, so it is a second track that
-// moves with the first: one screen per card, laid out in a row. The two tracks
-// are linked by how far through the gesture they are rather than by pixels,
-// because their pitches differ. Nothing is mounted or unmounted as the
-// selection changes, so there is no reflow for the settle to jump through.
-const CARD_PITCH    = 296        // card centre to card centre
-const CONTENT_PITCH = 360        // one screen of content per card
+// The transactions are dependent content, not part of the carousel: they answer
+// the question the carousel asks. So the section holds its place and crossfades
+// once the selection is settled, rather than travelling with the gesture. It is
+// quieter than the carousel on purpose, and secondary to it.
 const CONTENT_INSET = 20         // the widget's own margin inside the screen
-const CONTENT_RATIO = CONTENT_PITCH / CARD_PITCH   // 1.216
+const FADE_OUT_MS   = 100
+const FADE_IN_MS    = 140
+const FADE_MS       = FADE_OUT_MS + FADE_IN_MS     // 240, one region, no stagger
+const FADE_OUT_EASE = 'cubic-bezier(0.4, 0, 1, 1)' // accelerating away
+const FADE_IN_EASE  = 'cubic-bezier(0, 0, 0.2, 1)' // natural ease-out
+const HEIGHT_MS     = 200                          // only when the lists differ in height
+const FADE_REDUCED_MS = 60
 
 // Dots grow and recolour rather than swapping. Same standard curve as the settle.
 const DOT_MS   = 140
@@ -105,6 +108,21 @@ const CARDS = [
   },
   { id: 'add', kind: 'add' },
 ]
+
+const CSS = `
+  /* One region, one fade. Rows are never staggered: the list changes as a
+     single piece of content, which is what makes it read as dependent on the
+     card rather than as a list of its own. */
+  .cc-fade        { opacity: 1; transition: opacity ${FADE_IN_MS}ms ${FADE_IN_EASE}; }
+  .cc-fade.is-out { opacity: 0; transition: opacity ${FADE_OUT_MS}ms ${FADE_OUT_EASE}; }
+  /* Height is written from the measured list, so a longer or shorter one eases
+     instead of snapping. Equal lists never animate. */
+  .cc-fade-box    { overflow: hidden; transition: height ${HEIGHT_MS}ms ${FADE_IN_EASE}; }
+  @media (prefers-reduced-motion: reduce) {
+    .cc-fade, .cc-fade.is-out { transition-duration: ${FADE_REDUCED_MS}ms; }
+    .cc-fade-box { transition: none; }
+  }
+`
 
 // ─── Card faces ───────────────────────────────────────────────────────────────
 
@@ -292,6 +310,14 @@ function CardCarouselDemo() {
   const [settleMs, setSettleMs] = useState(FALLBACK_MS)
   const [settleEase, setSettleEase] = useState(FALLBACK_EASE)
 
+  // The list on screen, which trails the selection: it is swapped while it is
+  // invisible, between the two halves of the fade.
+  const [shown, setShown] = useState(active)
+  const [fade, setFade] = useState('idle')   // idle | out | in
+  const boxRef = useRef(null)
+  const listRef = useRef(null)
+  const boxHeight = useRef(null)   // last measured list height
+
   const startX = useRef(0)
   const baseOffset = useRef(0)   // non-zero when a gesture interrupts a settle
   const moved = useRef(0)
@@ -299,6 +325,27 @@ function CardCarouselDemo() {
   const trackRef = useRef(null)
 
   const last = CARDS.length - 1
+
+  /**
+   * Start the handover. Calling it again while a fade is already running does
+   * nothing: the fade resolves against whichever card is active when the
+   * outgoing half ends, so rapid swipes land on the last one rather than
+   * queueing a transition each.
+   */
+  const beginHandover = (to) => {
+    if (to !== shown) setFade('out')
+  }
+
+  /** The two halves are driven by the fade itself, so there are no timers. */
+  const onFadeEnd = (e) => {
+    if (e.propertyName !== 'opacity' || e.target !== e.currentTarget) return
+    if (fade === 'out') {
+      setShown(active)       // whichever card is active now, not when it started
+      setFade('in')
+    } else if (fade === 'in') {
+      setFade('idle')
+    }
+  }
 
 
   /** Where the track actually is right now, mid-settle included. */
@@ -377,6 +424,7 @@ function CardCarouselDemo() {
         : atEdge ? EDGE_SPRING_MS
           : (changed ? SETTLE_COMMIT_MS : SETTLE_SNAP_MS)
     )
+    beginHandover(next)
     setActive(next)
     setOffset(0)
   }
@@ -386,16 +434,38 @@ function CardCarouselDemo() {
     if (Math.abs(moved.current) > TAP_SLOP) return
     setSettleEase(FALLBACK_EASE)
     setSettleMs(prefersReducedMotion() ? REDUCED_MS : SETTLE_COMMIT_MS)
+    beginHandover(index)
     setActive(index)
   }
 
-  // The two tracks are linked by progress, not by pixels: the content covers the
-  // same fraction of its own travel as the card covers of its own.
-  const contentOffset = offset * CONTENT_RATIO
+  /**
+   * Height is a measurement, not a decision, so it is written to the node
+   * rather than held in state. Lists of the same length leave the box on auto
+   * and nothing animates. A different length is pinned to the old height,
+   * flushed, then set to the new one, which is what gives the transition
+   * something to run between. The box goes back to auto once it lands, so a
+   * measurement taken now can never clip the content later.
+   */
+  useLayoutEffect(() => {
+    const box = boxRef.current
+    const list = listRef.current
+    if (!box || !list) return
+    const from = boxHeight.current
+    const to = list.offsetHeight
+    boxHeight.current = to
+    if (from === null || from === to) {
+      box.style.height = 'auto'
+      return
+    }
+    box.style.height = `${from}px`
+    void box.offsetHeight        // flush, or the browser only sees the last value
+    box.style.height = `${to}px`
+  }, [shown])
 
   return (
     <DemoCard label="Card carousel" stageStyle={{ padding: '24px 0 32px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+        <style>{CSS}</style>
         <div
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -459,14 +529,13 @@ function CardCarouselDemo() {
           ))}
         </div>
 
-        {/* Below the card: the action row and the section heading name what you
-            are looking at, so they hold still. Only the list belongs to one card
-            and travels with it. Both stay mounted whatever is centred, and fade
-            on the settle when the add card lands, so nothing reflows. */}
-        <div style={{ width: STAGE.w, marginTop: 'var(--space-700)' }}>
+        {/* Below the card: the action row and the heading name what you are
+            looking at and are the same on every card, so they hold their place.
+            The list underneath is dependent content: it stays put too, and hands
+            over by fading once the selection has settled. */}
+        <div style={{ width: STAGE.w, marginTop: 'var(--space-700)', padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box' }}>
           <div
             style={{
-              padding: `0 ${CONTENT_INSET}px`, boxSizing: 'border-box',
               display: 'flex', flexDirection: 'column', gap: 'var(--space-700)',
               opacity: CARDS[active].tx ? 1 : 0,
               pointerEvents: CARDS[active].tx ? undefined : 'none',
@@ -486,35 +555,25 @@ function CardCarouselDemo() {
             <TransactionsHeading />
           </div>
 
-          {/* The lists are one screen per card, laid out in a row and moved by the
-              same gesture as the card track. Nothing is added or removed as the
-              selection changes: only the offset moves, so there is no reflow to
-              jump through. */}
-          <div style={{ width: STAGE.w, overflow: 'hidden', marginTop: 'var(--space-400)' }}>
+          {/* One list, in one place. The box carries the height so a longer or
+              shorter list eases rather than snapping the page. */}
+          <div
+            ref={boxRef}
+            className="cc-fade-box"
+            style={{ marginTop: 'var(--space-400)' }}
+            onTransitionEnd={e => {
+              // Released back to auto so a stale measurement cannot clip.
+              if (e.propertyName === 'height' && e.target === e.currentTarget) {
+                e.currentTarget.style.height = 'auto'
+              }
+            }}
+          >
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                width: CARDS.length * CONTENT_PITCH,
-                transform: `translateX(${-active * CONTENT_PITCH + contentOffset}px)`,
-                // Settles with the card, on the same duration and curve.
-                transition: dragging ? 'none' : `transform ${settleMs}ms ${settleEase}`,
-                willChange: 'transform',
-              }}
+              ref={listRef}
+              className={`cc-fade${fade === 'out' ? ' is-out' : ''}`}
+              onTransitionEnd={onFadeEnd}
             >
-              {CARDS.map((card, i) => (
-                <div
-                  key={card.id}
-                  aria-hidden={i === active ? undefined : 'true'}
-                  inert={i === active ? undefined : true}
-                  style={{
-                    width: CONTENT_PITCH, flexShrink: 0, boxSizing: 'border-box',
-                    padding: `0 ${CONTENT_INSET}px`,
-                  }}
-                >
-                  <TransactionList card={card} />
-                </div>
-              ))}
+              <TransactionList card={CARDS[shown]} />
             </div>
           </div>
         </div>
@@ -546,16 +605,18 @@ const BEHAVIOR_RULES = [
    'Through the drag the current card stays selected and the dots stay put. The transactions move with the gesture, but moving is not switching: which card is selected, and which list is the one being read, is settled on release.'],
   ['The ends resist, they do not loop',
    'Dragging past the first or last card shows a quarter of the travel, up to about 28px. On release it bounces back rather than stopping dead, which is what tells someone they have reached the end rather than hit a broken gesture. Everywhere else the settle has no overshoot; this is the one exception.'],
-  ['The list travels, the frame around it does not',
-   'The action row and the Transactions for this card heading name what you are looking at and are the same on every card, so they hold still. Only the list belongs to one card, so only the list moves with it.'],
-  ['The list is a second track',
-   'One list per card, laid out in a row and moved by the same gesture as the cards. Dragging brings the next card\u2019s transactions in from the same side as the card itself while the current ones leave. The list is never dropped and re-added, it is carried.'],
-  ['Nothing is added or removed mid-gesture',
-   'Every card\u2019s list is laid out from the start, and the action row and heading stay mounted whatever is centred. Mounting the incoming list on commit, or unmounting the outgoing one, reflows the page underneath the settle and shows as a jump.'],
-  ['The tracks are linked by progress, not by pixels',
-   `A card moves ${CARD_PITCH}px from one position to the next and a screen of content moves ${CONTENT_PITCH}px, so matching them pixel for pixel would put them out of step by the end of the gesture. The content covers the same fraction of its travel as the card covers of its own, which is ${CONTENT_RATIO.toFixed(2)}x the drag.`],
-  ['The content settles with the card',
-   'Release, and the content finishes on the same duration and curve as the card. Commit and it lands on the new list; snap back and it returns to the one it started on, with nothing to reconcile afterwards.'],
+  ['The transactions are dependent content, not part of the carousel',
+   'The carousel is the question and the list is the answer. It sits below in a fixed place and never slides sideways with the cards. Only one thing is being dragged, and it is the cards.'],
+  ['The list does not change during the drag',
+   'Through the gesture it keeps showing the card that is still selected. A drag that is snapped back changes nothing at all, so a list that had already started swapping would have to swap back.'],
+  ['It hands over once the selection settles',
+   `On a commit the list fades out over ${FADE_OUT_MS}ms, is replaced while nothing is visible, and the new one fades in over ${FADE_IN_MS}ms on a natural ease-out. ${FADE_MS}ms in total, quieter than the carousel and secondary to it.`],
+  ['The list changes as one region',
+   'One fade over the whole section. Rows are never staggered or animated one by one: staggering would make the list the subject, when the card is the subject and the list is what follows from it.'],
+  ['Height eases, it does not snap',
+   `A longer or shorter list takes the section to its new height over ${HEIGHT_MS}ms rather than jumping, so nothing below it is thrown down the page. Lists of the same length never animate.`],
+  ['Rapid swipes resolve to the last card',
+   'A second commit during a handover does not queue a second one. The fade resolves against whichever card is selected when the outgoing half ends, so three quick swipes give one handover, to the card you finished on.'],
   ['Add card is a position, not an action',
    'The add-card slot navigates like any other card on the same thresholds. Landing on it must never trigger adding a card; only its own control does that.'],
   ['Gestures interrupt cleanly',
@@ -580,21 +641,22 @@ const SPEC_ROWS = [
   ['Slot left edges',    '-250 / 30 / 342 in a 360 stage, 12px gaps'],
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
-  ['Card pitch',         `${CARD_PITCH}px centre to centre`],
-  ['Content pitch',      `${CONTENT_PITCH}px, one list per card, ${CONTENT_INSET}px inset either side`],
-  ['What holds still',    'The action row and the section heading. They are the same on every card.'],
-  ['Content tracking',   `${CONTENT_RATIO.toFixed(3)}x the drag, so both tracks are the same fraction through their own travel`],
-  ['Content settle',     'The card\u2019s own duration and curve, whichever applies to that release'],
-  ['Content mounting',   'All screens are laid out up front. Only the track offset changes, so a commit never reflows the content.'],
+  ['What holds still',   'The section itself, the action row and the heading. Nothing below the carousel translates.'],
+  ['List fade out',      `${FADE_OUT_MS}ms ${FADE_OUT_EASE}`],
+  ['List fade in',       `${FADE_IN_MS}ms ${FADE_IN_EASE}, a natural ease-out`],
+  ['List handover',      `${FADE_MS}ms in total, starting on the commit. The swap happens between the halves, while nothing is visible.`],
+  ['Height change',      `${HEIGHT_MS}ms ${FADE_IN_EASE}, only when the two lists differ in height`],
+  ['List reduced motion', `${FADE_REDUCED_MS}ms each way, and the height change is dropped`],
+  ['Stagger',            'None. The list is one region.'],
   ['Card number',        'Takes the card\u2019s own surface colours: text/on-dark on the physical face, text/base on the light virtual one. The masked dots follow it.'],
 ]
 
 const STATE_ROWS = [
-  ['During drag',   'The current card stays selected and the dots are unchanged. The card and its list move together; the action row and the heading above the list stay where they are.'],
-  ['Commit',        'The selected card and the dots update, and the card and its list settle onto the new position on the same curve.'],
-  ['Snap back',     'Nothing changes. The track returns to the card it started on.'],
+  ['During drag',   'The current card stays selected, the dots are unchanged, and the transactions below are untouched. Only the cards move.'],
+  ['Commit',        `The selected card and the dots update. The list hands over in place: out, replaced, in, ${FADE_MS}ms end to end.`],
+  ['Snap back',     'Nothing changes. The track returns to the card it started on and the list is never touched.'],
   ['At either end', 'The track resists at a quarter of the drag, then bounces back to the boundary card. The carousel never loops.'],
-  ['Add card',      'The dashed placeholder centred, with nothing below it: there is nothing to act on yet, so the action row and the heading fade out on the settle and the list slot is empty. The region keeps its height, so arriving at the add card does not pull the page up.'],
+  ['Add card',      'The dashed placeholder centred, with nothing below it: there is nothing to act on yet, so the action row and the heading fade out on the settle and the list hands over to an empty one.'],
   ['Locked',        'A locked card keeps its slot and still swipes. Lock is held per card, so it stays locked as others move past. The treatment itself is documented under Lock and unlock.'],
 ]
 
@@ -605,8 +667,8 @@ const ACCESSIBILITY_RULES = [
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',
    'The dots are decorative. Position in the set, and the change of card, need announcing separately.'],
-  ['Only the centred list is exposed',
-   'The neighbouring lists ride alongside so they can be seen coming in, but they are hidden from assistive technology and taken out of the tab order. Only the list belonging to the centred card is reachable, or the page reads three sets of transactions at once.'],
+  ['One list is on the page at a time',
+   'The transactions are replaced in place rather than kept alongside, so nothing hidden sits in the tab order and the page never carries two sets of transactions at once.'],
   ['Motion is never required',
    'Which card is chosen is carried by the content below it, not by having seen the track move.'],
 ]
@@ -649,9 +711,9 @@ export default function CardCarousel() {
             Nothing eases while the pointer is down, and a new drag during a
             settle takes over from where the track had reached. Drag past either
             end and the track gives a quarter of the distance, then bounces back.
-            The action row and the heading below the carousel hold still. The
-            list belongs to whichever card is centred and travels with it, so
-            the next one is already on its way in while you are still dragging.
+            Everything below the carousel holds its place. The list belongs to
+            whichever card you finish on, and hands over where it stands once
+            the card has settled, rather than travelling with the gesture.
           </Note>
         </div>
       </DocSection>
