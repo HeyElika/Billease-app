@@ -307,13 +307,6 @@ function TransactionsDate() {
   )
 }
 
-function TransactionsFooter() {
-  return (
-    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-200)', width: '100%', fontFamily: 'var(--ds-font-family)' }}>
-      <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, lineHeight: 1.5, color: 'var(--text-subtle)' }}>View all</span>
-    </div>
-  )
-}
 
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
@@ -519,7 +512,6 @@ function CardCarouselDemo() {
                 <ContextualContent value={active} skeleton={<TransactionsSkeleton />}>
                   {card => <TransactionRows card={CARDS[card]} />}
                 </ContextualContent>
-                <TransactionsFooter />
               </div>
             </div>
           </div>
@@ -565,7 +557,7 @@ const BEHAVIOR_RULES = [
   ['The rows do not respond to the drag at all',
    'They answer for the committed selection, and through a gesture nothing has been committed. Nothing is interpolated towards the incoming list, and a drag that snaps back plays nothing, because there was never anything to undo.'],
   ['The frame of the section never moves',
-   'The action row, the heading, the date the rows are grouped under and the footer all hold their place. What changes is the rows, which is the only part that actually belongs to one card. The action row is the same on every card, so it is never faded out and back in: where cards differ, the control changes its label or its state in place.'],
+   'The action row, the heading and the date the rows are grouped under all hold their place. What changes is the rows, which is the only part that actually belongs to one card. The action row is the same on every card, so it is never faded out and back in: where cards differ, the control changes its label or its state in place.'],
   ['They still overlap',
    'The new list starts while the old one is on its way out, not after it has gone. The region is never empty: the delay is a beat, not a gap.'],
   ['The clip is not an effect',
@@ -605,7 +597,7 @@ const SPEC_ROWS = [
   ['Dots',               'Active 8px on bg/secondary, inactive 6px on bg/selected, 8px apart'],
   ['Dot transition',     `${DOT_MS}ms ${DOT_EASE} on width, height and colour. They grow and recolour, they do not swap.`],
   ['Pattern',            'Contextual content transition, in src/motion'],
-  ['What holds still',   'The section, the action row, the heading, the date and the footer'],
+  ['What holds still',   'The section, the action row, the heading and the date'],
   ['What changes',       'The rows, as one block'],
   ['Starts on',          'The commit, not the drag'],
   ['Hold',               `${TX.holdMs}ms before anything moves`],
