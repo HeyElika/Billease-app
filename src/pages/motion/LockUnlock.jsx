@@ -13,7 +13,7 @@ import { useState } from 'react'
 import cardArt from '../../assets/cards/access-card.png'
 import virtualArt from '../../assets/cards/virtual-card.png'
 import { PadlockClosed, LockToggleGlyph } from './cardIcons'
-import { DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadButton } from './docs'
+import { DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note, LottieAsset } from './docs'
 
 /** Served from public/ so the files have stable URLs devs can share, not data URIs. */
 
@@ -285,6 +285,22 @@ export default function LockUnlock() {
             underneath, which is why the green one is dark.
           </Note>
         </div>
+              <div style={{ marginTop: 16 }}>
+          <LottieAsset name="lock-badge.json" href={LOTTIE_BADGE} rows={LOTTIE_ROWS} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <LottieAsset name="lock-toggle.json" href={LOTTIE_TOGGLE} rows={TOGGLE_ROWS} />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Note title="Why the badge only.">
+            The locked state is four things moving against each other and only
+            the badge is self-contained. Exporting the whole choreography would
+            mean a Lottie timeline and a native transition to keep in step,
+            which is harder than writing the delays. Take the file for the
+            badge, keep the veil and the settle native. The menu icon is the
+            opposite case: it depends on nothing around it, so it exports whole.
+          </Note>
+        </div>
       </DocSection>
 
       <DocSection id="usage" title="When to use">
@@ -337,33 +353,6 @@ export default function LockUnlock() {
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
 
-        <div style={{ height: 32 }} />
-        <DocCard>
-          <CardHeader
-            label="Lottie asset"
-            action={<DownloadButton href={LOTTIE_BADGE} name="lock-badge.json" />}
-          />
-          <RuleTable rows={LOTTIE_ROWS} labelWidth={220} bare />
-        </DocCard>
-        <div style={{ height: 16 }} />
-        <DocCard>
-          <CardHeader
-            label="Lottie asset"
-            action={<DownloadButton href={LOTTIE_TOGGLE} name="lock-toggle.json" />}
-          />
-          <RuleTable rows={TOGGLE_ROWS} labelWidth={220} bare />
-        </DocCard>
-
-        <div style={{ marginTop: 12 }}>
-          <Note title="Why the badge only.">
-            The locked state is four things moving against each other and only
-            the badge is self-contained. Exporting the whole choreography would
-            mean a Lottie timeline and a native transition to keep in step,
-            which is harder than writing the delays. Take the file for the
-            badge, keep the veil and the settle native. The menu icon is the
-            opposite case: it depends on nothing around it, so it exports whole.
-          </Note>
-        </div>
       </DocSection>
     </>
   )

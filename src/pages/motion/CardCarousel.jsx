@@ -21,7 +21,7 @@ import { LockToggleGlyph } from './cardIcons'
 import ContextualContent from '../../motion/ContextualContent'
 import { TransactionsHeading, TransactionsDate, TransactionRows, TransactionsSkeleton } from './transactionList'
 import {
-  DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note, DownloadButton,
+  DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note, LottieAsset,
 } from './docs'
 
 const LOTTIE_DOT = '/motion/slider-dot.json'
@@ -554,6 +554,9 @@ export default function CardCarousel() {
             below follow the selection once it is committed.
           </Note>
         </div>
+              <div style={{ marginTop: 16 }}>
+          <LottieAsset name="slider-dot.json" href={LOTTIE_DOT} rows={DOT_LOTTIE_ROWS} />
+        </div>
       </DocSection>
 
       <DocSection id="usage" title="When to use">
@@ -597,15 +600,7 @@ export default function CardCarousel() {
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
 
-        <div style={{ height: 32 }} />
-        <DocCard>
-          <CardHeader
-            label="Lottie asset"
-            action={<DownloadButton href={LOTTIE_DOT} name="slider-dot.json" />}
-          />
-          <RuleTable rows={DOT_LOTTIE_ROWS} labelWidth={220} bare />
-        </DocCard>
-      </DocSection>
+              </DocSection>
     </>
   )
 }

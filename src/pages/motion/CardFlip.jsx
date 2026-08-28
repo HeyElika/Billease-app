@@ -11,8 +11,8 @@ import cardArt from '../../assets/cards/access-card.png'
 import manageIcon from '../../assets/cards/manage.svg'
 import { LockToggleGlyph } from './cardIcons'
 import {
-  DocSection, DocCard, CardHeader, P,
-  DemoCard, RuleTable, UsageList, Note, DownloadButton,
+  DocSection, DocCard, P,
+  DemoCard, RuleTable, UsageList, Note, LottieAsset,
 } from './docs'
 
 const LOTTIE_EYE = '/motion/eye-toggle.json'
@@ -368,6 +368,9 @@ export default function CardFlip() {
             described under Behavior rather than simulated here.
           </Note>
         </div>
+              <div style={{ marginTop: 16 }}>
+          <LottieAsset name="eye-toggle.json" href={LOTTIE_EYE} rows={EYE_LOTTIE_ROWS} />
+        </div>
       </DocSection>
 
       <DocSection id="usage" title="When to use">
@@ -418,15 +421,7 @@ export default function CardFlip() {
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={220} />
 
-        <div style={{ height: 32 }} />
-        <DocCard>
-          <CardHeader
-            label="Lottie asset"
-            action={<DownloadButton href={LOTTIE_EYE} name="eye-toggle.json" />}
-          />
-          <RuleTable rows={EYE_LOTTIE_ROWS} labelWidth={220} bare />
-        </DocCard>
-      </DocSection>
+              </DocSection>
     </>
   )
 }

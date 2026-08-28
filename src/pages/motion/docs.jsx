@@ -239,6 +239,22 @@ export function DownloadButton({ href, name }) {
   )
 }
 
+/**
+ * LottieAsset — the downloadable file for a motion, with what is inside it.
+ *
+ * Sits directly under the demo on every page that has one, rather than at the
+ * bottom of the engineering reference. It is the thing a developer came for,
+ * and it was being missed at the foot of a long page.
+ */
+export function LottieAsset({ name, href, rows, style }) {
+  return (
+    <DocCard style={style}>
+      <CardHeader label="Lottie asset" action={<DownloadButton href={href} name={name} />} />
+      {rows ? <RuleTable rows={rows} labelWidth={220} bare /> : null}
+    </DocCard>
+  )
+}
+
 /** solar:download-linear — exact paths from the Iconify Solar set, not redrawn. */
 export function DownloadIcon({ size = 16 }) {
   return (

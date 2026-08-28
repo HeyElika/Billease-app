@@ -14,8 +14,8 @@ import { useState } from 'react'
 import { LOTTIE_SPINNER } from '../../data/motion'
 import LottiePlayer from './LottiePlayer'
 import {
-  DocSection, DocCard, CardHeader, P, DemoCard, RuleTable, UsageList, Note,
-  ReplayButton, DownloadButton,
+  DocSection, P, DemoCard, RuleTable, UsageList, Note,
+  ReplayButton, LottieAsset,
 } from './docs'
 
 // ─── Values, all read from the file ──────────────────────────────────────────
@@ -184,6 +184,9 @@ export default function InlineSpinner() {
     <>
       <DocSection id="demo" title="Demo">
         <InlineSpinnerDemo />
+              <div style={{ marginTop: 16 }}>
+          <LottieAsset name="spinner.json" href={LOTTIE_SPINNER} rows={LOTTIE_ROWS} />
+        </div>
       </DocSection>
 
       <DocSection id="usage" title="When to use">
@@ -228,15 +231,7 @@ export default function InlineSpinner() {
         </P>
         <RuleTable rows={ENGINEERING_ROWS} labelWidth={240} />
 
-        <div style={{ height: 32 }} />
-        <DocCard>
-          <CardHeader
-            label="Lottie asset"
-            action={<DownloadButton href={LOTTIE_SPINNER} name="spinner.json" />}
-          />
-          <RuleTable rows={LOTTIE_ROWS} labelWidth={220} bare />
-        </DocCard>
-
+        
         <div style={{ marginTop: 12 }}>
           <Note title="Worth tightening at source.">
             Two things would make the file easier to use: cropping the
