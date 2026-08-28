@@ -156,6 +156,11 @@ export const MOTION_CATEGORIES = [
         ],
       },
       {
+        id: 'contextual-content',
+        label: 'Contextual content',
+        definition: 'Content below a selection handing over to the newly selected one, once the selection is committed.',
+      },
+      {
         id: 'bottom-navigation',
         label: 'Bottom navigation',
         definition: 'The press feedback on a bottom navigation icon.',
