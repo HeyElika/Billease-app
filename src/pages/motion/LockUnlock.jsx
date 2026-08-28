@@ -278,11 +278,9 @@ export default function LockUnlock() {
       <DocSection id="demo" title="Demo">
         <LockUnlockDemo />
         <div style={{ marginTop: 12 }}>
-          <Note title="Try it.">
-            Lock either card and watch the order: the veil arrives, the badge
-            lands, then the shackle shuts. Unlock and it comes apart the other
-            way round. The badge and label take their colour from the card
-            underneath, which is why the green one is dark.
+          <Note title="Watch the order.">
+            The veil arrives, the badge lands, then the shackle shuts. Unlocking
+            comes apart the other way round.
           </Note>
         </div>
               <div style={{ marginTop: 16 }}>

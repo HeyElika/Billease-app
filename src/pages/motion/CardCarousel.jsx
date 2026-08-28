@@ -21,7 +21,7 @@ import { LockToggleGlyph } from './cardIcons'
 import ContextualContent from '../../motion/ContextualContent'
 import { TransactionsHeading, TransactionsDate, TransactionRows, TransactionsSkeleton } from './transactionList'
 import {
-  DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note, LottieAsset,
+  DocSection, DocCard, P, DemoCard, RuleTable, UsageList, LottieAsset,
 } from './docs'
 
 const LOTTIE_DOT = '/motion/slider-dot.json'
@@ -544,17 +544,7 @@ export default function CardCarousel() {
     <>
       <DocSection id="demo" title="Demo">
         <CardCarouselDemo />
-        <div style={{ marginTop: 12 }}>
-          <Note title="Try it.">
-            Below 60px the card snaps back. At 60px or beyond, or on a
-            high-velocity flick, it commits to the adjacent card. Nothing eases
-            while the pointer is down, and a new drag during a settle takes over
-            from where the track had reached. Drag past either end and the track
-            gives a quarter of the distance, then bounces back. The transactions
-            below follow the selection once it is committed.
-          </Note>
-        </div>
-              <div style={{ marginTop: 16 }}>
+                      <div style={{ marginTop: 16 }}>
           <LottieAsset name="slider-dot.json" href={LOTTIE_DOT} rows={DOT_LOTTIE_ROWS} />
         </div>
       </DocSection>

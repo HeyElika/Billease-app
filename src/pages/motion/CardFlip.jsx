@@ -361,11 +361,10 @@ export default function CardFlip() {
       <DocSection id="demo" title="Demo">
         <CardFlipDemo />
         <div style={{ marginTop: 12 }}>
-          <Note title="Try it.">
-            View details turns the card over. Hide details turns it back. Lock the
-            card and the reveal is dropped and the action disabled. The demo shows
-            the motion only, so the biometric gate that precedes a real reveal is
-            described under Behavior rather than simulated here.
+          <Note title="What the demo leaves out.">
+            The flip only. A real reveal is gated by biometrics first, and Lock
+            is inert here, so both are described under Behavior rather than
+            played.
           </Note>
         </div>
               <div style={{ marginTop: 16 }}>

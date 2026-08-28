@@ -15,7 +15,7 @@ import Button from '../../components/ds/Button'
 import ContextualContent from '../../motion/ContextualContent'
 import { DECELERATE, CONTEXTUAL_MOTION as M } from '../../motion/contextualMotion'
 import { TransactionsHeading, TransactionsDate, TransactionRows, TransactionsSkeleton } from './transactionList'
-import { DocSection, DocCard, P, DemoCard, RuleTable, UsageList, Note } from './docs'
+import { DocSection, DocCard, P, DemoCard, RuleTable, UsageList } from './docs'
 
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
@@ -162,15 +162,7 @@ export default function ContextualContentDocs() {
     <>
       <DocSection id="demo" title="Demo">
         <ContextualDemo />
-        <div style={{ marginTop: 12 }}>
-          <Note title="Try it.">
-            Switch card. The heading and the date do not move, the rows are
-            handed over as complete lists, and the section takes its new height
-            without a step. Switch twice quickly and only the last selection is
-            ever drawn.
-          </Note>
-        </div>
-      </DocSection>
+              </DocSection>
 
       <DocSection id="usage" title="When to use">
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
