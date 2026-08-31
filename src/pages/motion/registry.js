@@ -19,6 +19,7 @@ import StepForwardBack from './StepForwardBack'
 import ToastDocs from './ToastDocs'
 import BottomSheet from './BottomSheet'
 import NewFlowEntry from './NewFlowEntry'
+import DialogDocs from './DialogDocs'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -33,4 +34,5 @@ export const MOTION_PAGES = {
   'feedback/toast': ToastDocs,
   'overlays/bottom-sheet': BottomSheet,
   'overlays/new-flow-entry': NewFlowEntry,
+  'overlays/dialog': DialogDocs,
 }
