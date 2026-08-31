@@ -16,6 +16,7 @@ import LockUnlock from './LockUnlock'
 import BottomNavigation from './BottomNavigation'
 import ContextualContentDocs from './ContextualContentDocs'
 import StepForwardBack from './StepForwardBack'
+import ToastDocs from './ToastDocs'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -27,4 +28,5 @@ export const MOTION_PAGES = {
   'navigation/bottom-navigation': BottomNavigation,
   'navigation/contextual-content': ContextualContentDocs,
   'navigation/step': StepForwardBack,
+  'feedback/toast': ToastDocs,
 }
