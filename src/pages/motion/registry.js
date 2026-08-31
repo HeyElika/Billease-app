@@ -17,6 +17,7 @@ import BottomNavigation from './BottomNavigation'
 import ContextualContentDocs from './ContextualContentDocs'
 import StepForwardBack from './StepForwardBack'
 import ToastDocs from './ToastDocs'
+import BottomSheet from './BottomSheet'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -29,4 +30,5 @@ export const MOTION_PAGES = {
   'navigation/contextual-content': ContextualContentDocs,
   'navigation/step': StepForwardBack,
   'feedback/toast': ToastDocs,
+  'overlays/bottom-sheet': BottomSheet,
 }
