@@ -184,7 +184,7 @@ const BEHAVIOR_RULES = [
 const SPEC_ROWS = [
   ['Total duration',  `${SHEET_MS}ms`],
   ['Easing',          SHEET_EASE],
-  ['Sheet Y',         `0 to ${SHEET_TOP}, its resting top in the ${SCREEN_H} screen the values were written against`],
+  ['Sheet Y',         `Up from the bottom edge to ${SHEET_TOP}, its resting top in the ${SCREEN_H} screen the values were written against`],
   ['Scrim',           `${SCRIM_COLOR}, opacity 0 to ${SCRIM_MAX * 100}%`],
   ['Settle',          'A native physics-based spring, approved as an exception. The duration and curve describe the intended feel.'],
   ['Drag',            'Downward, 1:1 with the finger. Released past the threshold it dismisses, otherwise it returns.'],
@@ -256,6 +256,15 @@ export default function BottomSheet() {
             approved as-is. The {SHEET_MS}ms and {SHEET_EASE} describe the
             intended feel rather than a strict requirement. The scrim spec is
             not part of the exception.
+          </Note>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Note title="How the travel is written.">
+            The frame writes the sheet as “Y position: 0 to {SHEET_TOP}”, which
+            taken literally would start it at the top of the screen. The
+            flow-entry frame beside it writes the same movement as “Y 740 to 0”,
+            from the bottom edge to its resting top. Read this one the same way:
+            it comes up from the bottom edge and stops at {SHEET_TOP}.
           </Note>
         </div>
         <div style={{ marginTop: 12 }}>
