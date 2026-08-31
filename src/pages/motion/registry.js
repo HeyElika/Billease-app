@@ -15,6 +15,7 @@ import CardCarousel from './CardCarousel'
 import LockUnlock from './LockUnlock'
 import BottomNavigation from './BottomNavigation'
 import ContextualContentDocs from './ContextualContentDocs'
+import StepForwardBack from './StepForwardBack'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -25,4 +26,5 @@ export const MOTION_PAGES = {
   'controls/lock-unlock': LockUnlock,
   'navigation/bottom-navigation': BottomNavigation,
   'navigation/contextual-content': ContextualContentDocs,
+  'navigation/step': StepForwardBack,
 }
