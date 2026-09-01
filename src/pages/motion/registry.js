@@ -24,6 +24,7 @@ import DrawerDocs from './DrawerDocs'
 import TabSwitch from './TabSwitch'
 import OtpSuccess from './OtpSuccess'
 import OtpErrorShake from './OtpErrorShake'
+import OtpAlert from './OtpAlert'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -43,4 +44,5 @@ export const MOTION_PAGES = {
   'navigation/tab-switch': TabSwitch,
   'feedback/otp-success': OtpSuccess,
   'feedback/otp-error': OtpErrorShake,
+  'feedback/otp-alert': OtpAlert,
 }
