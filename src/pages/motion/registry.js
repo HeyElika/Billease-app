@@ -28,6 +28,7 @@ import OtpAlert from './OtpAlert'
 import InputFocus from './InputFocus'
 import SelectionControls from './SelectionControls'
 import AccordionDocs from './AccordionDocs'
+import AppLaunch from './AppLaunch'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -51,4 +52,5 @@ export const MOTION_PAGES = {
   'controls/input-focus': InputFocus,
   'controls/selection': SelectionControls,
   'controls/accordion': AccordionDocs,
+  'navigation/app-launch': AppLaunch,
 }
