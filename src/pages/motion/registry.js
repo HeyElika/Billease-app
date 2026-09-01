@@ -21,6 +21,7 @@ import BottomSheet from './BottomSheet'
 import NewFlowEntry from './NewFlowEntry'
 import DialogDocs from './DialogDocs'
 import DrawerDocs from './DrawerDocs'
+import TabSwitch from './TabSwitch'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -37,4 +38,5 @@ export const MOTION_PAGES = {
   'overlays/new-flow-entry': NewFlowEntry,
   'overlays/dialog': DialogDocs,
   'overlays/drawer': DrawerDocs,
+  'navigation/tab-switch': TabSwitch,
 }
