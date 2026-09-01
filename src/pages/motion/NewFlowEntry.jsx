@@ -183,7 +183,8 @@ const SPEC_ROWS = [
   ['Dismissal',       'Back navigation or an explicit close control. Swipe down is disabled.'],
   ['Exit',            'The entrance reversed, on the same duration and curve.'],
   ['Reduced motion',  'The sheet and the scrim change state without travelling.'],
-  ['Source',          'Motion system, node 1:4201, with the dismissal rule and the confirmation sticky on that frame'],
+  ['Rollout',         'New features only. Existing full-height sheets are not retrofitted.'],
+  ['Source',          'Motion system, node 1:4201, with the sticky on that frame and the team answers on nodes 1:4107 and 1:4121, item 3'],
 ]
 
 const STATE_ROWS = [

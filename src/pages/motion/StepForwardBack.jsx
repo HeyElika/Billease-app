@@ -228,6 +228,10 @@ const BEHAVIOR_RULES = [
    `All three parts run for ${STEP_MS}ms on ${STEP_EASE}. Staggering them, or giving the dim its own timing, breaks the illusion that a single thing moved.`],
   ['The screen underneath is kept',
    'It is not unmounted and not rebuilt on the way back. Scroll position, entered values and any in-progress state survive the step, because the user has not left it.'],
+  ['The screens do not fade',
+   'Neither screen changes opacity. The only thing that fades is the scrim between them, which is what gives the two screens their order in depth.'],
+  ['One step, everywhere',
+   'The answers make it global: the same values on every screen, with no per-screen overrides.'],
   ['Everything moves horizontally',
    'No fade between screens, no scale, no vertical travel. The axis carries the meaning: forward is to the left, back is to the right.'],
 ]
@@ -241,7 +245,7 @@ const SPEC_ROWS = [
   ['Dim opacity',      `0 to ${DIM_OPACITY * 100}%`],
   ['Back',             'The same values reversed. Nothing is faded and nothing new enters.'],
   ['Reduced motion',   'No travel. The destination is shown, and the screen underneath does not move.'],
-  ['Source',           'Motion system, node 1:4182, Modal - Step Forward/back'],
+  ['Source',           'Motion system, node 1:4182, and the Android team answers on node 1:4121, item 4'],
 ]
 
 const STATE_ROWS = [

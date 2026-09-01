@@ -8,6 +8,9 @@
  *   Arrow icon       Rotation 0 to -180
  *   List             Y position 0 to -224
  *
+ * The Android answers slide, node 1:4121 item 10, adds the part the frame
+ * leaves out: the body fades alongside the height animation.
+ *
  * 224 is the height of the list in the frame, so the content travels its own
  * height behind the header. The two lines are written in opposite directions,
  * which is noted on the page rather than quietly reconciled.
@@ -108,6 +111,8 @@ const AVOID_WHEN = [
 const BEHAVIOR_RULES = [
   ['The list slides behind its header',
    `It travels its own height, ${LIST_H}px in the frame this was drawn against, while the container clips it. Opening reveals it downward; closing takes it back up out of sight.`],
+  ['The body fades as it moves',
+   'The list fades alongside the height animation rather than only sliding. The Android team\u2019s answer names it, and it is the difference between content that arrives and content that is uncovered.'],
   ['The chevron turns with it',
    `${ROTATION}° over the same ${ACC_MS}ms on the same curve. The arrow and the list are one movement, so the arrow finishing early or late is immediately noticeable.`],
   ['Everything below moves with it',
@@ -123,9 +128,10 @@ const SPEC_ROWS = [
   ['Easing',          ACC_EASE],
   ['Arrow rotation',  `${ROTATION}°`],
   ['List travel',     `${LIST_H} in the frame, which is the list's own height`],
+  ['Body opacity',    'Fades alongside the height animation'],
   ['Header',          'Does not move'],
   ['Reduced motion',  'The section opens and closes without the slide or the turn.'],
-  ['Source',          'Motion system, node 1:4356'],
+  ['Source',          'Motion system, node 1:4356, and the Android team answers on node 1:4121, item 10'],
 ]
 
 const STATE_ROWS = [

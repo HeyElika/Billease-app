@@ -6,13 +6,12 @@
  *   Total duration   400ms
  *   Easing           0.9, 0, 0.1, 1
  *
- * That is all the frame gives. It shows the two ends, an empty outline and a
- * filled control with its mark, but it does not say which properties travel
- * between them. What is animated below is a reading of those two states and is
- * marked as such, not quoted as specification.
+ * The frame gives only the timing. What travels between the two ends is
+ * settled on the Android answers slide, node 1:4121, item 11: scale and alpha
+ * on the mark, no stroke-drawing, and the radio matching the checkbox.
  *
- * There is no Radio or Checkbox in src/components/ds either, so the demo is
- * built from tokens. Both gaps are logged rather than papered over.
+ * There is no Radio or Checkbox in src/components/ds, so the demo is built
+ * from tokens and that gap is logged rather than papered over.
  */
 
 import { useState } from 'react'
@@ -106,8 +105,8 @@ const AVOID_WHEN = [
 ]
 
 const BEHAVIOR_RULES = [
-  ['The box fills, the mark arrives inside it',
-   'The container takes its selected fill and border while the dot or the tick comes up inside. One is the state, the other is the confirmation of it.'],
+  ['The box fills, the mark scales and fades in',
+   'The container takes its selected fill and border while the mark comes up inside on scale and alpha. It is never drawn on stroke by stroke: the answers rule that out explicitly.'],
   ['Nothing about it moves position',
    'The control stays where it is and the label does not shift. Only what is inside the box changes.'],
   ['Unselecting is the same in reverse',
@@ -121,10 +120,11 @@ const BEHAVIOR_RULES = [
 const SPEC_ROWS = [
   ['Total duration',  `${SELECT_MS}ms`],
   ['Easing',          SELECT_EASE],
-  ['What animates',   'Not specified in the file. See the note below.'],
+  ['What animates',   'Scale and alpha on the mark. No stroke-drawing.'],
+  ['Radio and checkbox', 'The same behaviour. The radio matches the checkbox.'],
   ['Movement',        'None. The control stays in place.'],
   ['Reduced motion',  'The state still changes. There is no travel to remove.'],
-  ['Source',          'Motion system, node 1:4371'],
+  ['Source',          'Motion system, node 1:4371, and the Android team answers on node 1:4121, item 11'],
 ]
 
 const STATE_ROWS = [
@@ -176,13 +176,11 @@ export default function SelectionControls() {
         <P>Read from the Motion system file.</P>
         <RuleTable rows={SPEC_ROWS} labelWidth={200} />
         <div style={{ marginTop: 12 }}>
-          <Note title="The frame gives timing, not properties.">
-            Node 1:4371 specifies {SELECT_MS}ms and {SELECT_EASE} and shows the
-            two ends, an empty outline and a filled control with its mark. It
-            does not say what travels between them. The behaviour above, fill
-            and border with the mark scaling up inside, is a reading of those two
-            states rather than a documented list, and is worth confirming in the
-            file.
+          <Note title="No stroke-drawing.">
+            The spec frame gives only the timing, but the Android team answers
+            settle the rest: scale and alpha on the mark, no stroke-drawing, and
+            the radio behaving exactly like the checkbox. A tick that draws
+            itself on is the thing this rules out.
           </Note>
         </div>
         <div style={{ marginTop: 12 }}>

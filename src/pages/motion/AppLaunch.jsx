@@ -167,6 +167,8 @@ const BEHAVIOR_RULES = [
    `Every element starts at 0 and finishes at ${LAUNCH_MS}ms on the same curve. There are no per-element delays anywhere in this animation.`],
   ['The order you see is emergent',
    'The bottom-to-top feeling comes from travel distance: the bottom navigation crosses 175 while the available limit card crosses 614, so they move at visibly different speeds and appear to arrive in turn. Adding real delays on top of that doubles an effect that is already there.'],
+  ['It is a morph, not a crossfade or a cut',
+   'The loading screen does not dissolve into the home page and is not replaced by it. It changes shape into it, which is why the blue box, the logo and the page all move at once.'],
   ['The security screen becomes the header',
    `The blue box does not leave. It collapses from ${BOX_FROM} to ${BOX_TO}, ending as the header the home page sits under, with the logo masking as it rises.`],
   ['It waits for the data, then plays once',
@@ -189,7 +191,7 @@ const SPEC_ROWS = [
   ['Bottom navigation', `Y ${NAV_FROM} to ${NAV_TO}`],
   ['Trigger',          'Background loading completing'],
   ['Reduced motion',   'The home page appears without the travel. The blue screen still hands over to it.'],
-  ['Source',           'Motion system, node 1:4060, with the sequencing note and iOS sticky on that frame'],
+  ['Source',           'Motion system, node 1:4060, the sequencing note and iOS sticky on it, and the team answers on nodes 1:4107 and 1:4121, item 1'],
 ]
 
 const STATE_ROWS = [

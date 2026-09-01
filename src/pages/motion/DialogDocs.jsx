@@ -143,9 +143,10 @@ const SPEC_ROWS = [
   ['Scale',           `${SCALE_FROM * 100}% to 100%, from the centre`],
   ['Opacity',         '0% to 100%'],
   ['Scrim',           `${SCRIM_COLOR}, opacity 0 to ${SCRIM_MAX * 100}%`],
-  ['Exit',            'The entrance reversed, same duration and curve'],
+  ['Exit',            `The entrance reversed: scale 100% to ${SCALE_FROM * 100}%, opacity 100% to 0%, same duration and curve`],
+  ['Applies to',      'Every dialog type, with no variations'],
   ['Reduced motion',  'No scale. It appears and goes without growing.'],
-  ['Source',          'Motion system, node 1:4263'],
+  ['Source',          'Motion system, node 1:4263, with the team answers on nodes 1:4107 and 1:4121, item 6'],
 ]
 
 const STATE_ROWS = [
