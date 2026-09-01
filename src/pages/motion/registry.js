@@ -27,6 +27,7 @@ import OtpErrorShake from './OtpErrorShake'
 import OtpAlert from './OtpAlert'
 import InputFocus from './InputFocus'
 import SelectionControls from './SelectionControls'
+import AccordionDocs from './AccordionDocs'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -49,4 +50,5 @@ export const MOTION_PAGES = {
   'feedback/otp-alert': OtpAlert,
   'controls/input-focus': InputFocus,
   'controls/selection': SelectionControls,
+  'controls/accordion': AccordionDocs,
 }
