@@ -25,6 +25,7 @@ import TabSwitch from './TabSwitch'
 import OtpSuccess from './OtpSuccess'
 import OtpErrorShake from './OtpErrorShake'
 import OtpAlert from './OtpAlert'
+import InputFocus from './InputFocus'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -45,4 +46,5 @@ export const MOTION_PAGES = {
   'feedback/otp-success': OtpSuccess,
   'feedback/otp-error': OtpErrorShake,
   'feedback/otp-alert': OtpAlert,
+  'controls/input-focus': InputFocus,
 }
