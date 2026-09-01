@@ -22,6 +22,8 @@ import NewFlowEntry from './NewFlowEntry'
 import DialogDocs from './DialogDocs'
 import DrawerDocs from './DrawerDocs'
 import TabSwitch from './TabSwitch'
+import OtpSuccess from './OtpSuccess'
+import OtpErrorShake from './OtpErrorShake'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -39,4 +41,6 @@ export const MOTION_PAGES = {
   'overlays/dialog': DialogDocs,
   'overlays/drawer': DrawerDocs,
   'navigation/tab-switch': TabSwitch,
+  'feedback/otp-success': OtpSuccess,
+  'feedback/otp-error': OtpErrorShake,
 }
