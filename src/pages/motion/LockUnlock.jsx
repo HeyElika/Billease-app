@@ -233,8 +233,6 @@ const STATE_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',
-   'Drop the settle, the shackle and the spring. The card still locks; it simply arrives without the flourish.'],
   ['Announce the state, not the motion',
    'Lock and unlock are a state change on one control, so the label carries the state and the change is announced.'],
   ['Do not rely on the veil alone',

@@ -163,8 +163,6 @@ const ACCESSIBILITY_RULES = [
    'Focus enters the dialog when it opens and returns to the control that opened it when it closes.'],
   ['Answering must not depend on the motion',
    'The actions are reachable the moment the dialog is open. Nothing waits for the animation to finish.'],
-  ['Reduced motion drops the scale only',
-   'The dialog still appears, the scrim still dims, the question is still asked.'],
 ]
 
 const ENGINEERING_ROWS = [

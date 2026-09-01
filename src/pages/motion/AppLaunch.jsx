@@ -204,8 +204,6 @@ const STATE_ROWS = [
 const ACCESSIBILITY_RULES = [
   ['Nothing waits for the animation',
    'The home page is interactive as it arrives, not after 1500ms. A launch animation must never be a gate.'],
-  ['Reduced motion goes straight there',
-   'The handover still happens, without the travel. A second and a half of movement is exactly what reduced motion is for.'],
   ['Announce the screen, not the motion',
    'What is announced is that the home page is ready. The travel carries nothing an assistive technology needs.'],
 ]

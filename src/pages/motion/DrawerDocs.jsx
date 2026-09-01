@@ -182,8 +182,6 @@ const ACCESSIBILITY_RULES = [
    'Since edge swipe is disabled, the top-bar control is the only route in and must always be present and labelled.'],
   ['Focus moves in and comes back',
    'Focus enters the drawer when it opens and returns to the control that opened it when it closes.'],
-  ['Reduced motion keeps the drawer',
-   'Only the travel and the parallax go.'],
 ]
 
 const ENGINEERING_ROWS = [

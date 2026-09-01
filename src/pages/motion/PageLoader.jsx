@@ -23,8 +23,6 @@ import {
 const FPS         = 30
 const FRAMES      = 33
 const LOOP_MS     = Math.round((FRAMES / FPS) * 1000)   // 1100
-const DOT_DIA     = 83.42                               // composition units
-const DOT_GAP     = 174.6                               // centre to centre, averaged
 const TRAVEL      = 74.3                                // averaged over the three dots
 const ART_W_PCT   = 28.8                                // artwork width as a share of the composition
 const ART_H_PCT   = 14.2
@@ -108,14 +106,10 @@ const BEHAVIOR_RULES = [
 const SPEC_ROWS = [
   ['Loop length',      `${LOOP_MS}ms, ${FRAMES} frames at ${FPS}fps, repeating`],
   ['Dismissal',        'On the data arriving. Not timed.'],
-  ['Elements',         'Three dots, named Left, Middle and Right in the file'],
   ['Dot colour',       'bg/secondary, #265CE5'],
-  ['Dot diameter',     `${DOT_DIA} composition units, 5.6% of the composition width`],
-  ['Spacing',          `${DOT_GAP} units centre to centre, 2.1x the diameter of a dot`],
   ['Travel',           `${TRAVEL} units, 0.9x the diameter of a dot`],
   ['Timing',           'Position is keyed on every frame. There is no easing curve to quote: the rise and fall is baked into the file.'],
   ['Phase',            'The dots reach the top of their travel at 0ms (Middle), 267ms (Right) and 833ms (Left). Left and Right are in antiphase: one is at the top exactly as the other reaches the bottom.'],
-  ['Hold',             'Right holds at the top of its arc for three frames, 100ms, while Left holds at the bottom. The other turns take a single frame.'],
   ['Reduced motion',   'The loader keeps running. It is the only signal that the screen is working, and at 0.9 cycles per second it is nowhere near a flash risk.'],
 ]
 
@@ -132,10 +126,6 @@ const ACCESSIBILITY_RULES = [
    'The region carries a live status with a text label such as Loading. The dots themselves are decorative and are hidden from assistive technology.'],
   ['Mark the region busy',
    'Set the busy state on the region being loaded and clear it when the content arrives, so the change is announced once rather than on every loop.'],
-  ['Reduced motion keeps it',
-   'This is the only thing telling the user the app is working, so it keeps running. If a product decides to freeze it, it has to put text in its place.'],
-  ['No flash risk',
-   'One cycle per 1100ms, and nothing in the file changes opacity abruptly. It stays far below the three flashes per second threshold.'],
 ]
 
 const ENGINEERING_ROWS = [
@@ -155,12 +145,9 @@ const ENGINEERING_ROWS = [
 
 const LOTTIE_ROWS = [
   ['File',           'page-loader.json'],
-  ['Composition',    `1500 x 1125, ${FPS}fps, ${FRAMES} frames`],
   ['Loop',           `${LOOP_MS}ms, seamless`],
-  ['Layers',         'Three, named Left, Middle and Right'],
   ['Renderer',       'SVG. No expressions, so the light build of the player is enough.'],
   ['Colour',         'bg/secondary #265CE5, on the dots only. Nothing in the file paints a background.'],
-  ['Version',        'Lottie 5.12.2'],
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

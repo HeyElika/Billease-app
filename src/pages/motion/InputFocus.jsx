@@ -109,8 +109,6 @@ const ACCESSIBILITY_RULES = [
    'The same state applies whether focus came from a tap or from a keyboard. A field that only lights up on tap leaves keyboard users guessing.'],
   ['Contrast, not just colour',
    'The fill change carries the state as well as the stroke, so focus does not rest on one blue border alone.'],
-  ['Reduced motion changes nothing here',
-   'There is no movement to remove, and 200ms of colour is not a motion risk.'],
 ]
 
 const ENGINEERING_ROWS = [

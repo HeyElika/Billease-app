@@ -235,8 +235,6 @@ const ACCESSIBILITY_RULES = [
    'The control reports which tab is selected and announces the change. The cross-slide is decoration.'],
   ['The resting alpha is not a disabled state',
    `${ALPHA_MIN * 100}% is a de-emphasised tab that is still available. It must not be confused with, or styled as, a disabled control.`],
-  ['Reduced motion keeps the switch',
-   'Only the cross-slide goes. Tapping still changes tab, and dragging still works, because a gesture the user is driving is not an animation.'],
 ]
 
 const ENGINEERING_ROWS = [

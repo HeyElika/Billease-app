@@ -501,8 +501,6 @@ const STATE_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',
-   `Remove the spring and any overshoot, keeping the carousel fully functional on a ${REDUCED_MS}ms transition, or the platform convention where one exists.`],
   ['Never gesture-only',
    'Tapping a peeking card selects it, so the carousel works without a drag. Anything reachable by gesture has to be reachable another way.'],
   ['Announce the position',

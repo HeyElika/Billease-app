@@ -319,8 +319,6 @@ const STATE_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',
-   'Swap the faces without rotating them. Do not substitute a shorter flip.'],
   ['Do not expose the hidden face',
    'While concealed, the back face must be out of the accessibility tree entirely, not merely visually hidden. Assistive technology must not be able to read a card number the screen is not showing.'],
   ['Announce the state change',
@@ -345,8 +343,6 @@ const ENGINEERING_ROWS = [
    'There is no native backface-visibility, but the two-face technique still applies. Set m34 on the container layer for perspective and drive a CABasicAnimation on transform.rotation.y, or in SwiftUI apply rotation3DEffect about the Y axis to both faces with the back offset by 180 degrees, swapping which face is visible and hit-testable at the halfway point.'],
   ['Eye icon',
    'Swap the glyph at the midpoint while it is fully squashed. Do not morph one shape into the other. On iOS this is a CGAffineTransform scaleY to 0.05 over 110ms with ease-in-out, or scaleEffect with a matching animation.'],
-  ['Info alert',
-   'No animation wrapper. Toggle isHidden, or the view presence in SwiftUI with no animation modifier attached. The instant swap keeps the reveal moment on the card.'],
   ['One set of values',
    'Android and iOS share the same curves and durations. The cubic-bezier control points map directly onto CAMediaTimingFunction and SwiftUI timingCurve, so nothing needs retiming per platform.'],
   ['Lottie alternative',

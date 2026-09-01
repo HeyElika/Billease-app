@@ -242,21 +242,6 @@ export const MOTION_CATEGORIES = [
         spec: { duration: '400ms', easing: STANDARD_EASING },
       },
       {
-        id: 'show-hide',
-        label: 'Show and hide value',
-        definition: 'Revealing a masked value in place, such as a balance, an available limit or an account number.',
-        notes: [
-          ['Already implemented',
-           'The Balance component takes a reveal flag that toggles the value between masked and shown, and swaps its icon between show and hide as it does. This is shipped behavior, not a proposal.'],
-          ['Three states, not two',
-           'Locked is a distinct state rather than the opposite of revealed. While locked, a lock icon replaces the reveal control, the control is removed rather than disabled, and the value renders in a disabled style. Any motion has to cover locked to unlocked as well as hidden to shown.'],
-          ['Current state in the app',
-           'No animation. The value and the icon both swap instantly, and the tap target explicitly suppresses its ripple, so there is no feedback of any kind on the interaction.'],
-          ['What the cards handoff proposes',
-           'The reveal icon transforms over 110ms, and lock and unlock cross-fade their two icons over 260ms. Those are the first real numbers for this transition anywhere.'],
-        ],
-      },
-      {
         id: 'accordion',
         label: 'Accordion',
         definition: 'The expand and collapse of a disclosure section, with its chevron.',

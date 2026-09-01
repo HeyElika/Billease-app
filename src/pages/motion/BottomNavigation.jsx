@@ -159,8 +159,6 @@ const STATE_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',
-   'Drop the dip. The colour change and the destination change both remain, so nothing is lost but the flourish.'],
   ['Colour is not the only signal',
    'The active tab also switches to the filled glyph and a semibold label, so the state does not rest on hue alone.'],
   ['Announce the destination',

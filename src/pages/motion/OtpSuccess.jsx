@@ -106,8 +106,6 @@ const ACCESSIBILITY_RULES = [
    'The success is a status change, announced as text. A green stroke and 2% of scale are not available to everyone.'],
   ['Never colour alone',
    'The fill and the stroke are the visual half. What happens next, or a message, is the other half.'],
-  ['Reduced motion keeps the state',
-   'Only the scale goes, and the field still ends up looking accepted.'],
 ]
 
 const ENGINEERING_ROWS = [

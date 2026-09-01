@@ -152,8 +152,6 @@ const ACCESSIBILITY_RULES = [
    'The toast is a live status message. It has to be announced when it appears, because four seconds is not long enough to assume it was read.'],
   ['Never carry an action alone',
    'It dismisses itself, so anything the user might need to do has to exist somewhere else as well. A toast is not a place to put the only route to something.'],
-  ['Reduced motion keeps the message',
-   'Only the travel goes. The appearance, the dwell and the dismissal are the pattern, not decoration, so they stay.'],
 ]
 
 const ENGINEERING_ROWS = [

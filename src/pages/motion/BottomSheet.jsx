@@ -208,8 +208,6 @@ const ACCESSIBILITY_RULES = [
    'Drag to dismiss is an addition, not the route. There is always a control that closes the sheet, because a drag is not available to everyone.'],
   ['Focus moves in and comes back',
    'Focus enters the sheet when it opens and returns to whatever opened it when it closes.'],
-  ['Reduced motion keeps the sheet',
-   'Only the travel goes. The sheet, the scrim and the dismissal are the pattern, not decoration.'],
 ]
 
 const ENGINEERING_ROWS = [

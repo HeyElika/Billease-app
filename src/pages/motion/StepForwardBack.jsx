@@ -230,10 +230,6 @@ const BEHAVIOR_RULES = [
    'It is not unmounted and not rebuilt on the way back. Scroll position, entered values and any in-progress state survive the step, because the user has not left it.'],
   ['The screens do not fade',
    'Neither screen changes opacity. The only thing that fades is the scrim between them, which is what gives the two screens their order in depth.'],
-  ['One step, everywhere',
-   'The answers make it global: the same values on every screen, with no per-screen overrides.'],
-  ['Everything moves horizontally',
-   'No fade between screens, no scale, no vertical travel. The axis carries the meaning: forward is to the left, back is to the right.'],
 ]
 
 const SPEC_ROWS = [
@@ -257,8 +253,6 @@ const STATE_ROWS = [
 ]
 
 const ACCESSIBILITY_RULES = [
-  ['Respect reduced motion',
-   'Drop the travel and show the destination. The step still happens and back still works; only the movement goes.'],
   ['Focus follows the step',
    'Focus moves to the arriving screen, and back to where it was on return. The animation is decoration and must not be what tells a screen reader the screen changed.'],
   ['The dimmed screen is not reachable',

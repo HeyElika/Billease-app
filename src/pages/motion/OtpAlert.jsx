@@ -162,8 +162,6 @@ const ACCESSIBILITY_RULES = [
    'The alert is a live status message and is announced when it appears. Five seconds is not long enough to assume it was read.'],
   ['Do not move focus',
    'The user is typing a code. The alert says something about that field and must not take focus away from it.'],
-  ['Reduced motion keeps the message',
-   'Only the travel goes. The alert still appears, still dwells and still leaves.'],
 ]
 
 const ENGINEERING_ROWS = [

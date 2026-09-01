@@ -123,8 +123,6 @@ const STATE_ROWS = [
 const ACCESSIBILITY_RULES = [
   ['The message does the work',
    'The rejection is announced as text. Someone who cannot see the shake, or has it turned off, is told exactly the same thing.'],
-  ['Reduced motion removes only the movement',
-   'The error colour, the message and the haptic all stay.'],
   ['Never colour alone',
    'The field turns red and says what is wrong. Colour on its own is not a message.'],
 ]

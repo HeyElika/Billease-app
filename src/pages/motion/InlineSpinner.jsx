@@ -146,10 +146,6 @@ const ACCESSIBILITY_RULES = [
    'Set the busy state on the component that is working and clear it when the result arrives, so the change is announced once rather than on every turn.'],
   ['Keep the control blocked while it runs',
    'A control showing a spinner has already been used. It must not accept a second press until the work comes back.'],
-  ['Reduced motion keeps it',
-   'This is the only thing telling the user the component is working, so it keeps running. If a product decides to freeze it, it has to put text in its place.'],
-  ['No flash risk',
-   'One turn per second, with no change of opacity anywhere in the file. It stays far below the three flashes per second threshold.'],
 ]
 
 const ENGINEERING_ROWS = [
@@ -169,12 +165,9 @@ const ENGINEERING_ROWS = [
 
 const LOTTIE_ROWS = [
   ['File',         'spinner.json'],
-  ['Composition',  `1500 x 1125, ${FPS}fps, ${FRAMES} frames`],
   ['Loop',         `${LOOP_MS}ms`],
-  ['Layers',       'Two: a static track and a rotating arc'],
   ['Renderer',     'SVG. No expressions, so the light build of the player is enough.'],
   ['Colours',      'Arc bg/secondary #265CE5. Track #535353 at 20%, which is not a token.'],
-  ['Version',      'Lottie 5.12.2'],
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

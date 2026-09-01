@@ -202,8 +202,6 @@ const ACCESSIBILITY_RULES = [
    'The close control is in the sheet, not only in a gesture. Since drag is disabled here, a visible control is the only route and must always be present.'],
   ['Focus moves in and comes back',
    'Focus enters the flow when it opens and returns to the control that opened it when it closes.'],
-  ['Reduced motion keeps the flow',
-   'Only the travel goes. Entering, the scrim and the dismissal all still happen.'],
 ]
 
 const ENGINEERING_ROWS = [

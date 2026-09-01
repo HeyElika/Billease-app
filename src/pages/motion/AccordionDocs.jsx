@@ -146,8 +146,6 @@ const ACCESSIBILITY_RULES = [
    'It reports whether the section is open and toggles it. The chevron is decoration on top of that, not the control itself.'],
   ['Collapsed content is not reachable',
    'What is clipped is out of the tab order, so tabbing does not land somewhere invisible.'],
-  ['Reduced motion keeps the toggle',
-   'Only the slide and the turn go. Opening and closing still work.'],
 ]
 
 const ENGINEERING_ROWS = [
