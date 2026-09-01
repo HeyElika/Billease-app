@@ -29,6 +29,7 @@ import InputFocus from './InputFocus'
 import SelectionControls from './SelectionControls'
 import AccordionDocs from './AccordionDocs'
 import AppLaunch from './AppLaunch'
+import ShowHideValue from './ShowHideValue'
 
 export const MOTION_PAGES = {
   'loader/skeleton': SkeletonLoader,
@@ -53,4 +54,5 @@ export const MOTION_PAGES = {
   'controls/selection': SelectionControls,
   'controls/accordion': AccordionDocs,
   'navigation/app-launch': AppLaunch,
+  'controls/show-hide': ShowHideValue,
 }
