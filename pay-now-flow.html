@@ -634,8 +634,8 @@ function skipRowHTML(on){
   return '<button class="skiprow" type="button" data-skip aria-pressed="' + on + '">'
     + '<span class="cbox' + (on ? ' on' : '') + '">'
     + (on ? icon('tick',16,'var(--icon-on-dark)') : '') + '</span>'
-    + '<span class="txt"><span class="lab">Don\u2019t include other payments</span>'
-    + '<span class="sub">Only pay the selected amount above.</span></span></button>';
+    + '<span class="txt"><span class="lab">Pay only this payment</span>'
+    + '<span class="sub">Other payments won\u2019t be included</span></span></button>';
 }
 function payNowBodyHTML(st){
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
