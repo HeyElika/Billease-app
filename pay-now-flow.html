@@ -34,7 +34,8 @@
 
   --border-subtle:#E0E0E0; --border-default:#D4D4D4; --border-strong:#919191;
   --border-bold:#919191; --border-on-dark:#FFFFFF; --border-primary:#E7161A;
-  --border-info:#13456D; --border-width-100:1px;
+  --border-info:#13456D;
+  --border-width-100:1px; --border-width-200:2px; --border-width-300:3px;
 
   --icon-base:#1A1A1A; --icon-subtle:#545454; --icon-disabled:#B0B0B0;
   --icon-on-dark:#FFFFFF; --icon-primary:#E7161A;
@@ -401,11 +402,36 @@ img{ max-width:100%; }
   color:var(--text-base); text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .radio{ width:20px; height:20px; flex-shrink:0; display:block; }
 
+/* checkbox — Figma 188:2520 (default) / 188:2523 (checked), the control inside
+   checkbox-paragraph 183:2213. 24px box, 2px --border-bold ring, --radius-md,
+   --bg-primary fill with the tick glyph when checked. */
+.cbox{ width:24px; height:24px; flex-shrink:0; border-radius:var(--radius-md);
+  border:var(--border-width-200) solid var(--border-bold);
+  display:flex; align-items:center; justify-content:center; }
+.cbox.on{ border-color:transparent; background:var(--bg-primary); }
+.skiprow{ display:flex; align-items:flex-start; gap:var(--space-200); width:100%;
+  background:none; border:0; padding:var(--space-100) 0 0; cursor:pointer;
+  text-align:left; font-family:inherit; }
+.skiprow:focus-visible{ outline:2px solid var(--border-info); outline-offset:2px;
+  border-radius:var(--radius-sm); }
+.skiprow .txt{ flex:1 0 0; min-width:0; display:flex; flex-direction:column; }
+.skiprow .lab{ font-size:var(--text-lg); font-weight:400; line-height:1.5; color:var(--text-base); }
+.skiprow .sub{ font-size:var(--text-md); font-weight:400; line-height:1.5; color:var(--text-subtle); }
+
+/* Optional cards while the skip checkbox is on: inert, disabled tokens. */
+.card.off{ pointer-events:none; }
+.card.off .name,.card.off .idrow span,.card.off .due,
+.card.off .tag,.card.off .amt{ color:var(--text-disabled); }
+
 /* action-bar — Figma 62276:9033, specs from ActionBar.jsx */
 .actionbar{ position:relative; flex-shrink:0; background:var(--bg-base);
   padding:var(--space-300) var(--space-500) var(--space-500);
   display:flex; flex-direction:column; gap:var(--space-300); }
-.actionbar .brd{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--border-subtle); }
+/* Same rule as the NavHeader border: only shown while content is still
+   hidden behind the bar, never on a page that fits. */
+.actionbar .brd{ position:absolute; top:0; left:0; right:0; height:1px;
+  background:var(--border-subtle); opacity:0; transition:opacity .15s ease; }
+.actionbar.scrolled .brd{ opacity:1; }
 .btn{ height:48px; width:100%; border:0; cursor:pointer; background:var(--bg-primary);
   color:var(--text-on-dark); border-radius:var(--radius-full);
   display:flex; align-items:center; justify-content:center; gap:var(--space-200);
@@ -553,30 +579,37 @@ function totalOf(st){
 }
 function freshState(){
   return { sel:{ primary:'next', loan2:null, credit:null },
-           exp:{ primary:true,  loan2:false, credit:false } };
+           exp:{ primary:true,  loan2:false, credit:false },
+           skip:false };   /* "Don't include other payments" starts unchecked */
 }
 
 /* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
-function cardHTML(key, st, isPrimary){
+function cardHTML(key, st, isPrimary, off){
   var d = DATA[key], open = !!st.exp[key], sel = st.sel[key];
   var o = optionOf(key, sel), isCredit = d.kind === 'credit';
+  var iconCol = off ? 'var(--icon-disabled)' : 'var(--icon-base)';
+  var subCol  = off ? 'var(--icon-disabled)' : 'var(--icon-subtle)';
   var nameCls = 'name' + (isCredit ? ' sm' : '');
   var dueCls  = 'due'  + (isCredit ? ' sm' : '');
   var idRow = d.ref
-    ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,'var(--icon-subtle)') + '</div>' : '';
+    ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,subCol) + '</div>' : '';
   var headAmt = (open && o && o.amt) ? '<p class="amt">' + fmt(o.amt) + '</p>' : '';
   /* "Next installment" exists in Figma only on the next-installment state. */
   var tag = (open && d.nextKey && sel === d.nextKey) ? '<p class="tag">Next installment</p>' : '';
 
   var head = '<button class="cardtoggle" type="button" data-toggle="' + key + '" aria-expanded="' + open + '">'
     + '<div class="headrow"><div class="left"><p class="' + nameCls + '">' + d.name + '</p>' + idRow + '</div>'
-    + '<div class="right">' + headAmt + iconBox(open ? 'chevron-up' : 'chevron-down',16,12,'var(--icon-base)') + '</div></div>'
-    + '<div class="bottomline">' + iconBox('calendar-outline',16,12,'var(--icon-subtle)')
+    + '<div class="right">' + headAmt + iconBox(open ? 'chevron-up' : 'chevron-down',16,12,iconCol) + '</div></div>'
+    + '<div class="bottomline">' + iconBox('calendar-outline',16,12,subCol)
     + '<p class="' + dueCls + '">' + d.due + '</p>' + tag + '</div></button>';
+
+  /* The master "Don't include other payments" checkbox replaces the per-card
+     skip on the optional items, so only the primary loan keeps its own. */
+  var list = isPrimary ? d.options : d.options.filter(function(op){ return op.k !== 'none'; });
 
   var opts = '';
   if (open) {
-    opts = '<div class="optlist">' + d.options.map(function(op){
+    opts = '<div class="optlist">' + list.map(function(op){
       var on = sel === op.k;
       var txt = '<span class="txt"><span class="lab">' + op.label + '</span>'
         + (op.sub ? '<span class="sub">' + op.sub + '</span>' : '') + '</span>';
@@ -586,13 +619,22 @@ function cardHTML(key, st, isPrimary){
         + (op.amt != null ? '<span class="val">' + fmt(op.amt) + '</span>' : '') + '</button>';
     }).join('') + '</div>';
   }
-  return '<div class="card ' + (open ? 'expanded' : 'collapsed') + (isPrimary ? ' is-primary' : '') + '">'
-    + head + opts + '</div>';
+  return '<div class="card ' + (open ? 'expanded' : 'collapsed')
+    + (isPrimary ? ' is-primary' : '') + (off ? ' off' : '') + '">' + head + opts + '</div>';
+}
+/* checkbox-paragraph — Figma 183:2213, control 188:2520 / 188:2523 */
+function skipRowHTML(on){
+  return '<button class="skiprow" type="button" data-skip aria-pressed="' + on + '">'
+    + '<span class="cbox' + (on ? ' on' : '') + '">'
+    + (on ? icon('tick',16,'var(--icon-on-dark)') : '') + '</span>'
+    + '<span class="txt"><span class="lab">Don\u2019t include other payments</span>'
+    + '<span class="sub">Only pay the selected amount above.</span></span></button>';
 }
 function payNowBodyHTML(st){
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
     + '<div class="group"><div class="sectitle"><p>Include other payments?</p></div>'
-    + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('') + '</div>';
+    + EXTRAS.map(function(k){ return cardHTML(k, st, false, st.skip); }).join('')
+    + skipRowHTML(!!st.skip) + '</div>';
 }
 
 /* ══ Phone chrome, ported from src/pages/flows/PhoneMockShared.jsx ═══════ */
@@ -826,7 +868,7 @@ var FLOW = [
   { key:'paynow', label:'Pay now' },
   { key:'qrph',   label:'Pay with QRPh' }
 ];
-var proto = { screen:'home', st:freshState(), busy:false };
+var proto = { screen:'home', painted:null, st:freshState(), busy:false };
 
 function screenHTML(key){
   if (key === 'home')   return screenHome();
@@ -849,14 +891,31 @@ var base  = host.querySelector('.layer.base');
 var dim   = host.querySelector('.dimlayer');
 var over  = host.querySelector('.layer.over');
 function wireScroll(root){
-  var sc = root.querySelector('.scroll'), hd = root.querySelector('.navhdr');
-  if (!sc || !hd) return;
-  /* NavHeader Scroll Border Rule: the border appears only once content scrolls. */
-  sc.addEventListener('scroll', function(){ hd.classList.toggle('scrolled', sc.scrollTop > 0); });
+  var sc = root.querySelector('.scroll');
+  if (!sc) return;
+  var hd = root.querySelector('.navhdr');
+  var ab = root.querySelector('.actionbar');
+  /* Both dividers are driven by scroll, never hardcoded: the header border
+     once content has scrolled under it, the action bar border while content
+     is still hidden behind it. */
+  function sync(){
+    if (hd) hd.classList.toggle('scrolled', sc.scrollTop > 0);
+    if (ab) ab.classList.toggle('scrolled',
+      sc.scrollHeight - sc.clientHeight - sc.scrollTop > 1);
+  }
+  sc.addEventListener('scroll', sync);
+  sync();
 }
 function paint(){
+  /* Re-rendering in place (expanding a card, changing a selection) keeps the
+     scroll position; moving to another screen starts at the top. */
+  var prev = base.querySelector('.scroll');
+  var keep = (proto.painted === proto.screen && prev) ? prev.scrollTop : 0;
   base.innerHTML = screenHTML(proto.screen);
   base.style.transform = '';
+  var sc = base.querySelector('.scroll');
+  if (sc) sc.scrollTop = keep;
+  proto.painted = proto.screen;
   wireScroll(base);
 }
 function nav(to, dir){
@@ -890,6 +949,17 @@ function nav(to, dir){
 stage.addEventListener('click', function(e){
   var navEl = e.target.closest('[data-nav]');
   if (navEl) { nav(navEl.getAttribute('data-nav'), navEl.getAttribute('data-dir')); return; }
+  var sk = e.target.closest('[data-skip]');
+  if (sk) {
+    proto.st.skip = !proto.st.skip;
+    /* Opting out clears and closes the optional items so the total falls back
+       to the loan the user arrived with. */
+    if (proto.st.skip) {
+      EXTRAS.forEach(function(x){ proto.st.sel[x] = null; proto.st.exp[x] = false; });
+    }
+    paint();
+    return;
+  }
   var tg = e.target.closest('[data-toggle]');
   if (tg) { var k = tg.getAttribute('data-toggle'); proto.st.exp[k] = !proto.st.exp[k]; paint(); return; }
   var pk = e.target.closest('[data-pick]');
