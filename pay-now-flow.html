@@ -556,8 +556,8 @@ var LOAN_AMOUNTS = [
 ];
 /* A radio group needs a reachable "none", otherwise picking an amount is a
    one-way door and the only way back is the checkbox, which clears every
-   optional item at once. It is the default, so the group always has exactly
-   one selection and "nothing selected" never means the same thing twice. */
+   optional item at once. Left unselected on open, so an optional item is
+   never included until the user says so. */
 var SKIP = { k:'none', label:'Don\u2019t include', amt:null };
 var DATA = {
   /* The loan the user arrived to pay has no refusal row: leaving it out is
@@ -593,8 +593,8 @@ function totalOf(st){
   return t;
 }
 function freshState(){
-  return { sel:{ primary:'next', loan2:'none', credit:'none' },
-           exp:{ primary:true,  loan2:false,  credit:false },
+  return { sel:{ primary:'next', loan2:null,  credit:null },
+           exp:{ primary:true,  loan2:false, credit:false },
            skip:false };   /* the opt-out checkbox starts unchecked */
 }
 
@@ -990,7 +990,7 @@ stage.addEventListener('click', function(e){
     /* Opting out clears and closes the optional items so the total falls back
        to the loan the user arrived with. */
     if (proto.st.skip) {
-      EXTRAS.forEach(function(x){ proto.st.sel[x] = 'none'; proto.st.exp[x] = false; });
+      EXTRAS.forEach(function(x){ proto.st.sel[x] = null; proto.st.exp[x] = false; });
     }
     paint();
     return;
