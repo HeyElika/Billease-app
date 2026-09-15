@@ -420,7 +420,7 @@ img{ max-width:100%; }
   display:flex; align-items:center; justify-content:center; }
 .cbox.on{ border-color:transparent; background:var(--bg-primary); }
 .skiprow{ display:flex; align-items:flex-start; gap:var(--space-200); width:100%;
-  background:none; border:0; padding:var(--space-100) 0 0; cursor:pointer;
+  background:none; border:0; padding:0; cursor:pointer;
   text-align:left; font-family:inherit; }
 .skiprow:focus-visible{ outline:2px solid var(--border-info); outline-offset:2px;
   border-radius:var(--radius-sm); }
@@ -634,11 +634,14 @@ function skipRowHTML(on){
     + '<span class="sub">Other payments won\u2019t be included</span></span></button>';
 }
 function payNowBodyHTML(st){
+  /* The opt-out sits directly under the loan the user arrived with. Ticking it
+     takes the whole "Other payments" block, title included, off the screen. */
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
-    + '<div class="group"><div class="sectitle"><p>Include other payments?</p></div>'
     + skipRowHTML(!!st.skip)
-    + (st.skip ? '' : EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join(''))
-    + '</div>';
+    + (st.skip ? ''
+        : '<div class="group"><div class="sectitle"><p>Other payments</p></div>'
+          + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('')
+          + '</div>');
 }
 
 /* ══ Phone chrome, ported from src/pages/flows/PhoneMockShared.jsx ═══════ */
