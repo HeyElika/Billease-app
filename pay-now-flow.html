@@ -418,10 +418,6 @@ img{ max-width:100%; }
 .skiprow .lab{ font-size:var(--text-lg); font-weight:400; line-height:1.5; color:var(--text-base); }
 .skiprow .sub{ font-size:var(--text-md); font-weight:400; line-height:1.5; color:var(--text-subtle); }
 
-/* Optional cards while the skip checkbox is on: inert, disabled tokens. */
-.card.off{ pointer-events:none; }
-.card.off .name,.card.off .idrow span,.card.off .due,
-.card.off .tag,.card.off .amt{ color:var(--text-disabled); }
 
 /* action-bar — Figma 62276:9033, specs from ActionBar.jsx */
 .actionbar{ position:relative; flex-shrink:0; background:var(--bg-base);
@@ -584,23 +580,21 @@ function freshState(){
 }
 
 /* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
-function cardHTML(key, st, isPrimary, off){
+function cardHTML(key, st, isPrimary){
   var d = DATA[key], open = !!st.exp[key], sel = st.sel[key];
   var o = optionOf(key, sel), isCredit = d.kind === 'credit';
-  var iconCol = off ? 'var(--icon-disabled)' : 'var(--icon-base)';
-  var subCol  = off ? 'var(--icon-disabled)' : 'var(--icon-subtle)';
   var nameCls = 'name' + (isCredit ? ' sm' : '');
   var dueCls  = 'due'  + (isCredit ? ' sm' : '');
   var idRow = d.ref
-    ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,subCol) + '</div>' : '';
+    ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,'var(--icon-subtle)') + '</div>' : '';
   var headAmt = (open && o && o.amt) ? '<p class="amt">' + fmt(o.amt) + '</p>' : '';
   /* "Next installment" exists in Figma only on the next-installment state. */
   var tag = (open && d.nextKey && sel === d.nextKey) ? '<p class="tag">Next installment</p>' : '';
 
   var head = '<button class="cardtoggle" type="button" data-toggle="' + key + '" aria-expanded="' + open + '">'
     + '<div class="headrow"><div class="left"><p class="' + nameCls + '">' + d.name + '</p>' + idRow + '</div>'
-    + '<div class="right">' + headAmt + iconBox(open ? 'chevron-up' : 'chevron-down',16,12,iconCol) + '</div></div>'
-    + '<div class="bottomline">' + iconBox('calendar-outline',16,12,subCol)
+    + '<div class="right">' + headAmt + iconBox(open ? 'chevron-up' : 'chevron-down',16,12,'var(--icon-base)') + '</div></div>'
+    + '<div class="bottomline">' + iconBox('calendar-outline',16,12,'var(--icon-subtle)')
     + '<p class="' + dueCls + '">' + d.due + '</p>' + tag + '</div></button>';
 
   /* The master "Don't include other payments" checkbox replaces the per-card
@@ -620,7 +614,7 @@ function cardHTML(key, st, isPrimary, off){
     }).join('') + '</div>';
   }
   return '<div class="card ' + (open ? 'expanded' : 'collapsed')
-    + (isPrimary ? ' is-primary' : '') + (off ? ' off' : '') + '">' + head + opts + '</div>';
+    + (isPrimary ? ' is-primary' : '') + '">' + head + opts + '</div>';
 }
 /* checkbox-paragraph — Figma 183:2213, control 188:2520 / 188:2523 */
 function skipRowHTML(on){
@@ -633,8 +627,9 @@ function skipRowHTML(on){
 function payNowBodyHTML(st){
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
     + '<div class="group"><div class="sectitle"><p>Include other payments?</p></div>'
-    + EXTRAS.map(function(k){ return cardHTML(k, st, false, st.skip); }).join('')
-    + skipRowHTML(!!st.skip) + '</div>';
+    + skipRowHTML(!!st.skip)
+    + (st.skip ? '' : EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join(''))
+    + '</div>';
 }
 
 /* ══ Phone chrome, ported from src/pages/flows/PhoneMockShared.jsx ═══════ */
