@@ -549,8 +549,7 @@ function fmt(n){ return PESO + n.toLocaleString('en-PH', { minimumFractionDigits
 var LOAN_OPTIONS = [
   { k:'next',   label:'Pay next installment', amt:500 },
   { k:'full',   label:'Pay in full',          amt:3000 },
-  { k:'custom', label:'Custom amount',        amt:null },
-  { k:'none',   label:'Don’t include',   amt:null }
+  { k:'custom', label:'Custom amount',        amt:null }
 ];
 var DATA = {
   primary:{ name:'FC Home Center',    ref:'#123456', due:'Due in 4 days', kind:'loan',
@@ -563,8 +562,7 @@ var DATA = {
               { k:'full',      label:'Full balance',      amt:734.56 },
               { k:'min',       label:'Minimum due',       amt:50,
                 sub:'Interest may apply to the remaining balance' },
-              { k:'custom',    label:'Custom amount',     amt:null },
-              { k:'none',      label:'Don’t include',amt:null }
+              { k:'custom',    label:'Custom amount',     amt:null }
             ] }
 };
 /* Optional items keep the Figma order: Credit line first, then other loans. */
@@ -610,13 +608,11 @@ function cardHTML(key, st, isPrimary){
     + '<div class="bottomline">' + iconBox('calendar-outline',16,12,'var(--icon-subtle)')
     + '<p class="' + dueCls + '">' + d.due + '</p>' + tag + '</div></button>';
 
-  /* The master "Don't include other payments" checkbox replaces the per-card
-     skip on the optional items, so only the primary loan keeps its own. */
-  var list = isPrimary ? d.options : d.options.filter(function(op){ return op.k !== 'none'; });
-
+  /* No card carries a refusal row: the opt-out checkbox covers the optional
+     items, and the loan the user came to pay does not need one. */
   var opts = '';
   if (open) {
-    opts = '<div class="optlist">' + list.map(function(op){
+    opts = '<div class="optlist">' + d.options.map(function(op){
       var on = sel === op.k;
       var txt = '<span class="txt"><span class="lab">' + op.label + '</span>'
         + (op.sub ? '<span class="sub">' + op.sub + '</span>' : '') + '</span>';
