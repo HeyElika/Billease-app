@@ -77,53 +77,9 @@ body{
 img{ max-width:100%; }
 [hidden]{ display:none !important; }
 
-/* ══ Portal chrome (Inter) ══════════════════════════════════════════════ */
-.wrap{ max-width:1320px; margin:0 auto; padding:40px 24px 72px; }
-.masthead{ margin-bottom:28px; }
-.eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:600;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--text-subtle); margin-bottom:12px; }
-.eyebrow .dot{ width:8px; height:8px; border-radius:var(--radius-full); background:var(--bg-primary); }
-h1{ font-size:32px; line-height:1.2; font-weight:700; margin:0 0 10px; letter-spacing:-.02em; }
-.lede{ font-size:16px; color:var(--text-subtle); margin:0; max-width:74ch; }
-
-.section{ margin-top:48px; }
-.section > h2{ font-size:20px; font-weight:700; margin:0 0 6px; letter-spacing:-.01em; }
-.section > .sub{ font-size:14px; color:var(--text-subtle); margin:0 0 20px; max-width:74ch; }
-
-/* ══ Prototype bay ═════════════════════════════════════════════════════ */
-.bay{ display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:32px; align-items:start; }
-@media (max-width:860px){ .bay{ grid-template-columns:1fr; } }
-
-.steps{ display:flex; flex-direction:column; gap:2px; margin:0 0 20px; padding:0; list-style:none; }
-.steps li{
-  display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:var(--radius-md);
-  font-size:13px; color:var(--text-subtle); border:1px solid transparent;
-}
-.steps li .n{
-  width:20px; height:20px; border-radius:var(--radius-full); flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; background:var(--bg-sunken); color:var(--text-subtle);
-}
-.steps li.on{ background:var(--bg-base); border-color:var(--border-subtle); color:var(--text-base); font-weight:600; }
-.steps li.on .n{ background:var(--bg-primary); color:var(--text-on-dark); }
-.steps li.done .n{ background:var(--bg-success-bold); color:var(--text-success); }
-
-.bar{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
-.ghost{
-  font-family:var(--font-family); font-size:13px; font-weight:600; cursor:pointer;
-  background:var(--bg-base); color:var(--text-base);
-  border:1px solid var(--border-subtle); border-radius:var(--radius-full); padding:7px 14px;
-}
-.ghost:hover{ background:var(--bg-subtle); }
-.ghost:disabled{ color:var(--text-disabled); cursor:not-allowed; }
-
-.hint{
-  background:var(--bg-info-subtle); border:1px solid #DDECF8; border-radius:var(--radius-lg);
-  padding:14px 16px; font-size:13px; line-height:1.55; color:var(--text-info);
-}
-.hint b{ color:var(--text-info); }
-.hint ul{ margin:8px 0 0; padding-left:18px; }
-.hint li{ margin-bottom:4px; }
+/* ══ Page ═════════════════════════════════════════════════════════════ */
+.wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:40px 24px; }
 
 /* ══ Phone shell — specs from src/pages/flows/PhoneMockShared.jsx ═══════ */
 .phone{ position:relative; flex-shrink:0; }
@@ -265,8 +221,12 @@ h1{ font-size:32px; line-height:1.2; font-weight:700; margin:0 0 10px; letter-sp
   font-family:var(--ds-font-family); font-size:var(--text-lg); font-weight:600;
   white-space:nowrap; flex-shrink:0; }
 .balbar{ display:flex; flex-direction:column; gap:var(--space-050); }
-.balbar .track{ height:4px; border-radius:var(--radius-full); overflow:hidden;
-  background:rgba(0,0,0,.4); opacity:.4; position:relative; }
+/* slider/balance-bar — Figma I62276:4124;7985:5685;7985:4293. The 40% opacity
+   belongs to the track layer only; the active bar is a full-opacity sibling. */
+.balbar .track{ position:relative; height:4px; border-radius:var(--radius-full);
+  overflow:hidden; }
+.balbar .track::before{ content:''; position:absolute; inset:0;
+  background:rgba(0,0,0,.4); opacity:.4; border-radius:15px; }
 .balbar .track i{ position:absolute; inset:0 auto 0 0; width:43.75%;
   background:var(--bg-secondary); border-radius:15px; display:block; }
 .balbar .info{ display:flex; align-items:center; justify-content:space-between;
@@ -488,50 +448,8 @@ h1{ font-size:32px; line-height:1.2; font-weight:700; margin:0 0 10px; letter-sp
 .dslink.sm{ font-size:var(--text-md); }
 .dslink.md{ font-size:var(--text-lg); }
 
-/* ══ State rail (secondary) ════════════════════════════════════════════ */
-.rail{ display:flex; gap:28px; overflow-x:auto; padding:4px 4px 20px; scroll-snap-type:x proximity; }
-.rail::-webkit-scrollbar{ height:10px; }
-.rail::-webkit-scrollbar-thumb{ background:var(--bg-elevated); border-radius:var(--radius-full); }
-.slot{ flex:0 0 auto; width:300px; scroll-snap-align:start; }
-.slot .cap{ margin:0 0 4px; font-size:13px; font-weight:700; color:var(--text-base); }
-.slot .capnote{ margin:0 0 14px; font-size:12px; line-height:1.45; color:var(--text-subtle); min-height:50px; }
-.slot .total{ margin-top:14px; display:flex; align-items:baseline; justify-content:space-between;
-  gap:8px; padding:10px 12px; background:var(--bg-base);
-  border:1px solid var(--border-subtle); border-radius:var(--radius-md); }
-.slot .total .k{ font-size:11px; font-weight:600; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--text-subtle); }
-.slot .total .v{ font-size:16px; font-weight:700; color:var(--text-base); font-variant-numeric:tabular-nums; }
-
-/* ══ Notes and tables ══════════════════════════════════════════════════ */
-.grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; }
-.note{ background:var(--bg-base); border:1px solid var(--border-subtle);
-  border-radius:var(--radius-lg); padding:18px 20px; }
-.note h3{ font-size:14px; font-weight:700; margin:0 0 8px; }
-.note p{ margin:0 0 10px; font-size:13px; line-height:1.55; color:var(--text-subtle); }
-.note p:last-child{ margin-bottom:0; }
-.note ul{ margin:0; padding-left:18px; }
-.note li{ font-size:13px; line-height:1.6; color:var(--text-subtle); margin-bottom:5px; }
-.note li:last-child{ margin-bottom:0; }
-.note li b,.note p b{ color:var(--text-base); font-weight:600; }
-.tablewrap{ overflow-x:auto; border:1px solid var(--border-subtle);
-  border-radius:var(--radius-lg); background:var(--bg-base); }
-table{ border-collapse:collapse; width:100%; min-width:620px; }
-th,td{ text-align:left; padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border-subtle); }
-th{ font-weight:700; color:var(--text-base); background:var(--bg-subtle); white-space:nowrap; }
-td{ color:var(--text-subtle); vertical-align:top; }
-td b{ color:var(--text-base); font-weight:600; }
-tr:last-child td{ border-bottom:0; }
-td.num{ font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--text-base); font-weight:600; }
-code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
-  background:var(--bg-subtle); padding:1px 5px; border-radius:var(--radius-sm); color:var(--text-base); }
-.pill{ display:inline-block; font-size:11px; font-weight:600; padding:2px 8px;
-  border-radius:var(--radius-full); background:var(--bg-subtle); color:var(--text-subtle); }
-.pill.ok{ background:var(--bg-success-subtle); color:var(--text-success); }
-.pill.gap{ background:var(--bg-warning-subtle); color:#856300; }
-
 @media (max-width:640px){
-  .wrap{ padding:28px 16px 56px; }
-  h1{ font-size:24px; }
+  .wrap{ padding:20px 12px; }
   .phone.lg{ width:295.2px; height:604.8px; }
   .phone.lg .body{ transform:scale(.72); }
   .phone.lg .sides{ right:-2.16px; top:122.4px; }
@@ -544,152 +462,7 @@ code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
 </head>
 <body>
 <div class="wrap">
-
-  <header class="masthead">
-    <div class="eyebrow"><span class="dot"></span> Billease native app</div>
-    <h1>Pay Now, entered from a loan</h1>
-    <p class="lede">
-      A walkable prototype. Start on the home screen, tap <b>Loans</b> in the bottom nav, open a loan,
-      then tap <b>PAY NOW</b>. The loan you came from is already included and sits at the top.
-      Other loans and Credit Line are offered below as optional add-ons you have to switch on yourself,
-      and the total in the action bar recalculates on every change.
-    </p>
-  </header>
-
-  <section class="section">
-    <h2>Prototype</h2>
-    <p class="sub">Everything is tappable. Back arrows and the bottom nav work, so you can move through the flow in both directions.</p>
-    <div class="bay">
-      <div>
-        <ol class="steps" id="steps"></ol>
-        <div class="bar">
-          <button class="ghost" id="reset" type="button">Restart flow</button>
-          <button class="ghost" id="back" type="button">Back</button>
-        </div>
-        <div class="hint">
-          <b>Things worth trying</b>
-          <ul>
-            <li>On Pay now, open <b>Credit line</b> but pick nothing. The total does not move.</li>
-            <li>Pick <b>Statement balance</b>, then tap it again to remove it.</li>
-            <li>Add both add-ons and watch the button reach &#8369;1,234.56, then continue to QRPh.</li>
-            <li>Set the primary loan to <b>Don&#8217;t include</b> and the button drops the amount.</li>
-          </ul>
-        </div>
-      </div>
-      <div id="protohost"></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>The five states</h2>
-    <p class="sub">
-      The same Pay now screen, seeded to each state you asked for. These are live too, so each one can be
-      poked independently without disturbing the prototype above.
-    </p>
-    <div class="rail" id="rail"></div>
-  </section>
-
-  <section class="section">
-    <h2>Total payment behavior</h2>
-    <p class="sub">
-      The action bar is the single place the running total lives. With nothing selected the button carries
-      no figure, matching the Figma default view. As soon as one item is included the button switches to
-      the amount form and keeps recalculating.
-    </p>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>State</th><th>Included items</th><th>Total</th><th>Button label</th></tr></thead>
-        <tbody>
-          <tr><td><b>Nothing selected</b></td><td>None</td><td class="num">&#8369;0.00</td><td><code>Pay now</code></td></tr>
-          <tr><td><b>Default on entry</b></td><td>FC Home Center, next installment</td><td class="num">&#8369;500.00</td><td><code>Pay now &#8369;500.00</code></td></tr>
-          <tr><td><b>Another loan added</b></td><td>FC Home Center + MOMENTO COFFEE01</td><td class="num">&#8369;1,000.00</td><td><code>Pay now &#8369;1,000.00</code></td></tr>
-          <tr><td><b>Credit Line added</b></td><td>FC Home Center + Credit line statement balance</td><td class="num">&#8369;734.56</td><td><code>Pay now &#8369;734.56</code></td></tr>
-          <tr><td><b>Multiple added</b></td><td>FC Home Center + MOMENTO COFFEE01 + Credit line</td><td class="num">&#8369;1,234.56</td><td><code>Pay now &#8369;1,234.56</code></td></tr>
-          <tr><td><b>Primary set to "Don't include"</b></td><td>Whatever add-ons remain selected</td><td class="num">recalculates</td><td><code>Pay now &#8369;X</code>, or <code>Pay now</code> at zero</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>Interaction logic</h2>
-    <div class="grid2">
-      <div class="note">
-        <h3>Preserving the original intent</h3>
-        <ul>
-          <li>The loan you came from renders first, <b>already expanded</b>, with <b>Pay next installment</b> preselected.</li>
-          <li>It is the only item with a selection on entry, so the default total is that loan's next installment.</li>
-          <li>It can still be changed to full balance, a custom amount, or <b>Don't include</b>, so nothing is forced.</li>
-        </ul>
-      </div>
-      <div class="note">
-        <h3>Additional items stay opt-in</h3>
-        <ul>
-          <li>Other loans and Credit Line sit under <b>Include other payments?</b>, collapsed, with <b>no radio selected</b>.</li>
-          <li>Collapsed means zero contribution to the total. Expanding alone adds nothing either.</li>
-          <li>An amount is only added once a specific row is picked, which is the conscious choice.</li>
-        </ul>
-      </div>
-      <div class="note">
-        <h3>Credit Line is never silent</h3>
-        <ul>
-          <li>Credit Line is listed <b>first</b> among the optional items, ahead of other loans, matching the Figma order.</li>
-          <li>It carries its own due line (<b>Due in 4 days</b>) while collapsed, so an outstanding amount is visible without expanding.</li>
-          <li>Expanding reveals statement balance, full balance, minimum due with its interest caveat, and custom amount.</li>
-        </ul>
-      </div>
-      <div class="note">
-        <h3>Staying fast</h3>
-        <ul>
-          <li>One screen. No separate selection flow, no re-picking the loan you just came from.</li>
-          <li>Add-ons are collapsed by default, so the screen opens short and the primary item dominates.</li>
-          <li>The total lives in the button you are already heading for, so no extra review step is needed.</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>Design system audit</h2>
-    <p class="sub">Every screen is built from what already exists. Icons, tokens and component specs come from the repo; images come from Figma as exported assets.</p>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>Screen</th><th>Figma node</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td><b>Loans home</b></td><td><code>62276:4123</code></td><td>Hero, payment-reminder, product-items, navigation/menu</td></tr>
-          <tr><td><b>Loans list</b></td><td><code>62393:34461</code></td><td>Two Tabs <code>62393:34628</code>, grouped installment rows</td></tr>
-          <tr><td><b>Loan details</b></td><td><code>62276:8940</code></td><td>Figma names this frame <code>OLD_</code>; it is the only details screen in the file</td></tr>
-          <tr><td><b>Select payment amount</b></td><td><code>62276:9022</code></td><td>The redesign. Cards <code>62276:9024</code>, <code>62276:9027</code>, <code>62276:9028</code></td></tr>
-          <tr><td><b>Pay with QRPh</b></td><td><code>62286:34271</code></td><td>Ticket amount is wired to the live total</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="grid2" style="margin-top:16px">
-      <div class="note">
-        <h3>Missing from the code design system</h3>
-        <p>Both exist in Figma and are listed in <code>src/data/components.js</code>, but neither has a React implementation in <code>src/components/ds/</code>:</p>
-        <ul>
-          <li>Missing component: <b>RadioButton</b> (<code>188:2593</code>, 8 variants)</li>
-          <li>Missing component: <b>PayNowSelectionItem</b> (<code>9676:1395</code>, 5 variants)</li>
-        </ul>
-        <p>Rendered here to their exact Figma spec (20px control, 1.667px <code>--border-bold</code> ring, <code>--bg-primary</code> fill with a 6.67px white dot) rather than substituted for another component.</p>
-      </div>
-      <div class="note">
-        <h3>Notes and open points</h3>
-        <ul>
-          <li><b>Legacy palette.</b> The list and details frames still use Figma's <code>depreciated/</code> styles (<code>#294567</code>, <code>#203AA9</code>, <code>#EDF1FF</code>). Reproduced verbatim as <code>--legacy-*</code> so those screens match the file. They are not new tokens.</li>
-          <li><b>List to details.</b> The Figma list has no FC Home Center row, so every row opens the one details screen that exists, the way a Figma hotspot would.</li>
-          <li><b>Amounts</b> are Figma's. They sum to &#8369;1,234.56, the figure already on the QRPh screen and the home dashboard.</li>
-          <li><b>Custom amount</b> contributes &#8369;0.00. Its entry screen is not in the file, so it was not invented. <code>AmountInput.jsx</code> is the component for it.</li>
-          <li><b>Images</b> (merchant logos, product art, QR) are the exported Figma assets, embedded so they do not expire.</li>
-          <li><b>The hero Pay now button</b> on the home screen is the all-products entry that leads to the generic
-              "Select to pay now" screen (<code>62276:4132</code>). That is the screen this work replaces, so here it
-              is wired to the loans list instead of being left dead.</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
+  <div id="protohost"></div>
 </div>
 
 <script>
@@ -1053,8 +826,6 @@ var FLOW = [
   { key:'paynow', label:'Pay now' },
   { key:'qrph',   label:'Pay with QRPh' }
 ];
-var BACK_OF = { home:null, loans:'home', detail:'loans', paynow:'detail', qrph:'paynow' };
-
 var proto = { screen:'home', st:freshState(), busy:false };
 
 function screenHTML(key){
@@ -1077,17 +848,6 @@ var stage = host.querySelector('.stage');
 var base  = host.querySelector('.layer.base');
 var dim   = host.querySelector('.dimlayer');
 var over  = host.querySelector('.layer.over');
-var stepsEl = document.getElementById('steps');
-var backBtn = document.getElementById('back');
-
-function paintSteps(){
-  var idx = FLOW.map(function(f){ return f.key; }).indexOf(proto.screen);
-  stepsEl.innerHTML = FLOW.map(function(f, i){
-    var cls = i === idx ? 'on' : (i < idx ? 'done' : '');
-    return '<li class="' + cls + '"><span class="n">' + (i + 1) + '</span>' + f.label + '</li>';
-  }).join('');
-  backBtn.disabled = !BACK_OF[proto.screen];
-}
 function wireScroll(root){
   var sc = root.querySelector('.scroll'), hd = root.querySelector('.navhdr');
   if (!sc || !hd) return;
@@ -1098,7 +858,6 @@ function paint(){
   base.innerHTML = screenHTML(proto.screen);
   base.style.transform = '';
   wireScroll(base);
-  paintSteps();
 }
 function nav(to, dir){
   if (proto.busy || !to || to === proto.screen) return;
@@ -1142,63 +901,7 @@ stage.addEventListener('click', function(e){
     paint();
   }
 });
-backBtn.addEventListener('click', function(){ nav(BACK_OF[proto.screen], 'back'); });
-document.getElementById('reset').addEventListener('click', function(){
-  proto.st = freshState(); proto.screen = 'home'; paint();
-});
 paint();
-
-/* ══════════════════════════════════════════════════════════════════════════
-   The five states, as separate live frames
-   ══════════════════════════════════════════════════════════════════════════ */
-var FRAMES = [
-  { cap:'1. Main Pay Now screen',
-    note:'Arriving from the loan details screen. FC Home Center is already in, set to its next installment. Everything optional is collapsed.',
-    st:{ sel:{ primary:'next', loan2:null, credit:null }, exp:{ primary:true, loan2:false, credit:false } } },
-  { cap:'2. No additional payments selected',
-    note:'Credit Line opened, still nothing picked. Expanding on its own adds nothing, so the total holds at the original intent.',
-    st:{ sel:{ primary:'next', loan2:null, credit:null }, exp:{ primary:true, loan2:false, credit:true } } },
-  { cap:'3. Another loan added',
-    note:'MOMENTO COFFEE01 opened and set to its next installment. The total picks up the second loan.',
-    st:{ sel:{ primary:'next', loan2:'next', credit:null }, exp:{ primary:true, loan2:true, credit:false } } },
-  { cap:'4. Credit Line added',
-    note:'Credit Line set to statement balance instead. The other loan stays out, so it contributes nothing.',
-    st:{ sel:{ primary:'next', loan2:null, credit:'statement' }, exp:{ primary:true, loan2:false, credit:true } } },
-  { cap:'5. Multiple additional repayments',
-    note:'Both add-ons in: second loan at next installment plus the Credit Line statement balance. One payment, three items.',
-    st:{ sel:{ primary:'next', loan2:'next', credit:'statement' }, exp:{ primary:true, loan2:true, credit:true } } }
-];
-var rail = document.getElementById('rail');
-FRAMES.forEach(function(cfg){
-  var st = { sel:Object.assign({}, cfg.st.sel), exp:Object.assign({}, cfg.st.exp) };
-  var slot = document.createElement('div');
-  slot.className = 'slot';
-  slot.innerHTML = '<p class="cap">' + cfg.cap + '</p><p class="capnote">' + cfg.note + '</p>'
-    + '<div class="phone sm"><div class="sides"><i class="pw"></i><i class="v1"></i><i class="v2"></i></div>'
-    + '<div class="body"><div class="cam"></div><div class="screen">'
-    + '<div class="stage"><div class="layer base"></div></div>' + NAVBAR
-    + '</div></div></div>'
-    + '<div class="total"><span class="k">Total</span><span class="v"></span></div>';
-  var layer = slot.querySelector('.layer.base');
-  var totalEl = slot.querySelector('.total .v');
-  function render(){
-    layer.innerHTML = screenPayNow(st, 'static');
-    wireScroll(layer);
-    totalEl.textContent = fmt(totalOf(st));
-  }
-  layer.addEventListener('click', function(e){
-    var tg = e.target.closest('[data-toggle]');
-    if (tg) { var k = tg.getAttribute('data-toggle'); st.exp[k] = !st.exp[k]; render(); return; }
-    var pk = e.target.closest('[data-pick]');
-    if (pk) {
-      var key = pk.getAttribute('data-pick'), opt = pk.getAttribute('data-opt');
-      st.sel[key] = (st.sel[key] === opt) ? null : opt;
-      render();
-    }
-  });
-  render();
-  rail.appendChild(slot);
-});
 </script>
 </body>
 </html>
