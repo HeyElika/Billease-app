@@ -372,8 +372,8 @@ img{ max-width:100%; }
 .sectitle p{ margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5; color:var(--text-base); }
 .group{ display:flex; flex-direction:column; gap:var(--space-300); width:100%; }
 /* Other payments reads as its own group, set apart from the opt-out above it.
-   The 24px body gap plus this 8px lands on --space-800 (32px). */
-.group.sep{ margin-top:var(--space-200); }
+   The 24px body gap plus this 16px lands on --space-900 (40px). */
+.group.sep{ margin-top:var(--space-400); }
 .card{ background:var(--bg-base); border:var(--border-width-100) solid var(--border-subtle);
   border-radius:var(--radius-lg); width:100%; display:flex; flex-direction:column; text-align:left; }
 .card.collapsed{ padding:var(--space-300) var(--space-400); }
@@ -633,7 +633,7 @@ function skipRowHTML(on){
   return '<button class="skiprow" type="button" data-skip aria-pressed="' + on + '">'
     + '<span class="cbox' + (on ? ' on' : '') + '">'
     + (on ? icon('tick',16,'var(--icon-on-dark)') : '') + '</span>'
-    + '<span class="txt"><span class="lab">Pay only this payment</span>'
+    + '<span class="txt"><span class="lab">Pay only this loan</span>'
     + '<span class="sub">Other payments won\u2019t be included</span></span></button>';
 }
 function payNowBodyHTML(st){
