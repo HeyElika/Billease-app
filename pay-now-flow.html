@@ -371,6 +371,9 @@ img{ max-width:100%; }
 .sectitle{ display:flex; align-items:center; gap:var(--space-200); height:24px; width:100%; }
 .sectitle p{ margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5; color:var(--text-base); }
 .group{ display:flex; flex-direction:column; gap:var(--space-300); width:100%; }
+/* Other payments reads as its own group, set apart from the opt-out above it.
+   The 24px body gap plus this 8px lands on --space-800 (32px). */
+.group.sep{ margin-top:var(--space-200); }
 .card{ background:var(--bg-base); border:var(--border-width-100) solid var(--border-subtle);
   border-radius:var(--radius-lg); width:100%; display:flex; flex-direction:column; text-align:left; }
 .card.collapsed{ padding:var(--space-300) var(--space-400); }
@@ -639,7 +642,7 @@ function payNowBodyHTML(st){
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
     + skipRowHTML(!!st.skip)
     + (st.skip ? ''
-        : '<div class="group"><div class="sectitle"><p>Other payments</p></div>'
+        : '<div class="group sep"><div class="sectitle"><p>Other payments</p></div>'
           + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('')
           + '</div>');
 }
