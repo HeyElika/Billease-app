@@ -30,11 +30,11 @@
   --text-base:#1A1A1A; --text-subtle:#545454; --text-disabled:#B0B0B0;
   --text-on-dark:#FFFFFF; --text-on-dark-subtle:#FFFFFFB3;
   --text-primary:#E7161A; --text-brand-primary:#E7161A; --text-secondary:#265CE5;
-  --text-success:#037F4D; --text-info:#13456D;
+  --text-success:#037F4D; --text-info:#13456D; --text-error:#CD3642;
 
   --border-subtle:#E0E0E0; --border-default:#D4D4D4; --border-strong:#919191;
   --border-bold:#919191; --border-on-dark:#FFFFFF; --border-primary:#E7161A;
-  --border-info:#13456D;
+  --border-info:#13456D; --border-error-bold:#EB5C69;
   --border-width-100:1px; --border-width-200:2px; --border-width-300:3px;
 
   --icon-base:#1A1A1A; --icon-subtle:#545454; --icon-disabled:#B0B0B0;
@@ -422,6 +422,13 @@ img{ max-width:100%; }
   border:var(--border-width-200) solid var(--border-bold);
   display:flex; align-items:center; justify-content:center; }
 .cbox.on{ border-color:transparent; background:var(--bg-primary); }
+/* .Checkbox/error — Figma 188:2529 */
+.cbox.err{ border-color:var(--border-error-bold); }
+/* checkbox-paragraph error variant — Figma 183:2210: the row and the message
+   stack in a column, gap 8, with the message at the container's left edge. */
+.skipblock{ display:flex; flex-direction:column; gap:var(--space-200); width:100%; }
+.errmsg{ margin:0; font-size:var(--text-md); font-weight:400; line-height:1.5;
+  color:var(--text-error); width:100%; }
 .skiprow{ display:flex; align-items:flex-start; gap:var(--space-200); width:100%;
   background:none; border:0; padding:0; cursor:pointer;
   text-align:left; font-family:inherit; }
@@ -634,19 +641,29 @@ function cardHTML(key, st, isPrimary){
   return '<div class="card ' + (open ? 'expanded' : 'collapsed')
     + (isPrimary ? ' is-primary' : '') + '">' + head + opts + '</div>';
 }
-/* checkbox-paragraph — Figma 183:2213, control 188:2520 / 188:2523 */
-function skipRowHTML(on){
-  return '<button class="skiprow" type="button" data-skip aria-pressed="' + on + '">'
-    + '<span class="cbox' + (on ? ' on' : '') + '">'
+/* A choice about the other payments is outstanding until the box is ticked or
+   one of the optional cards has a selection, "Don't include" included. */
+function needsChoice(st){
+  return !st.skip && !EXTRAS.some(function(k){ return !!st.sel[k]; });
+}
+
+/* checkbox-paragraph — Figma 183:2213, control 188:2520 / 188:2523 / 188:2529 */
+function skipRowHTML(on, err){
+  return '<div class="skipblock">'
+    + '<button class="skiprow" type="button" data-skip aria-pressed="' + on + '"'
+    + (err ? ' aria-invalid="true" aria-describedby="skip-err"' : '') + '>'
+    + '<span class="cbox' + (on ? ' on' : '') + (err ? ' err' : '') + '">'
     + (on ? icon('tick',16,'var(--icon-on-dark)') : '') + '</span>'
     + '<span class="txt"><span class="lab">Pay only this loan</span>'
-    + '<span class="sub">Other payments won\u2019t be included</span></span></button>';
+    + '<span class="sub">Other payments won\u2019t be included</span></span></button>'
+    + (err ? '<p class="errmsg" id="skip-err" role="alert">Select an option to continue</p>' : '')
+    + '</div>';
 }
 function payNowBodyHTML(st){
   /* The opt-out sits directly under the loan the user arrived with. Ticking it
      takes the whole "Other payments" block, title included, off the screen. */
   return '<div class="group">' + cardHTML('primary', st, true) + '</div>'
-    + skipRowHTML(!!st.skip)
+    + skipRowHTML(!!st.skip, !!st.err)
     + (st.skip ? ''
         : '<div class="group sep"><div class="sectitle"><p>Other payments</p></div>'
           + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('')
@@ -980,6 +997,15 @@ stage.addEventListener('click', function(e){
   var navEl = e.target.closest('[data-nav]');
   if (navEl) {
     var dir = navEl.getAttribute('data-dir');
+    /* Pay now is never disabled: tapping it with the choice still open
+       explains what is missing rather than going quiet. */
+    if (navEl.getAttribute('data-nav') === 'qrph' && needsChoice(proto.st)) {
+      proto.st.err = true;
+      paint();
+      var row = base.querySelector('.skiprow');
+      if (row) row.scrollIntoView({ block:'center', behavior:'smooth' });
+      return;
+    }
     if (dir === 'tab') navTab(navEl.getAttribute('data-nav'), navEl);
     else nav(navEl.getAttribute('data-nav'), dir);
     return;
@@ -992,6 +1018,7 @@ stage.addEventListener('click', function(e){
     if (proto.st.skip) {
       EXTRAS.forEach(function(x){ proto.st.sel[x] = null; proto.st.exp[x] = false; });
     }
+    proto.st.err = false;
     paint();
     return;
   }
@@ -999,7 +1026,9 @@ stage.addEventListener('click', function(e){
   if (tg) { var k = tg.getAttribute('data-toggle'); proto.st.exp[k] = !proto.st.exp[k]; paint(); return; }
   var pk = e.target.closest('[data-pick]');
   if (pk) {
-    proto.st.sel[pk.getAttribute('data-pick')] = pk.getAttribute('data-opt');
+    var pkey = pk.getAttribute('data-pick');
+    proto.st.sel[pkey] = pk.getAttribute('data-opt');
+    if (pkey !== 'primary') proto.st.err = false;
     paint();
   }
 });
