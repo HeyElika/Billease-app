@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pay Now, loan repayment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ──────────────────────────────────────────────────────────────────────────
+   Billease design tokens — copied verbatim from ~/Billease-app/src/index.css
+   No new tokens. No new colours. No new type styles.
+   ────────────────────────────────────────────────────────────────────────── */
+:root{
+  color-scheme: light;
+
+  /* Fonts */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ds-font-family: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Type scale */
+  --text-xs:11px; --text-sm:13px; --text-md:14px; --text-lg:16px;
+  --text-xl:20px; --text-2xl:24px; --text-3xl:32px;
+
+  /* Semantic bg */
+  --canvas-default:#F5F5F5; --canvas-alt:#FFFFFF;
+  --bg-base:#FFFFFF; --bg-subtle:#F5F5F5; --bg-sunken:#E0E0E0;
+  --bg-elevated:#D4D4D4; --bg-strong:#919191;
+  --bg-primary:#E7161A; --bg-secondary:#265CE5; --bg-selected:#BFD1FF;
+  --bg-credit-line:#DD2590;
+  --bg-success-subtle:#EEF8F4; --bg-info-subtle:#EDF7FF; --bg-warning-subtle:#FFF6DB;
+
+  /* Semantic text */
+  --text-base:#1A1A1A; --text-subtle:#545454; --text-disabled:#B0B0B0;
+  --text-on-dark:#FFFFFF; --text-primary:#E7161A; --text-secondary:#265CE5;
+  --text-success:#037F4D; --text-info:#13456D;
+
+  /* Semantic border */
+  --border-subtle:#E0E0E0; --border-default:#D4D4D4; --border-strong:#919191;
+  --border-bold:#919191; --border-primary:#E7161A; --border-info:#13456D;
+  --border-width-100:1px;
+
+  /* Semantic icon */
+  --icon-base:#1A1A1A; --icon-subtle:#545454; --icon-disabled:#B0B0B0;
+  --icon-on-dark:#FFFFFF; --icon-primary:#E7161A;
+
+  /* Spacing */
+  --space-050:2px; --space-100:4px; --space-200:8px; --space-300:12px;
+  --space-400:16px; --space-500:20px; --space-600:24px; --space-700:28px;
+  --space-800:32px; --space-900:40px; --space-1000:48px;
+
+  /* Radius */
+  --radius-xs:2px; --radius-sm:4px; --radius-md:8px; --radius-lg:12px;
+  --radius-xl:16px; --radius-2xl:24px; --radius-full:9999px;
+
+  /* Elevation */
+  --shadow-xs:0 8px 34px rgba(46,60,72,0.04);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.10);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--canvas-default);
+  color:var(--text-base);
+  font-family:var(--font-family);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img{ max-width:100%; }
+[hidden]{ display:none !important; }
+
+/* ── Portal shell (Inter) ─────────────────────────────────────────────── */
+.wrap{ max-width:1320px; margin:0 auto; padding:40px 24px 72px; }
+
+.masthead{ margin-bottom:28px; }
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--text-subtle); margin-bottom:12px;
+}
+.eyebrow .dot{ width:8px; height:8px; border-radius:var(--radius-full); background:var(--bg-primary); }
+h1{ font-size:32px; line-height:1.2; font-weight:700; margin:0 0 10px; letter-spacing:-.02em; }
+.lede{ font-size:16px; color:var(--text-subtle); margin:0; max-width:74ch; }
+
+.flowstrip{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  margin:24px 0 0; padding:14px 16px;
+  background:var(--bg-base); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+}
+.flowstrip .step{
+  font-size:13px; font-weight:600; color:var(--text-base);
+  background:var(--bg-subtle); border-radius:var(--radius-full); padding:5px 12px;
+  white-space:nowrap;
+}
+.flowstrip .step.is-focus{ background:#FFE9E9; color:var(--text-primary); }
+.flowstrip .arrow{ color:var(--text-disabled); font-size:13px; }
+
+/* ── Section headings ─────────────────────────────────────────────────── */
+.section{ margin-top:48px; }
+.section > h2{
+  font-size:20px; font-weight:700; margin:0 0 6px; letter-spacing:-.01em;
+}
+.section > .sub{ font-size:14px; color:var(--text-subtle); margin:0 0 20px; max-width:74ch; }
+
+/* ── Phone rail ───────────────────────────────────────────────────────── */
+.rail{
+  display:flex; gap:28px; overflow-x:auto; padding:4px 4px 20px;
+  scroll-snap-type:x proximity;
+}
+.rail::-webkit-scrollbar{ height:10px; }
+.rail::-webkit-scrollbar-thumb{ background:var(--bg-elevated); border-radius:var(--radius-full); }
+.rail::-webkit-scrollbar-track{ background:transparent; }
+
+.slot{ flex:0 0 auto; width:300px; scroll-snap-align:start; }
+.slot .cap{ margin:0 0 4px; font-size:13px; font-weight:700; color:var(--text-base); }
+.slot .capnote{ margin:0 0 14px; font-size:12px; line-height:1.45; color:var(--text-subtle); min-height:34px; }
+.slot .total{
+  margin-top:14px; display:flex; align-items:baseline; justify-content:space-between;
+  gap:8px; padding:10px 12px; background:var(--bg-base);
+  border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+}
+.slot .total .k{ font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-subtle); }
+.slot .total .v{ font-size:16px; font-weight:700; color:var(--text-base); font-variant-numeric:tabular-nums; }
+
+/* ── Pixel 9 Pro shell — specs from src/pages/flows/PhoneMockShared.jsx ── */
+.phone{ position:relative; width:295.2px; height:604.8px; flex-shrink:0; }
+.phone .sides{ position:absolute; right:-2.16px; top:122.4px; z-index:20; }
+.phone .sides i{ display:block; width:2.16px; background:#303030; border-radius:0 1.44px 1.44px 0; }
+.phone .sides i.pw{ height:48.96px; margin-bottom:10.08px; }
+.phone .sides i.v1{ height:38.88px; margin-bottom:4.32px; }
+.phone .sides i.v2{ height:38.88px; }
+.phone .body{
+  width:410px; height:840px; transform:scale(.72); transform-origin:top left;
+  border-radius:40px; background:#1A1A1A; box-shadow:0 0 0 1px #2a2a2a;
+  position:relative; overflow:hidden;
+}
+.phone .cam{
+  position:absolute; top:23px; left:50%; transform:translateX(-50%);
+  width:10px; height:10px; border-radius:50%; background:#0a0a0a; z-index:10;
+}
+.phone .screen{
+  position:absolute; top:10px; left:10px; width:390px; height:820px;
+  overflow:hidden; background:#fff; border-radius:30px;
+  display:flex; flex-direction:column;
+}
+
+/* ── Status bar (PhoneMockShared spec: 42px, white) ───────────────────── */
+.statusbar{
+  height:42px; background:#fff; flex-shrink:0; display:flex; align-items:center;
+  justify-content:space-between; padding-left:20px; padding-right:16px;
+}
+.statusbar .t{ font-size:13px; font-weight:600; font-family:var(--font-family); color:#1D2D40; }
+.statusbar .icons{ display:flex; align-items:center; gap:5px; }
+.statusbar .batt{ display:flex; align-items:center; }
+.statusbar .batt .shell{
+  width:20px; height:10px; border:1.5px solid #1D2D40; border-radius:2px;
+  padding:1px; display:flex; align-items:center;
+}
+.statusbar .batt .fill{ width:78%; height:100%; background:#1D2D40; border-radius:1px; }
+.statusbar .batt .nub{ width:2px; height:5px; background:#1D2D40; margin-left:-.5px; }
+
+/* ── Android nav bar (PhoneMockShared spec: black, 44px) ──────────────── */
+.navbar{
+  height:44px; background:#000; flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-evenly;
+}
+.navbar span{ color:#fff; }
+.navbar .b{ font-size:14px; } .navbar .h{ font-size:18px; } .navbar .s{ font-size:12px; }
+
+/* ──────────────────────────────────────────────────────────────────────
+   Phone screen content — ALL of it uses --ds-font-family (Source Sans Pro)
+   per the Prototype Font Rule.
+   ────────────────────────────────────────────────────────────────────── */
+.scr{ display:flex; flex-direction:column; flex:1; min-height:0; font-family:var(--ds-font-family); background:var(--canvas-alt); }
+
+/* navigation/header — Figma I62276:9032 */
+.navhdr{
+  position:relative; height:44px; background:var(--bg-base); flex-shrink:0; z-index:10;
+}
+.navhdr::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:var(--border-subtle); opacity:0; transition:opacity .15s ease;
+}
+.navhdr.scrolled::after{ opacity:1; }
+/* navigation/watermark — NavigationWatermark.jsx */
+.watermark{
+  position:absolute; left:20px; top:0; width:350px; height:4px;
+  display:flex; align-items:center; justify-content:flex-end; gap:2px;
+}
+.watermark i{ width:4px; height:4px; border-radius:20px; display:block; }
+.pagehdr{
+  position:absolute; left:20px; top:50%; transform:translateY(-50%);
+  width:350px; height:40px; display:flex; align-items:center; gap:var(--space-200);
+}
+.pagehdr .lefticon{
+  width:24px; height:24px; flex-shrink:0; display:flex; align-items:center;
+  justify-content:center; padding:2px; background:none; border:0; cursor:pointer;
+}
+.pagehdr .ttl{
+  flex:1 0 0; min-width:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+.pagehdr .ttl p{
+  margin:0; font-size:var(--text-xl); font-weight:600; line-height:1.25;
+  color:var(--text-base); text-align:center;
+}
+.pagehdr .righticon{ width:24px; height:24px; flex-shrink:0; }
+
+/* body — Figma 62276:9023: pt 24, px 20, gap 24 */
+.scrbody{
+  flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
+  padding:var(--space-600) var(--space-500) var(--space-600);
+  display:flex; flex-direction:column; gap:var(--space-600);
+  background:var(--canvas-alt);
+}
+.scrbody::-webkit-scrollbar{ width:0; }
+
+/* navigation/title — Figma I62276:9026 */
+.sectitle{
+  display:flex; align-items:center; gap:var(--space-200); height:24px; width:100%;
+}
+.sectitle p{
+  margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5; color:var(--text-base);
+}
+
+.group{ display:flex; flex-direction:column; gap:var(--space-300); width:100%; }
+
+/* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
+.card{
+  background:var(--bg-base);
+  border:var(--border-width-100) solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+  width:100%;
+  display:flex; flex-direction:column;
+  text-align:left;
+}
+.card.collapsed{ padding:var(--space-300) var(--space-400); gap:var(--space-200); }
+.card.expanded{ padding:var(--space-300) var(--space-400) 0; gap:var(--space-400); }
+.card.is-primary{ box-shadow:var(--shadow-xs); }
+
+/* Installment details header */
+.cardhead{ display:flex; flex-direction:column; gap:var(--space-200); width:100%; }
+.headrow{ display:flex; align-items:center; gap:var(--space-200); width:100%; }
+.headrow .left{ flex:1 0 0; min-width:0; display:flex; flex-direction:column; gap:var(--space-050); }
+.headrow .name{
+  margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5;
+  color:var(--text-base); word-break:break-word;
+}
+.headrow .name.sm{ font-size:var(--text-md); }
+.headrow .idrow{ display:flex; align-items:center; gap:var(--space-100); }
+.headrow .idrow span{
+  font-size:var(--text-md); font-weight:400; line-height:1.5;
+  color:var(--text-subtle); white-space:nowrap;
+}
+.headrow .right{ display:flex; align-items:center; justify-content:flex-end; gap:var(--space-300); flex-shrink:0; }
+.headrow .amt{
+  margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5;
+  color:var(--text-base); text-align:right; white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.cardtoggle{
+  background:none; border:0; padding:0; margin:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:stretch;
+  gap:var(--space-200); width:100%; text-align:left; font-family:inherit;
+}
+.cardtoggle:focus-visible{ outline:2px solid var(--border-info); outline-offset:3px; border-radius:var(--radius-sm); }
+
+/* bottom line */
+.bottomline{ display:flex; align-items:center; gap:5px; width:100%; }
+.bottomline .due{
+  flex:1 0 0; min-width:0; margin:0; font-size:var(--text-md); font-weight:400;
+  line-height:1.5; color:var(--text-subtle);
+}
+.bottomline .due.sm{ font-size:var(--text-sm); }
+.bottomline .tag{
+  margin:0; font-size:var(--text-md); font-weight:400; line-height:1.5;
+  color:var(--text-subtle); text-align:right; white-space:nowrap;
+}
+
+/* radio option list — Figma I62276:9024;8754:8727 ("Loans" group) */
+.optlist{
+  border-top:var(--border-width-100) solid var(--border-subtle);
+  padding:var(--space-200) 0; width:100%;
+  display:flex; flex-direction:column;
+}
+/* pay-now/selection/item — Figma 9676:1395 */
+.opt{
+  display:flex; align-items:center; gap:var(--space-500);
+  padding:var(--space-300) 0; width:100%;
+  background:none; border:0; cursor:pointer; text-align:left;
+  font-family:inherit;
+}
+.opt.multiline{ align-items:flex-start; gap:var(--space-400); }
+.opt:focus-visible{ outline:2px solid var(--border-info); outline-offset:2px; border-radius:var(--radius-sm); }
+.opt .l{ flex:1 0 0; min-width:0; display:flex; align-items:center; gap:var(--space-200); }
+.opt.multiline .l{ align-items:flex-start; }
+.opt .txt{ flex:1 0 0; min-width:0; display:flex; flex-direction:column; }
+.opt .lab{
+  margin:0; font-size:var(--text-lg); font-weight:400; line-height:1.5; color:var(--text-base);
+}
+.opt .sub{
+  margin:0; font-size:var(--text-md); font-weight:400; line-height:1.5; color:var(--text-subtle);
+}
+.opt .val{
+  margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5;
+  color:var(--text-base); text-align:right; white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+/* radio-button — Figma 41886:33679 / 41886:33681 (20px, sm) */
+.radio{ width:20px; height:20px; flex-shrink:0; display:block; }
+
+/* action-bar — Figma 62276:9033 / 62276:4139, specs from ActionBar.jsx */
+.actionbar{
+  position:relative; flex-shrink:0; background:var(--bg-base);
+  padding:var(--space-300) var(--space-500) var(--space-500);
+  display:flex; flex-direction:column; gap:var(--space-300);
+}
+.actionbar .brd{
+  position:absolute; top:0; left:0; right:0; height:1px; background:var(--border-subtle);
+}
+/* Button — primary / lg, specs from Button.jsx */
+.btn{
+  height:48px; width:100%; border:0; cursor:pointer;
+  background:var(--bg-primary); color:var(--text-on-dark);
+  border-radius:var(--radius-full);
+  display:flex; align-items:center; justify-content:center; gap:var(--space-200);
+  padding:0 var(--space-500);
+  font-family:var(--ds-font-family); font-size:var(--text-lg); font-weight:600; line-height:1.5;
+  font-variant-numeric:tabular-nums;
+}
+.btn:active{ box-shadow:inset 0 0 0 999px rgba(0,0,0,.30); }
+
+/* ── Notes / tables (portal chrome) ───────────────────────────────────── */
+.grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; }
+.note{
+  background:var(--bg-base); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg); padding:18px 20px;
+}
+.note h3{ font-size:14px; font-weight:700; margin:0 0 8px; }
+.note p{ margin:0 0 10px; font-size:13px; line-height:1.55; color:var(--text-subtle); }
+.note p:last-child{ margin-bottom:0; }
+.note ul{ margin:0; padding-left:18px; }
+.note li{ font-size:13px; line-height:1.6; color:var(--text-subtle); margin-bottom:5px; }
+.note li:last-child{ margin-bottom:0; }
+.note li b, .note p b{ color:var(--text-base); font-weight:600; }
+
+.tablewrap{ overflow-x:auto; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--bg-base); }
+table{ border-collapse:collapse; width:100%; min-width:620px; }
+th,td{ text-align:left; padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border-subtle); }
+th{ font-weight:700; color:var(--text-base); background:var(--bg-subtle); white-space:nowrap; }
+td{ color:var(--text-subtle); vertical-align:top; }
+td b{ color:var(--text-base); font-weight:600; }
+tr:last-child td{ border-bottom:0; }
+td.num{ font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--text-base); font-weight:600; }
+
+code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
+  background:var(--bg-subtle); padding:1px 5px; border-radius:var(--radius-sm); color:var(--text-base);
+}
+.pill{
+  display:inline-block; font-size:11px; font-weight:600; padding:2px 8px;
+  border-radius:var(--radius-full); background:var(--bg-subtle); color:var(--text-subtle);
+}
+.pill.ok{ background:var(--bg-success-subtle); color:var(--text-success); }
+.pill.gap{ background:var(--bg-warning-subtle); color:#856300; }
+
+@media (max-width:640px){
+  .wrap{ padding:28px 16px 56px; }
+  h1{ font-size:24px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow"><span class="dot"></span> Billease native app · Pay now</div>
+    <h1>Pay Now, entered from a loan</h1>
+    <p class="lede">
+      The loan the user tapped stays the primary repayment item, already included and sitting at the top.
+      Everything else (other active loans, Credit Line) is offered below as an optional add-on that the
+      user has to switch on deliberately. The total in the action bar recalculates on every change.
+    </p>
+    <div class="flowstrip">
+      <span class="step">Loan details</span><span class="arrow">&rsaquo;</span>
+      <span class="step">Pay now</span><span class="arrow">&rsaquo;</span>
+      <span class="step is-focus">Selected loan already included</span><span class="arrow">&rsaquo;</span>
+      <span class="step">Add other payments</span><span class="arrow">&rsaquo;</span>
+      <span class="step">Other loans / Credit Line</span><span class="arrow">&rsaquo;</span>
+      <span class="step">Review total</span><span class="arrow">&rsaquo;</span>
+      <span class="step">Continue</span>
+    </div>
+  </header>
+
+  <section class="section">
+    <h2>Screens and states</h2>
+    <p class="sub">
+      Every frame below is live. Tap a card header to expand or collapse it, tap any row to change the
+      selection, and watch the button total update. Each frame keeps its own state, so they can be
+      compared side by side.
+    </p>
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <section class="section">
+    <h2>Total payment behavior</h2>
+    <p class="sub">
+      The action bar is the single place the running total lives. With nothing selected the button carries
+      no figure, matching the Figma default view. As soon as one item is included the button switches to
+      the amount form and keeps recalculating.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>State</th><th>Included items</th><th>Total</th><th>Button label</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Nothing selected</b></td>
+            <td>None</td>
+            <td class="num">&#8369;0.00</td>
+            <td><code>Pay now</code></td>
+          </tr>
+          <tr>
+            <td><b>Default on entry</b></td>
+            <td>FC Home Center, next installment</td>
+            <td class="num">&#8369;500.00</td>
+            <td><code>Pay now &#8369;500.00</code></td>
+          </tr>
+          <tr>
+            <td><b>Another loan added</b></td>
+            <td>FC Home Center + MOMENTO COFFEE01, both next installment</td>
+            <td class="num">&#8369;1,000.00</td>
+            <td><code>Pay now &#8369;1,000.00</code></td>
+          </tr>
+          <tr>
+            <td><b>Credit Line added</b></td>
+            <td>FC Home Center + Credit line statement balance</td>
+            <td class="num">&#8369;734.56</td>
+            <td><code>Pay now &#8369;734.56</code></td>
+          </tr>
+          <tr>
+            <td><b>Multiple added</b></td>
+            <td>FC Home Center + MOMENTO COFFEE01 + Credit line statement balance</td>
+            <td class="num">&#8369;1,234.56</td>
+            <td><code>Pay now &#8369;1,234.56</code></td>
+          </tr>
+          <tr>
+            <td><b>Primary set to "Don't include"</b></td>
+            <td>Whatever add-ons remain selected</td>
+            <td class="num">recalculates</td>
+            <td><code>Pay now &#8369;X</code>, or <code>Pay now</code> at zero</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Interaction logic</h2>
+    <div class="grid2">
+      <div class="note">
+        <h3>Preserving the original intent</h3>
+        <ul>
+          <li>The loan the user came from renders first, <b>already expanded</b>, with <b>Pay next installment</b> preselected.</li>
+          <li>It is the only item with a selection on entry, so the default total is that loan's next installment.</li>
+          <li>It can still be changed to full balance, a custom amount, or <b>Don't include</b>, so nothing is forced.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>Additional items stay opt-in</h3>
+        <ul>
+          <li>Other loans and Credit Line sit under <b>Include other payments?</b>, collapsed, with <b>no radio selected</b>.</li>
+          <li>Collapsed means zero contribution to the total. Expanding alone adds nothing either.</li>
+          <li>An amount is only added once the user picks a specific row, which is the conscious choice.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>Credit Line is never silent</h3>
+        <ul>
+          <li>Credit Line is listed <b>first</b> among the optional items, ahead of other loans, matching the Figma order.</li>
+          <li>It carries its own due line (<b>Due in 4 days</b>) while collapsed, so an outstanding amount is visible without expanding.</li>
+          <li>Expanding reveals statement balance, full balance, minimum due with its interest caveat, and custom amount.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>Staying fast</h3>
+        <ul>
+          <li>One screen. No separate selection flow, no re-picking the loan the user just came from.</li>
+          <li>Add-ons are collapsed by default, so the screen opens short and the primary item dominates.</li>
+          <li>The total lives in the button the user is already heading for, so no extra review step is needed.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Design system audit</h2>
+    <p class="sub">Every element maps to something that already exists. Nothing was invented.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Element</th><th>Source</th><th>Figma node</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Phone shell, status bar, nav bar</b></td><td><code>src/pages/flows/PhoneMockShared.jsx</code></td><td>Project standard</td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>navigation/header</b></td><td><code>NavHeader.jsx</code></td><td><code>I62276:9032</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>navigation/watermark</b></td><td><code>NavigationWatermark.jsx</code></td><td><code>38:1729</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>navigation/title</b></td><td>Section title</td><td><code>11996:5329</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>pay-now/selection</b></td><td>Repayment card</td><td><code>62276:9024</code>, <code>62276:9028</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>credit limit [other payment]</b></td><td>Collapsed Credit Line card</td><td><code>62276:9027</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>pay-now/selection/item</b></td><td>Radio row</td><td><code>9676:1395</code></td><td><span class="pill gap">Figma only</span></td></tr>
+          <tr><td><b>radio-button</b> (sm)</td><td>Radio control</td><td><code>188:2593</code> / <code>41886:33679</code></td><td><span class="pill gap">Figma only</span></td></tr>
+          <tr><td><b>action-bar</b></td><td><code>ActionBar.jsx</code></td><td><code>58994:107629</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>Button</b> primary / lg</td><td><code>Button.jsx</code></td><td><code>16:182</code></td><td><span class="pill ok">Reused</span></td></tr>
+          <tr><td><b>Icons</b></td><td><code>src/assets/icons/index.js</code></td><td><code>qESeTFW1GEEosrYnm4Hu3b</code></td><td><span class="pill ok">Reused</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="note">
+        <h3>Missing from the code design system</h3>
+        <p>Both exist in Figma and are listed in <code>src/data/components.js</code>, but neither has a React implementation in <code>src/components/ds/</code>:</p>
+        <ul>
+          <li>Missing component: <b>RadioButton</b> (<code>188:2593</code>, 8 variants: Disabled x size x state)</li>
+          <li>Missing component: <b>PayNowSelectionItem</b> (<code>9676:1395</code>, 5 variants: Active / Default / Disabled)</li>
+        </ul>
+        <p>They are rendered here to their exact Figma spec (20px control, 1.667px <code>--border-bold</code> ring when unselected, <code>--bg-primary</code> fill with a 6.67px white dot when selected) rather than substituted for another component.</p>
+      </div>
+      <div class="note">
+        <h3>Notes and open points</h3>
+        <ul>
+          <li><b>Amounts</b> are the ones in the Figma frames. The three add up to &#8369;1,234.56, which is the figure on the QRPh screen and the loans dashboard in the same file.</li>
+          <li><b>MOMENTO COFFEE01</b> is a placeholder in Figma with no amounts on its collapsed card, so its expanded rows reuse the per-loan amounts Figma defines for a loan card.</li>
+          <li><b>Custom amount</b> contributes &#8369;0.00 here. The amount entry screen is not in the supplied frames, so it was not built. <code>AmountInput.jsx</code> is the component for it.</li>
+          <li><b>Order</b> of the optional items follows Figma (Credit Line, then other loans), not the order in the brief.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+
+const ICONS = {"arrow-left":{"viewBox":"0 0 24 24","paths":[{"d":"M8.1572 3.28224C8.53344 2.90599 9.15593 2.90602 9.5322 3.28224C9.90846 3.6585 9.90846 4.28098 9.5322 4.65724L3.31735 10.8721H23.0263C23.5581 10.8722 23.9988 11.313 23.999 11.8447C23.999 12.3766 23.5582 12.8182 23.0263 12.8184H3.31833L9.5322 19.0332C9.90846 19.4095 9.90846 20.032 9.5322 20.4082C9.35056 20.6027 9.09114 20.6934 8.8447 20.6934C8.59827 20.6933 8.35174 20.6028 8.1572 20.4082L0.282196 12.5332C-0.0940654 12.157 -0.0940654 11.5335 0.282196 11.1572L8.1572 3.28224Z"}]},"chevron-down":{"viewBox":"0 0 24 24","paths":[{"d":"M24 7.04332C24 6.77813 23.9031 6.51294 23.6955 6.30357C23.294 5.8988 22.6296 5.8988 22.2281 6.30357L13.2026 15.4039C12.5381 16.0739 11.4584 16.0739 10.7939 15.4039L1.76842 6.30358C1.36698 5.89881 0.702523 5.89881 0.301082 6.30358C-0.10036 6.70835 -0.10036 7.37831 0.301082 7.78308L9.32661 16.8834C10.0326 17.5952 10.9877 18 11.9983 18C13.0088 18 13.964 17.6092 14.6699 16.8834L23.6955 7.78307C23.8893 7.57371 24 7.30852 24 7.04332Z"}]},"chevron-up":{"viewBox":"0 0 24 24","paths":[{"d":"M24 16.9567C24 17.2219 23.9031 17.4871 23.6955 17.6964C23.294 18.1012 22.6296 18.1012 22.2281 17.6964L13.2026 8.5961C12.5381 7.92614 11.4584 7.92614 10.7939 8.5961L1.76842 17.6964C1.36698 18.1012 0.702523 18.1012 0.301081 17.6964C-0.10036 17.2917 -0.10036 16.6217 0.301081 16.2169L9.3266 7.1166C10.0326 6.40477 10.9877 6 11.9983 6C13.0088 6 13.964 6.39081 14.6699 7.1166L23.6955 16.2169C23.8893 16.4263 24 16.6915 24 16.9567Z"}]},"calendar-outline":{"viewBox":"0 0 24 24","paths":[{"d":"M7.55273 16.5547C7.96575 16.3761 8.45698 16.4765 8.76953 16.7891C8.81411 16.8447 8.86987 16.9004 8.90332 16.9561C8.94797 17.023 8.98158 17.0903 9.00391 17.1572C9.03734 17.2241 9.05914 17.2911 9.07031 17.3691C9.08146 17.436 9.09274 17.5142 9.09277 17.5811C9.09277 17.8713 8.97042 18.1619 8.76953 18.374C8.55744 18.575 8.2668 18.6973 7.97656 18.6973C7.83156 18.6972 7.68659 18.6641 7.55273 18.6084C7.41888 18.5526 7.29613 18.4744 7.18457 18.374C7.0842 18.2625 7.006 18.1508 6.9502 18.0059C6.89438 17.8719 6.86035 17.7262 6.86035 17.5811C6.86045 17.2909 6.98372 17.0011 7.18457 16.7891C7.29617 16.6886 7.41882 16.6105 7.55273 16.5547Z"},{"d":"M8.2002 12.5801C8.26713 12.5912 8.33443 12.614 8.40137 12.6475C8.46816 12.6698 8.53477 12.7035 8.60156 12.748C8.65738 12.7927 8.71372 12.8372 8.76953 12.8818C8.81417 12.9376 8.86985 12.994 8.90332 13.0498C8.92548 13.0831 8.94525 13.1161 8.96191 13.1494L9.0459 13.3506C9.05706 13.3841 9.06473 13.4177 9.07031 13.4512C9.08148 13.5293 9.09277 13.5967 9.09277 13.6748C9.09267 13.9648 8.97025 14.2548 8.76953 14.4668C8.55744 14.6677 8.2668 14.791 7.97656 14.791C7.83153 14.791 7.68661 14.7569 7.55273 14.7012C7.41883 14.6454 7.29617 14.5672 7.18457 14.4668C7.08415 14.3552 7.006 14.2325 6.9502 14.0986C6.89443 13.9648 6.86041 13.8198 6.86035 13.6748C6.86035 13.3846 6.98364 13.0939 7.18457 12.8818C7.29614 12.7815 7.41887 12.7032 7.55273 12.6475C7.75363 12.5582 7.97699 12.5354 8.2002 12.5801Z"},{"d":"M11.0908 12.8818C11.4033 12.5693 11.9058 12.469 12.3076 12.6475C12.4526 12.7032 12.5642 12.7815 12.6758 12.8818C12.8767 13.0939 13 13.3846 13 13.6748C13 13.7527 12.9887 13.8195 12.9775 13.8975C12.9664 13.9644 12.9446 14.0317 12.9111 14.0986C12.8888 14.1656 12.8552 14.2328 12.8105 14.2998C12.7659 14.3556 12.7204 14.411 12.6758 14.4668C12.5642 14.5672 12.4527 14.6454 12.3076 14.7012C12.1737 14.7569 12.0288 14.791 11.8838 14.791C11.5936 14.791 11.3029 14.6677 11.0908 14.4668C11.0463 14.4111 11.0016 14.3555 10.957 14.2998C10.9347 14.2663 10.9152 14.2327 10.8984 14.1992L10.8145 13.998C10.8033 13.9646 10.7956 13.9309 10.79 13.8975C10.7789 13.8195 10.7676 13.7527 10.7676 13.6748C10.7676 13.5297 10.8006 13.384 10.8564 13.25C10.9122 13.1161 10.9904 12.9934 11.0908 12.8818Z"},{"d":"M16.3486 0C16.8062 0 17.1864 0.379372 17.1865 0.836914V1.70996C20.7428 2.01504 22.7675 4.30647 22.7676 8.09277V17.5811C22.7676 21.6555 20.4231 24 16.3486 24H7.41895C3.34453 24 1 21.6555 1 17.5811V8.09277C1.00009 4.30642 3.02473 2.01499 6.58105 1.70996V0.836914C6.58122 0.379372 6.96137 0 7.41895 0C7.87637 0.000188372 8.2557 0.379485 8.25586 0.836914V1.6748H15.5117V0.836914C15.5119 0.37944 15.8911 0.000113063 16.3486 0ZM2.6748 17.5811C2.6748 20.7736 4.22639 22.3252 7.41895 22.3252H16.3486C19.5412 22.3252 21.0928 20.7736 21.0928 17.5811V9.58887H2.6748V17.5811ZM8.25586 4.18652C8.2556 4.64387 7.87631 5.02325 7.41895 5.02344C6.96143 5.02344 6.58132 4.64398 6.58105 4.18652V3.3877C4.00888 3.64163 2.72886 5.12976 2.67676 7.91406H21.0908C21.0387 5.12981 19.7586 3.64167 17.1865 3.3877V4.18652C17.1863 4.64398 16.8061 5.02344 16.3486 5.02344C15.8912 5.02332 15.512 4.64392 15.5117 4.18652V3.34863H8.25586V4.18652Z","fillRule":"evenodd","clipRule":"evenodd"}]},"copy":{"viewBox":"0 0 24 24","paths":[{"d":"M17.6934 0C22.0577 9.94693e-05 23.9999 1.94234 24 6.30664V10.9951C24 15.3597 22.0578 17.3026 17.6934 17.3027H17.3027V17.6934C17.3026 22.0578 15.3597 24 10.9951 24H6.30664C1.94234 23.9999 9.94701e-05 22.0577 0 17.6934V13.0049C0 8.64034 1.94223 6.69737 6.30664 6.69727H6.69727V6.30664C6.69737 1.94223 8.64034 0 13.0049 0H17.6934ZM6.30664 8.37207C2.84644 8.37215 1.6748 9.54453 1.6748 13.0049V17.6934C1.67488 21.1535 2.84655 22.3251 6.30664 22.3252H10.9951C14.4555 22.3252 15.6279 21.1536 15.6279 17.6934V13.0049C15.6279 9.54442 14.4556 8.37207 10.9951 8.37207H6.30664ZM13.0049 1.6748C9.54453 1.6748 8.37215 2.84644 8.37207 6.30664V6.69727H10.9951C15.3598 6.69727 17.3027 8.64023 17.3027 13.0049V15.6279H17.6934C21.1536 15.6279 22.3252 14.4555 22.3252 10.9951V6.30664C22.3251 2.84655 21.1535 1.67488 17.6934 1.6748H13.0049Z","fillRule":"evenodd","clipRule":"evenodd"}]}};
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Icon rendering. Path data above is copied verbatim from
+   ~/Billease-app/src/assets/icons/index.js, which was read out of Figma file
+   qESeTFW1GEEosrYnm4Hu3b. No invented SVG.
+   Figma "icon-placeholder" is a box with 2px padding, so a 16px box holds a
+   12px glyph and a 24px box holds a 20px glyph.
+   ────────────────────────────────────────────────────────────────────────── */
+function icon(name, glyph, color){
+  var i = ICONS[name];
+  var paths = i.paths.map(function(p){
+    return '<path d="' + p.d + '" fill="' + color + '"'
+      + (p.fillRule ? ' fill-rule="' + p.fillRule + '"' : '')
+      + (p.clipRule ? ' clip-rule="' + p.clipRule + '"' : '')
+      + '/>';
+  }).join('');
+  return '<svg width="' + glyph + '" height="' + glyph + '" viewBox="' + i.viewBox
+    + '" fill="none" aria-hidden="true" focusable="false">' + paths + '</svg>';
+}
+function iconBox(name, box, glyph, color){
+  return '<span style="width:' + box + 'px;height:' + box + 'px;flex-shrink:0;display:flex;'
+    + 'align-items:center;justify-content:center">' + icon(name, glyph, color) + '</span>';
+}
+
+/* radio-button, size sm — Figma 41886:33679 (default) / 41886:33681 (selected).
+   Selected geometry taken from the exported asset: 20px circle filled
+   --bg-primary with a white dot of r=3.33333. */
+function radio(on){
+  if (on) {
+    return '<svg class="radio" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">'
+      + '<path d="M0 10C0 4.47715 4.47715 0 10 0V0C15.5228 0 20 4.47715 20 10V10C20 15.5228 15.5228 20 10 20V20C4.47715 20 0 15.5228 0 10V10Z" fill="var(--bg-primary)"/>'
+      + '<circle cx="10" cy="10" r="3.33333" fill="var(--text-on-dark)"/></svg>';
+  }
+  return '<span class="radio" style="border:1.667px solid var(--border-bold);border-radius:50%"></span>';
+}
+
+/* ── Money ────────────────────────────────────────────────────────────── */
+var PESO = '₱';
+function fmt(n){
+  return PESO + n.toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Content. Every label and amount below is read out of the Figma frames:
+     62276:9024  primary loan card (FC Home Center)
+     62276:9028  collapsed other-loan card (MOMENTO COFFEE01)
+     62276:9027  collapsed Credit line card
+     62276:4135  expanded Credit Line option list
+   ────────────────────────────────────────────────────────────────────────── */
+var DATA = {
+  primary: {
+    name:'FC Home Center', ref:'#123456', due:'Due in 4 days',
+    kind:'loan', nextKey:'next',
+    options:[
+      { k:'next',   label:'Pay next installment', amt:500 },
+      { k:'full',   label:'Pay in full',          amt:3000 },
+      { k:'custom', label:'Custom amount',        amt:null },
+      { k:'none',   label:'Don’t include',   amt:null }
+    ]
+  },
+  loan2: {
+    name:'MOMENTO COFFEE01', ref:'#123456', due:'Due in 4 days',
+    kind:'loan', nextKey:'next',
+    options:[
+      { k:'next',   label:'Pay next installment', amt:500 },
+      { k:'full',   label:'Pay in full',          amt:3000 },
+      { k:'custom', label:'Custom amount',        amt:null },
+      { k:'none',   label:'Don’t include',   amt:null }
+    ]
+  },
+  credit: {
+    name:'Credit line', ref:null, due:'Due in 4 days',
+    kind:'credit', nextKey:null,
+    options:[
+      { k:'statement', label:'Statement balance', amt:234.56 },
+      { k:'full',      label:'Full balance',      amt:734.56 },
+      { k:'min',       label:'Minimum due',       amt:50,
+        sub:'Interest may apply to the remaining balance' },
+      { k:'custom',    label:'Custom amount',     amt:null },
+      { k:'none',      label:'Don’t include',amt:null }
+    ]
+  }
+};
+
+/* Optional items keep the Figma order: Credit line first, then other loans. */
+var EXTRAS = ['credit', 'loan2'];
+
+function optionOf(key, sel){
+  if (!sel) return null;
+  var list = DATA[key].options, i;
+  for (i = 0; i < list.length; i++) { if (list[i].k === sel) return list[i]; }
+  return null;
+}
+function totalOf(st){
+  var t = 0;
+  ['primary'].concat(EXTRAS).forEach(function(key){
+    var o = optionOf(key, st.sel[key]);
+    if (o && o.amt) t += o.amt;
+  });
+  return t;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Card rendering — pay-now/selection (62276:9024 / 62276:9028) and
+   credit limit [other payment] (62276:9027).
+   ────────────────────────────────────────────────────────────────────────── */
+function cardHTML(key, st, isPrimary){
+  var d = DATA[key];
+  var open = !!st.exp[key];
+  var sel = st.sel[key];
+  var o = optionOf(key, sel);
+  var isCredit = d.kind === 'credit';
+
+  /* Credit line uses a 14px title and a 13px due line; loan cards use 16px / 14px. */
+  var nameCls = 'name' + (isCredit ? ' sm' : '');
+  var dueCls  = 'due'  + (isCredit ? ' sm' : '');
+
+  var idRow = d.ref
+    ? '<div class="idrow"><span>' + d.ref + '</span>'
+      + iconBox('copy', 16, 12, 'var(--icon-subtle)') + '</div>'
+    : '';
+
+  /* Header amount mirrors the current selection. Nothing selected, no figure. */
+  var headAmt = (open && o && o.amt) ? '<p class="amt">' + fmt(o.amt) + '</p>' : '';
+
+  /* The "Next installment" caption exists in Figma only on the next-installment
+     state, so it is hidden whenever another option is chosen. */
+  var tag = (open && d.nextKey && sel === d.nextKey)
+    ? '<p class="tag">Next installment</p>' : '';
+
+  var head =
+    '<button class="cardtoggle" type="button" data-toggle="' + key + '"'
+      + ' aria-expanded="' + open + '">'
+      + '<div class="headrow">'
+        + '<div class="left"><p class="' + nameCls + '">' + d.name + '</p>' + idRow + '</div>'
+        + '<div class="right">' + headAmt
+          + iconBox(open ? 'chevron-up' : 'chevron-down', 16, 12, 'var(--icon-base)')
+        + '</div>'
+      + '</div>'
+      + '<div class="bottomline">'
+        + iconBox('calendar-outline', 16, 12, 'var(--icon-subtle)')
+        + '<p class="' + dueCls + '">' + d.due + '</p>' + tag
+      + '</div>'
+    + '</button>';
+
+  var opts = '';
+  if (open) {
+    opts = '<div class="optlist">' + d.options.map(function(op){
+      var on = sel === op.k;
+      var label = op.sub
+        ? '<span class="txt"><span class="lab">' + op.label + '</span>'
+            + '<span class="sub">' + op.sub + '</span></span>'
+        : '<span class="txt"><span class="lab">' + op.label + '</span></span>';
+      return '<button class="opt' + (op.sub ? ' multiline' : '') + '" type="button"'
+        + ' data-pick="' + key + '" data-opt="' + op.k + '"'
+        + ' aria-pressed="' + on + '">'
+        + '<span class="l">' + radio(on) + label + '</span>'
+        + (op.amt != null ? '<span class="val">' + fmt(op.amt) + '</span>' : '')
+        + '</button>';
+    }).join('') + '</div>';
+  }
+
+  return '<div class="card ' + (open ? 'expanded' : 'collapsed')
+    + (isPrimary ? ' is-primary' : '') + '">' + head + opts + '</div>';
+}
+
+function bodyHTML(st){
+  return ''
+    + '<div class="group">' + cardHTML('primary', st, true) + '</div>'
+    + '<div class="group">'
+      + '<div class="sectitle"><p>Include other payments?</p></div>'
+      + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('')
+    + '</div>';
+}
+
+/* ── Phone chrome, ported from src/pages/flows/PhoneMockShared.jsx ─────── */
+var STATUSBAR =
+  '<div class="statusbar"><span class="t">5:13</span><div class="icons">'
+  + '<svg width="13" height="13" viewBox="0 0 24 24" fill="#1D2D40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>'
+  + '<svg width="9" height="13" viewBox="0 0 14 20" fill="#1D2D40"><path d="M7 0L1 6l4 4-4 4 6 6v-7l3 3 1-1-4-4 4-4-1-1-3 3V0z"/></svg>'
+  + '<svg width="15" height="12" viewBox="0 0 24 20" fill="#1D2D40"><path d="M12 14.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/><path d="M12 10c2.2 0 4.2.9 5.6 2.3l1.7-1.7C17.5 9 14.9 7.5 12 7.5s-5.5 1.5-7.3 3.1l1.7 1.7C7.8 10.9 9.8 10 12 10z"/><path d="M12 5.5c3.3 0 6.3 1.3 8.4 3.5l1.7-1.7C19.6 4.8 16 3 12 3S4.4 4.8 1.9 7.3l1.7 1.7C5.7 6.8 8.7 5.5 12 5.5z"/></svg>'
+  + '<svg width="16" height="12" viewBox="0 0 24 18" fill="#1D2D40"><rect x="0" y="13" width="4" height="5"/><rect x="6" y="9" width="4" height="9"/><rect x="12" y="5" width="4" height="13"/><rect x="18" y="1" width="4" height="17"/></svg>'
+  + '<span class="batt"><span class="shell"><span class="fill"></span></span><span class="nub"></span></span>'
+  + '</div></div>';
+
+var NAVBAR = '<div class="navbar"><span class="b">◄</span><span class="h">⬤</span><span class="s">■</span></div>';
+
+var WM_COLORS = ['yellow','pink','green','black','#f0f','#8b4513','purple','orange','red','#0ff'];
+var WATERMARK = '<div class="watermark">' + WM_COLORS.map(function(c){
+  return '<i style="background:' + c + '"></i>';
+}).join('') + '</div>';
+
+/* navigation/header — title read from Figma I62276:9032;38:1707, which is the
+   visible header text, not the frame name. */
+var NAVHDR =
+  '<div class="navhdr">' + WATERMARK
+  + '<div class="pagehdr">'
+    + '<button class="lefticon" type="button" aria-label="Back">'
+      + icon('arrow-left', 20, 'var(--icon-base)') + '</button>'
+    + '<div class="ttl"><p>Select payment amount</p></div>'
+    + '<div class="righticon"></div>'
+  + '</div></div>';
+
+/* ──────────────────────────────────────────────────────────────────────────
+   The five states asked for.
+   ────────────────────────────────────────────────────────────────────────── */
+var FRAMES = [
+  {
+    cap: '1. Main Pay Now screen',
+    note: 'Arriving from the loan details screen. FC Home Center is already in, set to its next installment. Everything optional is collapsed.',
+    st: { sel:{ primary:'next', loan2:null, credit:null },
+          exp:{ primary:true,  loan2:false, credit:false } }
+  },
+  {
+    cap: '2. No additional payments selected',
+    note: 'Credit Line opened, still nothing picked. Expanding on its own adds nothing, so the total holds at the original intent.',
+    st: { sel:{ primary:'next', loan2:null, credit:null },
+          exp:{ primary:true,  loan2:false, credit:true } }
+  },
+  {
+    cap: '3. Another loan added',
+    note: 'MOMENTO COFFEE01 opened and set to its next installment. The total picks up the second loan.',
+    st: { sel:{ primary:'next', loan2:'next', credit:null },
+          exp:{ primary:true,  loan2:true,   credit:false } }
+  },
+  {
+    cap: '4. Credit Line added',
+    note: 'Credit Line set to statement balance instead. The other loan stays out, so it contributes nothing.',
+    st: { sel:{ primary:'next', loan2:null,  credit:'statement' },
+          exp:{ primary:true,  loan2:false, credit:true } }
+  },
+  {
+    cap: '5. Multiple additional repayments',
+    note: 'Both add-ons in: second loan at next installment plus the Credit Line statement balance. One payment, three items.',
+    st: { sel:{ primary:'next', loan2:'next', credit:'statement' },
+          exp:{ primary:true,  loan2:true,   credit:true } }
+  }
+];
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Mount
+   ────────────────────────────────────────────────────────────────────────── */
+var rail = document.getElementById('rail');
+
+FRAMES.forEach(function(cfg){
+  var st = { sel: Object.assign({}, cfg.st.sel), exp: Object.assign({}, cfg.st.exp) };
+
+  var slot = document.createElement('div');
+  slot.className = 'slot';
+  slot.innerHTML =
+    '<p class="cap">' + cfg.cap + '</p>'
+    + '<p class="capnote">' + cfg.note + '</p>'
+    + '<div class="phone">'
+      + '<div class="sides"><i class="pw"></i><i class="v1"></i><i class="v2"></i></div>'
+      + '<div class="body"><div class="cam"></div><div class="screen">'
+        + STATUSBAR
+        + '<div class="scr">' + NAVHDR
+          + '<div class="scrbody"></div>'
+          + '<div class="actionbar"><div class="brd"></div>'
+            + '<button class="btn" type="button"></button></div>'
+        + '</div>'
+        + NAVBAR
+      + '</div></div>'
+    + '</div>'
+    + '<div class="total"><span class="k">Total</span><span class="v"></span></div>';
+
+  var scrbody = slot.querySelector('.scrbody');
+  var btn     = slot.querySelector('.btn');
+  var navhdr  = slot.querySelector('.navhdr');
+  var totalEl = slot.querySelector('.total .v');
+
+  function render(){
+    scrbody.innerHTML = bodyHTML(st);
+    var t = totalOf(st);
+    btn.textContent = t > 0 ? 'Pay now ' + fmt(t) : 'Pay now';
+    totalEl.textContent = fmt(t);
+  }
+
+  /* NavHeader Scroll Border Rule: the border only shows once content scrolls. */
+  scrbody.addEventListener('scroll', function(){
+    navhdr.classList.toggle('scrolled', scrbody.scrollTop > 0);
+  });
+
+  scrbody.addEventListener('click', function(e){
+    var toggle = e.target.closest('[data-toggle]');
+    if (toggle) {
+      var k = toggle.getAttribute('data-toggle');
+      st.exp[k] = !st.exp[k];
+      render();
+      return;
+    }
+    var pick = e.target.closest('[data-pick]');
+    if (pick) {
+      var key = pick.getAttribute('data-pick');
+      var opt = pick.getAttribute('data-opt');
+      /* Tapping the active row again clears it, so an add-on can be removed
+         without hunting for "Don't include". */
+      st.sel[key] = (st.sel[key] === opt) ? null : opt;
+      render();
+    }
+  });
+
+  render();
+  rail.appendChild(slot);
+});
+</script>
+</body>
+</html>
