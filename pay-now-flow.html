@@ -373,7 +373,6 @@ img{ max-width:100%; }
 .headrow .left{ flex:1 0 0; min-width:0; display:flex; flex-direction:column; gap:var(--space-050); }
 .headrow .name{ margin:0; font-size:var(--text-lg); font-weight:600; line-height:1.5;
   color:var(--text-base); word-break:break-word; }
-.headrow .name.sm{ font-size:var(--text-md); }
 .headrow .idrow{ display:flex; align-items:center; gap:var(--space-100); }
 .headrow .idrow span{ font-size:var(--text-md); font-weight:400; line-height:1.5;
   color:var(--text-subtle); white-space:nowrap; }
@@ -384,7 +383,6 @@ img{ max-width:100%; }
 .bottomline{ display:flex; align-items:center; gap:5px; width:100%; }
 .bottomline .due{ flex:1 0 0; min-width:0; margin:0; font-size:var(--text-md);
   font-weight:400; line-height:1.5; color:var(--text-subtle); }
-.bottomline .due.sm{ font-size:var(--text-sm); }
 .bottomline .tag{ margin:0; font-size:var(--text-md); font-weight:400; line-height:1.5;
   color:var(--text-subtle); text-align:right; white-space:nowrap; }
 .optlist{ border-top:var(--border-width-100) solid var(--border-subtle);
@@ -582,9 +580,12 @@ function freshState(){
 /* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
 function cardHTML(key, st, isPrimary){
   var d = DATA[key], open = !!st.exp[key], sel = st.sel[key];
-  var o = optionOf(key, sel), isCredit = d.kind === 'credit';
-  var nameCls = 'name' + (isCredit ? ' sm' : '');
-  var dueCls  = 'due'  + (isCredit ? ' sm' : '');
+  var o = optionOf(key, sel);
+  /* Figma's credit limit [other payment] component (62276:9027) sets a 14px
+     title and 13px due line, one step below the loan card (62276:9028).
+     Deliberate deviation: both use the loan card's 16px / 14px so the
+     optional items read as one list. */
+  var nameCls = 'name', dueCls = 'due';
   var idRow = d.ref
     ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,'var(--icon-subtle)') + '</div>' : '';
   var headAmt = (open && o && o.amt) ? '<p class="amt">' + fmt(o.amt) + '</p>' : '';
