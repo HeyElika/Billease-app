@@ -184,6 +184,18 @@ img{ max-width:100%; }
 .appnav .item span{ font-size:var(--text-sm); font-weight:600; line-height:1.5;
   color:var(--text-subtle); text-align:center; }
 .appnav .item.on span{ color:var(--text-brand-primary); }
+/* Bottom nav press — Motion system node 1:4312, values from
+   src/pages/motion/BottomNavigation.jsx. The glyph dips over 200ms and
+   springs back over 100ms; the colour flips at the turn and is never tweened.
+   Only the icon scales, never the label or the bar. */
+.appnav .item .ic{ transform:scale(1); }
+.appnav .item .ic.dip{ transform:scale(.9);
+  transition:transform 200ms cubic-bezier(.9,0,.1,1); }
+.appnav .item .ic.rise{ transform:scale(1);
+  transition:transform 100ms cubic-bezier(.9,0,.1,1); }
+@media (prefers-reduced-motion:reduce){
+  .appnav .item .ic.dip,.appnav .item .ic.rise{ transition:none; transform:none; }
+}
 
 /* ══ Screen: Loans home — Figma 62276:4123 ═════════════════════════════ */
 .home{ background:var(--canvas-default); }
@@ -673,12 +685,11 @@ function appNav(active){
   return '<div class="appnav">' + NAV_ITEMS.map(function(it){
     var on = it.key === active;
     var col = on ? 'var(--icon-primary)' : 'var(--icon-subtle)';
-    /* Moving to an earlier screen in the flow plays the back transition. */
-    var ki = FLOW.map(function(f){ return f.key; });
-    var dir = (it.go && ki.indexOf(it.go) > -1 && ki.indexOf(active) > -1
-               && ki.indexOf(it.go) < ki.indexOf(active)) ? 'back' : 'fwd';
+    /* These are top-level destinations, so a tap switches tab rather than
+       pushing a screen. Motion node 1:4312: the destination changes
+       immediately, with only the icon press to acknowledge it. */
     return '<button class="item' + (on ? ' on' : '') + '" type="button"'
-      + (it.go && !on ? ' data-nav="' + it.go + '" data-dir="' + dir + '"' : '')
+      + (it.go && !on ? ' data-nav="' + it.go + '" data-dir="tab"' : '')
       + '><span class="ic">' + icon(on ? it.fill : it.out, 20, col) + '</span>'
       + '<span>' + it.label + '</span></button>';
   }).join('') + '</div>';
@@ -854,16 +865,12 @@ function screenQR(st){
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Prototype: one phone, five screens, StepForwardBack transitions
-   (Figma Motion file P4kziTuTniQFQen8RQUIuy, node 543:13181).
+   Prototype: one phone, five screens.
+   Drilling in and out uses StepForwardBack (Figma Motion file
+   P4kziTuTniQFQen8RQUIuy, node 543:13181). Switching bottom-nav destination
+   is not a push: node 1:4312 has the destination change immediately, with
+   the icon press as the only acknowledgement.
    ══════════════════════════════════════════════════════════════════════════ */
-var FLOW = [
-  { key:'home',   label:'Home' },
-  { key:'loans',  label:'Loans list' },
-  { key:'detail', label:'Loan details' },
-  { key:'paynow', label:'Pay now' },
-  { key:'qrph',   label:'Pay with QRPh' }
-];
 var proto = { screen:'home', painted:null, st:freshState(), busy:false };
 
 function screenHTML(key){
@@ -914,6 +921,25 @@ function paint(){
   proto.painted = proto.screen;
   wireScroll(base);
 }
+var DIP_MS = 200, RISE_MS = 100;   /* Motion node 1:4312 */
+
+/* Tab switch: no slide, no dim. The glyph dips, the destination and colour
+   flip at the turn, then the glyph springs back. */
+function navTab(to, item){
+  if (proto.busy || !to || to === proto.screen) return;
+  proto.busy = true;
+  var glyph = item.querySelector('.ic');
+  if (glyph) glyph.classList.add('dip');
+  setTimeout(function(){
+    proto.screen = to;
+    paint();
+    var next = base.querySelector('.appnav .item.on .ic');
+    if (!next) { proto.busy = false; return; }
+    next.classList.add('rise');
+    setTimeout(function(){ next.classList.remove('rise'); proto.busy = false; }, RISE_MS);
+  }, DIP_MS);
+}
+
 function nav(to, dir){
   if (proto.busy || !to || to === proto.screen) return;
   proto.busy = true;
@@ -944,7 +970,12 @@ function nav(to, dir){
 
 stage.addEventListener('click', function(e){
   var navEl = e.target.closest('[data-nav]');
-  if (navEl) { nav(navEl.getAttribute('data-nav'), navEl.getAttribute('data-dir')); return; }
+  if (navEl) {
+    var dir = navEl.getAttribute('data-dir');
+    if (dir === 'tab') navTab(navEl.getAttribute('data-nav'), navEl);
+    else nav(navEl.getAttribute('data-nav'), dir);
+    return;
+  }
   var sk = e.target.closest('[data-skip]');
   if (sk) {
     proto.st.skip = !proto.st.skip;
