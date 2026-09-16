@@ -650,7 +650,7 @@ function rebuildData(){
   var allFull = rest.reduce(function(t, l){ return t + l.full; }, 0);
   DATA.loan2 = { name:'Other loans', ref:null, kind:'loan', nextKey:null,
                  due: rest.length + ' loan' + (rest.length === 1 ? '' : 's')
-                      + ' · Next due in ' + soonest + ' days',
+                      + ' · Due in ' + soonest + ' days',
                  options:[
                    { k:'full',   label:'Pay all plans in full', amt:allFull },
                    { k:'custom', label:'Custom amount',         amt:null },
