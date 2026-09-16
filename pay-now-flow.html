@@ -1036,7 +1036,16 @@ stage.addEventListener('click', function(e){
     return;
   }
   var tg = e.target.closest('[data-toggle]');
-  if (tg) { var k = tg.getAttribute('data-toggle'); proto.st.exp[k] = !proto.st.exp[k]; paint(); return; }
+  if (tg) {
+    var k = tg.getAttribute('data-toggle');
+    proto.st.exp[k] = !proto.st.exp[k];
+    /* Opening an optional card means the prompt has been seen, so every ring
+       clears, the checkbox included. The primary card is unrelated to the
+       outstanding choice and leaves them in place. */
+    if (k !== 'primary') proto.st.err = false;
+    paint();
+    return;
+  }
   var pk = e.target.closest('[data-pick]');
   if (pk) {
     var pkey = pk.getAttribute('data-pick');
