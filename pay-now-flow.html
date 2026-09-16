@@ -34,7 +34,7 @@
 
   --border-subtle:#E0E0E0; --border-default:#D4D4D4; --border-strong:#919191;
   --border-bold:#919191; --border-on-dark:#FFFFFF; --border-primary:#E7161A;
-  --border-info:#13456D; --border-error-bold:#EB5C69; --border-active:#265CE5;
+  --border-info:#13456D; --border-error-bold:#EB5C69;
   --border-width-100:1px; --border-width-200:2px; --border-width-300:3px;
 
   --icon-base:#1A1A1A; --icon-subtle:#545454; --icon-disabled:#B0B0B0;
@@ -379,12 +379,11 @@ img{ max-width:100%; }
 .card.collapsed{ padding:var(--space-300) var(--space-400); }
 .card.expanded{ padding:var(--space-300) var(--space-400) 0; gap:var(--space-400); }
 .card.is-primary{ box-shadow:var(--shadow-xs); }
-/* Attention, not error: while the choice is outstanding the optional cards are
-   ringed in --border-active so they read as "there is something here to pick",
-   without claiming the cards themselves are invalid. The inset shadow thickens
-   the ring without shifting layout. */
-.card.hl{ border-color:var(--border-active);
-  box-shadow:inset 0 0 0 var(--border-width-100) var(--border-active); }
+/* While the choice is outstanding, the checkbox and both optional cards carry
+   the same error ring, so every place the choice can be made is marked as one
+   signal. The inset shadow thickens the ring without shifting layout. */
+.card.hl{ border-color:var(--border-error-bold);
+  box-shadow:inset 0 0 0 var(--border-width-100) var(--border-error-bold); }
 .cardtoggle{ background:none; border:0; padding:0; margin:0; cursor:pointer;
   display:flex; flex-direction:column; align-items:stretch; gap:var(--space-200);
   width:100%; text-align:left; font-family:inherit; }
@@ -430,11 +429,11 @@ img{ max-width:100%; }
 .cbox.on{ border-color:transparent; background:var(--bg-primary); }
 /* .Checkbox/error — Figma 188:2529 */
 .cbox.err{ border-color:var(--border-error-bold); }
-/* checkbox-paragraph error variant — Figma 183:2210: the row and the message
-   stack in a column, gap 8, with the message at the container's left edge. */
 .skipblock{ display:flex; flex-direction:column; gap:var(--space-200); width:100%; }
-.errmsg{ margin:0; font-size:var(--text-md); font-weight:400; line-height:1.5;
-  color:var(--text-error); width:100%; }
+/* The error shows as colour alone, so the reason is carried for screen readers
+   rather than being dropped along with the visible message. */
+.sr-only{ position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 .skiprow{ display:flex; align-items:flex-start; gap:var(--space-200); width:100%;
   background:none; border:0; padding:0; cursor:pointer;
   text-align:left; font-family:inherit; }
@@ -670,7 +669,7 @@ function skipRowHTML(on, err){
     + (on ? icon('tick',16,'var(--icon-on-dark)') : '') + '</span>'
     + '<span class="txt"><span class="lab">Pay only this loan</span>'
     + '<span class="sub">Other payments won\u2019t be included</span></span></button>'
-    + (err ? '<p class="errmsg" id="skip-err" role="alert">Select an option to continue</p>' : '')
+    + (err ? '<p class="sr-only" id="skip-err" role="alert">Select an option to continue</p>' : '')
     + '</div>';
 }
 function payNowBodyHTML(st){
