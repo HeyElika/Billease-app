@@ -648,12 +648,16 @@ function rebuildData(){
   var rest = otherLoans(L.id);
   var soonest = rest.reduce(function(m, l){ return Math.min(m, l.dueDays); }, Infinity);
   var allFull = rest.reduce(function(t, l){ return t + l.full; }, 0);
+  var allNext = rest.reduce(function(t, l){ return t + l.next; }, 0);
   DATA.loan2 = { name:'Other loans', ref:null, kind:'loan', nextKey:null,
                  due: rest.length + ' loan' + (rest.length === 1 ? '' : 's')
                       + ' · Due in ' + soonest + ' days',
                  options:[
-                   { k:'full',   label:'Pay all plans in full', amt:allFull },
-                   { k:'custom', label:'Custom amount',         amt:null },
+                   { k:'nextall', amt:allNext,
+                     label:'Pay ' + rest.length + ' next installment'
+                           + (rest.length === 1 ? '' : 's') },
+                   { k:'full',    label:'Pay all plans in full', amt:allFull },
+                   { k:'custom',  label:'Custom amount',         amt:null },
                    SKIP
                  ] };
   rest.forEach(function(l){
