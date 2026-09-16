@@ -459,6 +459,12 @@ img{ max-width:100%; }
   font-size:var(--text-lg); font-weight:600; line-height:1.5; font-variant-numeric:tabular-nums; }
 .btn:active{ box-shadow:inset 0 0 0 999px rgba(0,0,0,.30); }
 
+/* ══ Screen: Customize payment — Figma 26888:56146 ════════════════════ */
+.custbody{ padding:var(--space-500); display:flex; flex-direction:column;
+  gap:var(--space-400); background:var(--canvas-alt); }
+.custlead{ margin:0; font-size:var(--text-lg); font-weight:400; line-height:1.5;
+  color:var(--text-base); width:100%; }
+
 /* ══ Screen: Pay with QRPh — Figma 62286:34271 ═════════════════════════ */
 .qrbody{ padding:var(--space-600) var(--space-500); display:flex; flex-direction:column;
   align-items:center; gap:var(--space-600); background:var(--bg-base); }
@@ -560,42 +566,97 @@ function fmt(n){ return PESO + n.toLocaleString('en-PH', { minimumFractionDigits
      62276:9027  collapsed Credit line card
      62276:4135  expanded Credit Line option list
    ══════════════════════════════════════════════════════════════════════════ */
-var LOAN_AMOUNTS = [
-  { k:'next',   label:'Pay next installment', amt:500 },
-  { k:'full',   label:'Pay in full',          amt:3000 },
-  { k:'custom', label:'Custom amount',        amt:null }
-];
 /* A radio group needs a reachable "none", otherwise picking an amount is a
    one-way door and the only way back is the checkbox, which clears every
    optional item at once. Left unselected on open, so an optional item is
    never included until the user says so. */
-var SKIP = { k:'none', label:'Don\u2019t include', amt:null };
+var SKIP = { k:'none', label:'Don’t include', amt:null };
+
+/* ══════════════════════════════════════════════════════════════════════════
+   The loans on this account. One registry drives the loans list, the details
+   screen, the primary card on Pay now and the Customize payment screen, so
+   every loan carries its own figures the whole way through and "Other loans"
+   is always the rest of the list rather than a fixed block.
+   FC Home Center's figures are Figma's; the others are composed to be
+   internally consistent (full = next x remaining terms).
+   ══════════════════════════════════════════════════════════════════════════ */
+var LOANS = [
+  { id:'fc',       name:'FC Home Center',    ref:'#123456',     logo:'logoFC',
+    listDue:'Due Oct 16, 2023', dueDays:4,  next:500, full:3000, terms:6, paid:1,
+    opened:'Oct 13, 2015', schedFrom:[10,2025], group:7 },
+  { id:'meralco',  name:'MERALCO',           ref:'#1234567890', logo:'logoMeralco',
+    listDue:'Due Oct 18, 2023', dueDays:6,  next:310, full:930,  terms:3, paid:1,
+    opened:'Mar 02, 2023', schedFrom:[10,2025], group:7 },
+  { id:'smart',    name:'SMART PREPAID ALL', ref:'#0788999776', logo:'logoSmart',
+    listDue:'Due Oct 21, 2023', dueDays:9,  next:310, full:620,  terms:2, paid:0,
+    opened:'Jun 18, 2023', schedFrom:[10,2025], group:14 },
+  { id:'meralco2', name:'MERALCO',           ref:'#9876543210', logo:'logoMeralco',
+    listDue:'Due Oct 24, 2023', dueDays:12, next:310, full:1240, terms:4, paid:0,
+    opened:'Aug 05, 2023', schedFrom:[11,2025], group:14 }
+];
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function loanById(id){
+  for (var i = 0; i < LOANS.length; i++) { if (LOANS[i].id === id) return LOANS[i]; }
+  return LOANS[0];
+}
+function otherLoans(id){
+  return LOANS.filter(function(l){ return l.id !== id; });
+}
+/* The repayment schedule, one row per term from the loan's first due month. */
+function scheduleOf(l){
+  var rows = [], m = l.schedFrom[0], y = l.schedFrom[1], i;
+  for (i = 0; i < l.terms; i++) {
+    rows.push({ date: MONTHS[m % 12] + ' 14, ' + (y + Math.floor(m / 12)),
+                amt: l.next, paid: i < l.paid });
+    m++;
+  }
+  return rows;
+}
+
 var DATA = {
-  /* The loan the user arrived to pay has no refusal row: leaving it out is
-     what the opt-out checkbox is for, not a hidden radio. */
-  primary:{ name:'FC Home Center',    ref:'#123456', due:'Due in 4 days', kind:'loan',
-            nextKey:'next', options:LOAN_AMOUNTS },
-  /* Other loans aggregates every remaining plan, so it carries no single
-     reference number and its options are the all-plans set from Figma
-     62276:4134 rather than one loan's schedule. */
-  /* The bottom line summarises the group rather than one schedule, so it also
-     drops the "Next installment" caption, which would repeat "Next payment". */
-  loan2:  { name:'Other loans', ref:null, kind:'loan', nextKey:null,
-            due:'3 loans \u00B7 Next due in 6 days', options:[
-              { k:'full',   label:'Pay all plans in full',  amt:3000 },
-              { k:'custom', label:'Custom amount',          amt:null },
-              SKIP
-            ] },
   credit: { name:'Credit line', ref:null, due:'Due in 4 days', kind:'credit', nextKey:null,
             options:[
-              { k:'statement', label:'Statement balance', amt:234.56 },
-              { k:'full',      label:'Full balance',      amt:734.56 },
-              { k:'min',       label:'Minimum due',       amt:50,
+              { k:'statement', label:'Statement balance', amt:234.56, tag:'Statement balance' },
+              { k:'full',      label:'Full balance',      amt:734.56, tag:'Full balance' },
+              { k:'min',       label:'Minimum due',       amt:50, tag:'Minimum due',
                 sub:'Interest may apply to the remaining balance' },
               { k:'custom',    label:'Custom amount',     amt:null },
               SKIP
             ] }
 };
+
+/* Rebuilt whenever the chosen loan changes: the primary card becomes that
+   loan, "Other loans" becomes everything else, and each remaining loan gets
+   its own card for the Customize payment screen. */
+function rebuildData(){
+  var L = loanById(proto.loanId);
+  DATA.primary = { name:L.name, ref:L.ref, due:'Due in ' + L.dueDays + ' days',
+                   kind:'loan', nextKey:'next', options:[
+                     { k:'next',   label:'Pay next installment', amt:L.next, tag:'Next installment' },
+                     { k:'full',   label:'Pay in full',          amt:L.full, tag:'Pay in full' },
+                     { k:'custom', label:'Custom amount',        amt:null }
+                   ] };
+  var rest = otherLoans(L.id);
+  var soonest = rest.reduce(function(m, l){ return Math.min(m, l.dueDays); }, Infinity);
+  var allFull = rest.reduce(function(t, l){ return t + l.full; }, 0);
+  DATA.loan2 = { name:'Other loans', ref:null, kind:'loan', nextKey:null,
+                 due: rest.length + ' loan' + (rest.length === 1 ? '' : 's')
+                      + ' · Next due in ' + soonest + ' days',
+                 options:[
+                   { k:'full',   label:'Pay all plans in full', amt:allFull },
+                   { k:'custom', label:'Custom amount',         amt:null },
+                   SKIP
+                 ] };
+  rest.forEach(function(l){
+    DATA[l.id] = { name:l.name, ref:l.ref, due:'Due in ' + l.dueDays + ' days',
+                   kind:'loan', nextKey:'next', options:[
+                     { k:'next', label:'Pay next installment', amt:l.next, tag:'Next installment' },
+                     { k:'full', label:'Pay in full',          amt:l.full, tag:'Pay in full' },
+                     SKIP
+                   ] };
+  });
+}
+
 /* Optional items keep the Figma order: Credit line first, then other loans. */
 var EXTRAS = ['credit','loan2'];
 
@@ -605,17 +666,30 @@ function optionOf(key, sel){
   for (i=0; i<l.length; i++){ if (l[i].k === sel) return l[i]; }
   return null;
 }
+/* What the user picked across the other loans on the Customize payment
+   screen, which is what "Custom amount" on the Other loans card resolves to. */
+function customTotal(st){
+  return otherLoans(proto.loanId).reduce(function(t, l){
+    var o = optionOf(l.id, st.sel[l.id]);
+    return t + ((o && o.amt) ? o.amt : 0);
+  }, 0);
+}
+/* The amount an item contributes, resolving "Custom amount" to that sum. */
+function amountFor(key, st){
+  if (key === 'loan2' && st.sel[key] === 'custom') return customTotal(st);
+  var o = optionOf(key, st.sel[key]);
+  return (o && o.amt) ? o.amt : 0;
+}
 function totalOf(st){
-  var t = 0;
-  ['primary'].concat(EXTRAS).forEach(function(k){
-    var o = optionOf(k, st.sel[k]); if (o && o.amt) t += o.amt;
-  });
-  return t;
+  return ['primary'].concat(EXTRAS)
+    .reduce(function(t, k){ return t + amountFor(k, st); }, 0);
 }
 function freshState(){
-  return { sel:{ primary:'next', loan2:null,  credit:null },
-           exp:{ primary:true,  loan2:false, credit:false },
-           skip:false };   /* the opt-out checkbox starts unchecked */
+  var st = { sel:{ primary:'next', loan2:null,  credit:null },
+             exp:{ primary:true,  loan2:false, credit:false },
+             skip:false };   /* the opt-out checkbox starts unchecked */
+  LOANS.forEach(function(l){ st.sel[l.id] = null; st.exp[l.id] = false; });
+  return st;
 }
 
 /* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
@@ -629,9 +703,11 @@ function cardHTML(key, st, isPrimary, hl){
   var nameCls = 'name', dueCls = 'due';
   var idRow = d.ref
     ? '<div class="idrow"><span>' + d.ref + '</span>' + iconBox('copy',16,12,'var(--icon-subtle)') + '</div>' : '';
-  var headAmt = (open && o && o.amt) ? '<p class="amt">' + fmt(o.amt) + '</p>' : '';
-  /* "Next installment" exists in Figma only on the next-installment state. */
-  var tag = (open && d.nextKey && sel === d.nextKey) ? '<p class="tag">Next installment</p>' : '';
+  /* A card states what it will pay whether it is open or collapsed, which is
+     how the Customize payment cards read in Figma 26888:56146. */
+  var amt = amountFor(key, st);
+  var headAmt = amt ? '<p class="amt">' + fmt(amt) + '</p>' : '';
+  var tag = (o && o.tag) ? '<p class="tag">' + o.tag + '</p>' : '';
 
   var head = '<button class="cardtoggle" type="button" data-toggle="' + key + '" aria-expanded="' + open + '">'
     + '<div class="headrow"><div class="left"><p class="' + nameCls + '">' + d.name + '</p>' + idRow + '</div>'
@@ -785,61 +861,49 @@ function tabBar(tabs, ind){
 }
 
 /* ══ Screen: Loans list — Figma 62393:34461 ═══════════════════════════ */
-function listRow(r){
-  var logo;
-  if (r.logo === 'rega') {
-    logo = '<div class="logo" style="padding:15px 3px"><img src="' + ASSET.logoRega
-      + '" style="width:34px;height:10.47px" alt=""></div>';
-  } else if (r.logo === 'meralco') {
-    logo = '<div class="logo" style="position:relative"><span style="position:absolute;inset:0;overflow:hidden">'
+function loanLogo(l){
+  if (l.logo === 'logoMeralco') {
+    /* The Meralco mark is cropped in Figma, so it keeps its own framing. */
+    return '<div class="logo" style="position:relative"><span style="position:absolute;inset:0;overflow:hidden">'
       + '<img src="' + ASSET.logoMeralco + '" style="position:absolute;height:198.41%;left:-48.03%;'
       + 'top:-49.21%;width:196.85%;max-width:none" alt=""></span></div>';
-  } else {
-    logo = '<div class="logo"><img src="' + ASSET.logoSmart + '" style="width:28px;height:28px" alt=""></div>';
   }
-  return '<button class="lrow" type="button" data-nav="detail" data-dir="fwd">'
-    + '<div class="main">' + logo + '<div class="info">'
-      + '<p class="due">' + r.due + '</p>'
-      + '<div class="title"><p class="nm">' + r.name + '</p><p class="amt">' + PESO + r.amt + '</p></div>'
-      + (r.meta ? '<p class="meta">' + r.meta + '</p>' : '')
-      + '<p class="meta">' + PESO + r.financed + '</p>'
-    + '</div></div>'
-    + (r.verify ? '<div class="verify"><p class="k">Verifying payment of</p><p class="v">' + PESO + r.verify + '</p></div>' : '')
-    + '</button>';
+  var size = l.logo === 'logoFC' ? 34 : 28;
+  return '<div class="logo"><img src="' + ASSET[l.logo]
+    + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain" alt=""></div>';
+}
+function listRow(l){
+  return '<button class="lrow" type="button" data-loan="' + l.id + '">'
+    + '<div class="main">' + loanLogo(l) + '<div class="info">'
+      + '<p class="due">' + l.listDue + '</p>'
+      + '<div class="title"><p class="nm">' + l.name + '</p>'
+      + '<p class="amt">' + fmt(l.next) + '</p></div>'
+      + '<p class="meta">' + l.ref + '</p>'
+      + '<p class="meta">' + fmt(l.full) + '</p>'
+    + '</div></div></button>';
 }
 function screenLoans(){
-  var next7 = [
-    { logo:'rega', due:'Due Oct 16, 2023', name:'4. Basic Installment, with custom DP',
-      amt:'459', financed:'1,211.86', verify:'800' },
-    { logo:'meralco', due:'Due Oct 16, 2023', name:'MERALCO', amt:'310', meta:'1234567890', financed:'299' },
-    { logo:'smart', due:'Due Oct 16, 2023', name:'SMART PREPAID ALL', amt:'310', meta:'+66 788 999 7766', financed:'299' }
-  ];
-  var next14 = [
-    { logo:'meralco', due:'Due Oct 23, 2023', name:'MERALCO', amt:'310', meta:'1234567890', financed:'299' }
-  ];
-  function group(title, rows){
+  function group(title, days){
+    var rows = LOANS.filter(function(l){ return l.group === days; });
+    if (!rows.length) return '';
     return '<div class="grp"><div class="ghead"><img src="' + ASSET.sectionDot + '" alt="">'
-      + '<span>' + title + '</span></div><div class="rows">' + rows.map(listRow).join('') + '</div></div>';
+      + '<span>' + title + '</span></div><div class="rows">'
+      + rows.map(listRow).join('') + '</div></div>';
   }
   return '<div class="scr loanlist">' + statusBar('')
     + '<div class="wmbar">' + wmDots() + '</div>'
     + tabBar([{ label:'Active', at:27.36, on:true }, { label:'Closed', at:72.92 }],
              { left:5.56, width:43.33 })
     + '<div class="scroll"><div class="listbody">'
-      + group('Next 7 Days', next7) + group('Next 14 Days', next14)
+      + group('Next 7 Days', 7) + group('Next 14 Days', 14)
     + '</div></div>' + appNav('loans') + '</div>';
 }
 
 /* ══ Screen: Loan details — Figma 62276:8940 ══════════════════════════ */
 function screenDetail(){
-  var rows = [
-    { d:'Nov 14, 2025', a:'500', paid:true },
-    { d:'Dec 14, 2025', a:'500', paid:false },
-    { d:'Jan 14, 2021', a:'150', paid:true },
-    { d:'Feb 14, 2021', a:'150', paid:false },
-    { d:'Mar 14, 2021', a:'150', paid:false },
-    { d:'Apr 14, 2021', a:'150', paid:false }
-  ];
+  var L = loanById(proto.loanId);
+  var rows = scheduleOf(L);
+  var pct = Math.round(L.paid / L.terms * 10000) / 100;
   return '<div class="scr detail">' + statusBar('')
     + '<div class="wmbar">' + wmDots() + '</div>'
     + '<div class="backbar"><button type="button" data-nav="loans" data-dir="back" aria-label="Back">'
@@ -848,24 +912,41 @@ function screenDetail(){
               { label:'Documents', at:80.14 }], { left:5.28, width:24.44 })
     + '<div class="scroll"><div class="detbody">'
       + '<div class="loancard"><div class="ch">'
-        + '<span class="lg"><img src="' + ASSET.logoFC + '" alt=""></span>'
-        + '<p class="nm">FC Home Center</p>'
-        + '<span class="ref">#123456' + iconBox('copy',16,12,'var(--legacy-light-blue-1)') + '</span>'
-      + '</div><div class="cb"><p class="date">Oct 13, 2015</p><hr>'
-        + '<div class="kv"><p class="k">Installment</p><p class="v">' + PESO + '500 x 6</p></div>'
-        + '<div class="kv"><p class="k">Remaining</p><p class="v">' + PESO + '3,000</p></div>'
+        + '<span class="lg"><img src="' + ASSET[L.logo] + '" alt=""></span>'
+        + '<p class="nm">' + L.name + '</p>'
+        + '<span class="ref">' + L.ref + iconBox('copy',16,12,'var(--legacy-light-blue-1)') + '</span>'
+      + '</div><div class="cb"><p class="date">' + L.opened + '</p><hr>'
+        + '<div class="kv"><p class="k">Installment</p><p class="v">'
+          + fmt(L.next) + ' x ' + L.terms + '</p></div>'
+        + '<div class="kv"><p class="k">Remaining</p><p class="v">' + fmt(L.full) + '</p></div>'
       + '</div></div>'
       + '<button class="arrangement" type="button">Have a payment arrangement?</button>'
       + '<div class="schedhead"><img src="' + ASSET.schedIcon + '" alt=""><span>Schedule</span></div>'
-      + '<div class="progress"><div class="track"><i></i></div>'
-        + '<p class="cap">Paid: <b>1</b><i>/6</i></p></div>'
+      + '<div class="progress"><div class="track"><i style="width:' + pct + '%"></i></div>'
+        + '<p class="cap">Paid: <b>' + L.paid + '</b><i>/' + L.terms + '</i></p></div>'
       + rows.map(function(r){
-          return '<div class="payrow"><p class="d">' + r.d + '</p><p class="a">' + PESO + r.a + '</p>'
+          return '<div class="payrow"><p class="d">' + r.date + '</p><p class="a">' + fmt(r.amt) + '</p>'
             + (r.paid ? '<p class="p">paid</p><img src="' + ASSET.paidTick + '" alt="">' : '') + '</div>';
         }).join('')
     + '</div></div>'
     + '<div class="detcta"><button type="button" data-nav="paynow" data-dir="fwd">PAY NOW</button></div>'
     + '</div>';
+}
+
+/* ══ Screen: Customize payment — Figma 26888:56146 ════════════════════
+   Reached from "Custom amount" on the Other loans card. Lists every loan
+   except the one being paid, since that one is already the primary item. */
+function screenCustomize(st){
+  var rest = otherLoans(proto.loanId);
+  return '<div class="scr">' + statusBar('')
+    + navHeader('Customize payment', 'paynow')
+    + '<div class="scroll"><div class="custbody">'
+      + '<p class="custlead">Select installment plan(s)</p>'
+      + rest.map(function(l){ return cardHTML(l.id, st, false); }).join('')
+    + '</div></div>'
+    + '<div class="actionbar"><div class="brd"></div>'
+      + '<button class="btn" type="button" data-nav="paynow" data-dir="back">Save &amp; continue</button>'
+    + '</div></div>';
 }
 
 /* ══ Screen: Select payment amount — Figma 62276:9022 ═════════════════ */
@@ -909,13 +990,16 @@ function screenQR(st){
    is not a push: node 1:4312 has the destination change immediately, with
    the icon press as the only acknowledgement.
    ══════════════════════════════════════════════════════════════════════════ */
-var proto = { screen:'home', painted:null, st:freshState(), busy:false };
+var proto = { screen:'home', painted:null, loanId:'fc', busy:false, st:null };
+rebuildData();                 /* DATA depends on proto.loanId */
+proto.st = freshState();
 
 function screenHTML(key){
-  if (key === 'home')   return screenHome();
-  if (key === 'loans')  return screenLoans();
-  if (key === 'detail') return screenDetail();
-  if (key === 'paynow') return screenPayNow(proto.st, 'detail');
+  if (key === 'home')      return screenHome();
+  if (key === 'loans')     return screenLoans();
+  if (key === 'detail')    return screenDetail();
+  if (key === 'paynow')    return screenPayNow(proto.st, 'detail');
+  if (key === 'customize') return screenCustomize(proto.st);
   return screenQR(proto.st);
 }
 
@@ -1007,6 +1091,19 @@ function nav(to, dir){
 }
 
 stage.addEventListener('click', function(e){
+  var row = e.target.closest('[data-loan]');
+  if (row) {
+    var id = row.getAttribute('data-loan');
+    if (id !== proto.loanId) {
+      /* A different loan means a different primary item and a different
+         "Other loans", so every selection starts fresh. */
+      proto.loanId = id;
+      rebuildData();
+      proto.st = freshState();
+    }
+    nav('detail', 'fwd');
+    return;
+  }
   var navEl = e.target.closest('[data-nav]');
   if (navEl) {
     var dir = navEl.getAttribute('data-dir');
@@ -1048,9 +1145,10 @@ stage.addEventListener('click', function(e){
   }
   var pk = e.target.closest('[data-pick]');
   if (pk) {
-    var pkey = pk.getAttribute('data-pick');
-    proto.st.sel[pkey] = pk.getAttribute('data-opt');
+    var pkey = pk.getAttribute('data-pick'), popt = pk.getAttribute('data-opt');
+    proto.st.sel[pkey] = popt;
     if (pkey !== 'primary') proto.st.err = false;
+    if (pkey === 'loan2' && popt === 'custom') { nav('customize', 'fwd'); return; }
     paint();
   }
 });
