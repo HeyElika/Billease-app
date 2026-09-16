@@ -34,7 +34,7 @@
 
   --border-subtle:#E0E0E0; --border-default:#D4D4D4; --border-strong:#919191;
   --border-bold:#919191; --border-on-dark:#FFFFFF; --border-primary:#E7161A;
-  --border-info:#13456D; --border-error-bold:#EB5C69;
+  --border-info:#13456D; --border-error-bold:#EB5C69; --border-active:#265CE5;
   --border-width-100:1px; --border-width-200:2px; --border-width-300:3px;
 
   --icon-base:#1A1A1A; --icon-subtle:#545454; --icon-disabled:#B0B0B0;
@@ -379,6 +379,12 @@ img{ max-width:100%; }
 .card.collapsed{ padding:var(--space-300) var(--space-400); }
 .card.expanded{ padding:var(--space-300) var(--space-400) 0; gap:var(--space-400); }
 .card.is-primary{ box-shadow:var(--shadow-xs); }
+/* Attention, not error: while the choice is outstanding the optional cards are
+   ringed in --border-active so they read as "there is something here to pick",
+   without claiming the cards themselves are invalid. The inset shadow thickens
+   the ring without shifting layout. */
+.card.hl{ border-color:var(--border-active);
+  box-shadow:inset 0 0 0 var(--border-width-100) var(--border-active); }
 .cardtoggle{ background:none; border:0; padding:0; margin:0; cursor:pointer;
   display:flex; flex-direction:column; align-items:stretch; gap:var(--space-200);
   width:100%; text-align:left; font-family:inherit; }
@@ -571,8 +577,16 @@ var DATA = {
      what the opt-out checkbox is for, not a hidden radio. */
   primary:{ name:'FC Home Center',    ref:'#123456', due:'Due in 4 days', kind:'loan',
             nextKey:'next', options:LOAN_AMOUNTS },
-  loan2:  { name:'MOMENTO COFFEE01',  ref:'#123456', due:'Due in 4 days', kind:'loan',
-            nextKey:'next', options:LOAN_AMOUNTS.concat([SKIP]) },
+  /* Other loans aggregates every remaining plan, so it carries no single
+     reference number and its options are the all-plans set from Figma
+     62276:4134 rather than one loan's schedule. */
+  loan2:  { name:'Other loans', ref:null, due:'Due in 4 days', kind:'loan',
+            nextKey:'next', options:[
+              { k:'next',   label:'Pay 1 next installment', amt:500 },
+              { k:'full',   label:'Pay all plans in full',  amt:3000 },
+              { k:'custom', label:'Custom amount',          amt:null },
+              SKIP
+            ] },
   credit: { name:'Credit line', ref:null, due:'Due in 4 days', kind:'credit', nextKey:null,
             options:[
               { k:'statement', label:'Statement balance', amt:234.56 },
@@ -606,7 +620,7 @@ function freshState(){
 }
 
 /* pay-now/selection card — Figma 62276:9024 / 62276:9027 / 62276:9028 */
-function cardHTML(key, st, isPrimary){
+function cardHTML(key, st, isPrimary, hl){
   var d = DATA[key], open = !!st.exp[key], sel = st.sel[key];
   var o = optionOf(key, sel);
   /* Figma's credit limit [other payment] component (62276:9027) sets a 14px
@@ -639,7 +653,7 @@ function cardHTML(key, st, isPrimary){
     }).join('') + '</div>';
   }
   return '<div class="card ' + (open ? 'expanded' : 'collapsed')
-    + (isPrimary ? ' is-primary' : '') + '">' + head + opts + '</div>';
+    + (isPrimary ? ' is-primary' : '') + (hl ? ' hl' : '') + '">' + head + opts + '</div>';
 }
 /* A choice about the other payments is outstanding until the box is ticked or
    one of the optional cards has a selection, "Don't include" included. */
@@ -666,7 +680,7 @@ function payNowBodyHTML(st){
     + skipRowHTML(!!st.skip, !!st.err)
     + (st.skip ? ''
         : '<div class="group sep"><div class="sectitle"><p>Other payments</p></div>'
-          + EXTRAS.map(function(k){ return cardHTML(k, st, false); }).join('')
+          + EXTRAS.map(function(k){ return cardHTML(k, st, false, st.err); }).join('')
           + '</div>');
 }
 
