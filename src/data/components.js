@@ -21,7 +21,7 @@ export const componentIndex = [
 
   // ↳ Badge
   { id: '220:10713', name: 'badge/item-special', category: 'Badge', variants: 2, variantProps: { type: ['Recommended', 'limit-boost'] } },
-  { id: '8005:6802', name: 'count-badge', category: 'Badge', variants: 7, variantProps: { Type: ['neutral', 'overdue', 'pending', 'promise-to-pay', 'proof', 'upcoming'], size: ['md', 'sm'] } },
+  { id: '8005:6802', name: 'count-badge', category: 'Badge', variants: 8, variantProps: { type: ['neutral', 'overdue', 'pending', 'promise-to-pay', 'proof', 'upcoming', 'default sof'], size: ['md', 'sm'] } },
   { id: '8720:535', name: 'status-badge', category: 'Badge', variants: 4, variantProps: { type: ['Due', 'Grace on', 'Overdue', 'Ready'] } },
 
   // ↳ Banners

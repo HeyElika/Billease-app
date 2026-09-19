@@ -19,6 +19,8 @@ import NavHeaderDocs from './NavHeaderDocs'
 import AlertDocs from './AlertDocs'
 import ToastDocs from './ToastDocs'
 import SkeletonDocs from './SkeletonDocs'
+import GenericDocs from './GenericDocs'
+import { dsRegistry, sectionsForEntry } from '../data/dsRegistry'
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -620,6 +622,7 @@ export default function Explorer() {
 
   const comp = componentIndex.find(c => c.id === nodeId)
   const spec = REGISTRY[nodeId]
+  const entry = dsRegistry[nodeId]
 
   const [variant, setVariant] = useState(spec?.defaultVariant ?? 'primary')
   const [size,    setSize]    = useState(spec?.defaultSize    ?? 'lg')
@@ -670,6 +673,8 @@ export default function Explorer() {
         { id: 'props',              label: 'Props'               },
         { id: 'changelog',          label: 'Changelog'           },
       ]
+    } else if (dsRegistry[nodeId]) {
+      sections = sectionsForEntry(dsRegistry[nodeId])
     } else if (spec) {
       sections = SECTION_DEFS.filter(s => s.id !== 'icon-slots' || !!ICON_SLOTS[nodeId])
     } else {
@@ -705,8 +710,10 @@ export default function Explorer() {
 
       <div style={{ borderTop: '1px solid var(--border-subtle)', marginBottom: 40 }} />
 
-      {/* Unbuilt: placeholder only */}
-      {!spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) && !ALERT_IDS.has(nodeId) && !TOAST_IDS.has(nodeId) && !SKELETON_IDS.has(nodeId) ? (
+      {/* Registry-driven pages first, then bespoke pages, then the placeholder */}
+      {entry ? (
+        <GenericDocs comp={comp} entry={entry} />
+      ) : !spec && nodeId !== '51:1615' && nodeId !== '188:2882' && nodeId !== '5529:781' && !ACTION_MENU_IDS.has(nodeId) && !QUICK_ACTION_IDS.has(nodeId) && !LINK_IDS.has(nodeId) && !NAV_HEADER_IDS.has(nodeId) && !ALERT_IDS.has(nodeId) && !TOAST_IDS.has(nodeId) && !SKELETON_IDS.has(nodeId) ? (
         <div style={{ backgroundColor: '#fff', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
           <ComingSoon comp={comp} />
         </div>
