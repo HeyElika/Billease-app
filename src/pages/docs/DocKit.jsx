@@ -46,12 +46,12 @@ export function CardBody({ children, style }) {
 }
 
 /** A single labelled preview cell — the caption is the Figma variant value. */
-export function PreviewCell({ label, children, width }) {
+export function PreviewCell({ label, children, width, labelColor }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', minWidth: width ?? 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', minHeight: 32 }}>{children}</div>
       {label && (
-        <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-subtle)' }}>{label}</span>
+        <span style={{ fontFamily: 'monospace', fontSize: 11, color: labelColor ?? 'var(--text-subtle)' }}>{label}</span>
       )}
     </div>
   )

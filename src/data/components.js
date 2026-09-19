@@ -55,7 +55,7 @@ export const componentIndex = [
 
   // ↳ Carousel
   { id: '3269:8630', name: 'carousel/activity', category: 'Carousel', variants: 4, variantProps: { banner: ['1', '2', '3', '4'] } },
-  { id: '190:3413', name: 'slider-dots', category: 'Carousel', variants: 4, variantProps: { mode: ['on-dark', 'on-light'], state: ['active', 'inactive'] } },
+  { id: '190:3413', name: 'slider-dots', category: 'Carousel', variants: 8, variantProps: { state: ['active', 'inactive'], mode: ['on-dark', 'on-light'], size: ['md', 'sm'] } },
 
   // ↳ Checkbox
   { id: '183:1591', name: 'checkbox-label', category: 'Checkbox', variants: 3, variantProps: { state: ['checked', 'default', 'error'] } },
@@ -191,7 +191,7 @@ export const componentIndex = [
   { id: '16:1573', name: 'item (segmented)', category: 'Segmented controls', variants: 2, variantProps: { state: ['active', 'default'] } },
 
   // ↳ Selector
-  { id: '98:707', name: 'selector', category: 'Selector', variants: 3, variantProps: { state: ['default', 'selected'] } },
+  { id: '98:707', name: 'selector', category: 'Selector', variants: 3, variantProps: { state: ['default', 'selected', 'selected/w-logo'] } },
 
   // ↳ Slider
   { id: '24:5083', name: 'slider/balance-bar', category: 'Slider', variants: 8, variantProps: { Version: ['2025', '2026'], status: ['empty', 'full', 'mid'], type: ['limit', 'limit-used'] } },

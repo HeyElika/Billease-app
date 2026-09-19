@@ -35,6 +35,7 @@ export default function GenericDocs({ comp, entry }) {
   const axes = entry.axes ?? []
   const sample = entry.sampleProps ?? (() => ({}))
   const render = props => entry.render({ ...sample(props), ...props })
+  const labelColor = entry.previewBackground ? 'var(--text-on-dark-subtle)' : undefined
 
   return (
     <div style={{ fontFamily: 'var(--font-family)' }}>
@@ -50,9 +51,9 @@ export default function GenericDocs({ comp, entry }) {
         <DocSection key={axis.prop} id={axis.prop} title={axis.label ?? axis.prop}>
           <DocCard>
             <CardHeader label={axis.prop} />
-            <CardBody style={{ gap: 28 }}>
+            <CardBody style={{ gap: 28, backgroundColor: entry.previewBackground ?? '#fff' }}>
               {axis.values.map(value => (
-                <PreviewCell key={value} label={value} width={entry.cellWidth}>
+                <PreviewCell key={value} label={value} width={entry.cellWidth} labelColor={labelColor}>
                   {render({ ...defaultsExcept(axes, axis.prop), [axis.prop]: value })}
                 </PreviewCell>
               ))}
@@ -66,9 +67,9 @@ export default function GenericDocs({ comp, entry }) {
         <DocSection id="combinations" title="All combinations">
           <DocCard>
             <CardHeader label={`${cartesian(axes).length} variants`} />
-            <CardBody style={{ gap: 28 }}>
+            <CardBody style={{ gap: 28, backgroundColor: entry.previewBackground ?? '#fff' }}>
               {cartesian(axes).map(combo => (
-                <PreviewCell key={comboLabel(combo)} label={comboLabel(combo)} width={entry.cellWidth}>
+                <PreviewCell key={comboLabel(combo)} label={comboLabel(combo)} width={entry.cellWidth} labelColor={labelColor}>
                   {render(combo)}
                 </PreviewCell>
               ))}

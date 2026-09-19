@@ -15,6 +15,11 @@ import CountBadge from '../components/ds/CountBadge'
 import ItemSpecialBadge from '../components/ds/ItemSpecialBadge'
 import Checkbox, { CheckboxParagraph } from '../components/ds/Checkbox'
 import RadioButton from '../components/ds/RadioButton'
+import SliderDots, { SliderDot } from '../components/ds/SliderDots'
+import SegmentedItem from '../components/ds/SegmentedItem'
+import TabItem from '../components/ds/TabItem'
+import Selector from '../components/ds/Selector'
+import { DocCard, CardHeader, CardBody } from '../pages/docs/DocKit'
 
 export const dsRegistry = {
   '8720:535': {
@@ -109,6 +114,112 @@ export const dsRegistry = {
       { name: 'size',     type: "'md' | 'sm'", default: "'md'", description: '24px or 20px box.' },
       { name: 'disabled', type: 'boolean', default: 'false', description: 'Renders at 50% opacity and blocks onClick.' },
       { name: 'onClick',  type: '() => void', default: '—', description: 'Makes the control interactive.' },
+    ],
+  },
+
+  '190:3413': {
+    name: 'slider-dots',
+    description: 'Position indicator for carousels. One dot per slide, with the active dot filled. Never use dots as a control on their own.',
+    axes: [
+      { prop: 'mode',  label: 'Modes',  values: ['on-dark', 'on-light'], default: 'on-dark' },
+      { prop: 'size',  label: 'Sizes',  values: ['md', 'sm'], default: 'md' },
+      { prop: 'state', label: 'States', values: ['active', 'inactive'], default: 'active' },
+    ],
+    previewBackground: 'var(--neutral-900)',
+    render: props => <SliderDot {...props} />,
+    extraSections: [
+      {
+        id: 'dot-row',
+        label: 'Dot row',
+        render: () => (
+          <DocCard>
+            <CardHeader label="4 slides, second active" />
+            <CardBody style={{ backgroundColor: 'var(--neutral-900)', gap: 32 }}>
+              <SliderDots mode="on-dark" size="md" count={4} activeIndex={1} />
+              <SliderDots mode="on-light" size="sm" count={4} activeIndex={1} />
+            </CardBody>
+          </DocCard>
+        ),
+      },
+    ],
+    props: [
+      { name: 'mode',        type: "'on-dark' | 'on-light'", default: "'on-dark'", description: 'Surface the dots sit on.' },
+      { name: 'size',        type: "'md' | 'sm'", default: "'md'", description: '8px or 6px dot.' },
+      { name: 'count',       type: 'number', default: '4', description: 'Number of dots in the row (SliderDots).' },
+      { name: 'activeIndex', type: 'number', default: '0', description: 'Index of the filled dot (SliderDots).' },
+    ],
+  },
+
+  '16:1573': {
+    name: 'item (segmented)',
+    description: 'One segment of a segmented control on a dark surface. The active segment carries a translucent black fill rather than a border.',
+    axes: [
+      { prop: 'state', label: 'States', values: ['default', 'active'], default: 'default' },
+    ],
+    previewBackground: 'var(--bg-strong)',
+    render: props => <SegmentedItem {...props} />,
+    props: [
+      { name: 'label',   type: 'string', default: "'Item'", description: 'Segment label.' },
+      { name: 'state',   type: "'default' | 'active'", default: "'default'", description: 'Selection state.' },
+      { name: 'onClick', type: '() => void', default: '—', description: 'Makes the segment interactive.' },
+    ],
+  },
+
+  '43:2261': {
+    name: 'tab/item',
+    description: 'One tab in a tab group. Figma pairs the axes: md text and logo tabs sit on light surfaces with a blue underline, sm tabs sit on dark surfaces with a hairline white underline.',
+    axes: [
+      { prop: 'state', label: 'States', values: ['default', 'active', 'disabled'], default: 'default' },
+      { prop: 'type',  label: 'Types',  values: ['text', 'logo'], default: 'text' },
+    ],
+    render: props => <TabItem {...props} logo={<span style={{ fontFamily: 'var(--ds-font-family)', fontSize: 14, fontWeight: 700, color: 'var(--text-base)' }}>LOGO</span>} />,
+    extraSections: [
+      {
+        id: 'on-dark',
+        label: 'On dark (sm)',
+        render: () => (
+          <DocCard>
+            <CardHeader label="size=sm · On-dark=True" />
+            <CardBody style={{ backgroundColor: 'var(--neutral-900)', gap: 28, alignItems: 'center' }}>
+              <TabItem size="sm" onDark state="default" />
+              <TabItem size="sm" onDark state="active" />
+              <TabItem size="sm" onDark state="disabled" />
+              <TabItem size="sm" onDark state="default" badge />
+            </CardBody>
+          </DocCard>
+        ),
+      },
+    ],
+    props: [
+      { name: 'label',      type: 'string', default: "'Tab'", description: 'Tab label, type="text" only.' },
+      { name: 'type',       type: "'text' | 'logo'", default: "'text'", description: 'Text label or a 51x24 partner logo.' },
+      { name: 'size',       type: "'md' | 'sm'", default: "'md'", description: '48px light tab or 32px on-dark tab.' },
+      { name: 'state',      type: "'default' | 'active' | 'disabled'", default: "'default'", description: 'Tab state. Active adds the underline.' },
+      { name: 'onDark',     type: 'boolean', default: 'false', description: 'Switches to the on-dark palette. Pairs with size="sm".' },
+      { name: 'badge',      type: 'boolean', default: 'false', description: 'Shows the NEW pill. On-dark default tabs only.' },
+      { name: 'logo',       type: 'ReactNode', default: '—', description: 'Logo element for type="logo".' },
+      { name: 'onClick',    type: '() => void', default: '—', description: 'Makes the tab interactive.' },
+    ],
+  },
+
+  '98:707': {
+    name: 'selector',
+    description: 'Row for picking a saved source of funds. Empty it prompts with an underlined call to action; filled it shows the choice and a way to change it.',
+    axes: [
+      { prop: 'state', label: 'States', values: ['default', 'selected', 'selected/w-logo'], default: 'default' },
+    ],
+    cellWidth: 320,
+    render: props => <Selector {...props} />,
+    props: [
+      { name: 'state',       type: "'default' | 'selected' | 'selected/w-logo'", default: "'default'", description: 'Empty, filled, or filled with a provider logo.' },
+      { name: 'placeholder', type: 'string', default: "'Select wallet'", description: 'Call to action in the empty state.' },
+      { name: 'title',       type: 'string', default: "'Title'", description: 'Selected value.' },
+      { name: 'actionLabel', type: 'string', default: "'Change'", description: 'Link or pill button label.' },
+      { name: 'action',      type: 'boolean', default: 'true', description: 'Shows the pill button in the w-logo state.' },
+      { name: 'logo',        type: 'boolean', default: 'true', description: 'Shows the 28px logo ring in the w-logo state.' },
+      { name: 'logoSrc',     type: 'string', default: '—', description: 'Provider logo image source.' },
+      { name: 'icon',        type: 'string', default: "'wallet'", description: 'BilleaseIcon name for the empty state.' },
+      { name: 'onAction',    type: '() => void', default: '—', description: 'Fired by the change control.' },
     ],
   },
 }
