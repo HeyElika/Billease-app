@@ -4,6 +4,7 @@ import { useToc } from '../context/TocContext'
 import { PROTOTYPE_FLOWS } from '../data/prototypeFlows'
 import TooManyOTPAttempts from './flows/EmailVerification'
 import ResendAndChangeEmail from './flows/ResendAndChangeEmail'
+import MobileVerification from './flows/MobileVerification'
 import { HEADER_HEIGHT } from '../components/ui/Header'
 
 const SIDEBAR_W = 220
@@ -13,6 +14,9 @@ const FLOW_COMPONENTS = {
     'too-many-otp-attempts':   (props) => <TooManyOTPAttempts {...props} scenarioId="too-many-otp-attempts" />,
     'expired-otp':             (props) => <TooManyOTPAttempts {...props} scenarioId="expired-otp" />,
     'resend-and-change-email': () => <ResendAndChangeEmail />,
+  },
+  'mobile-verification': {
+    'call-and-viber': () => <MobileVerification />,
   },
 }
 

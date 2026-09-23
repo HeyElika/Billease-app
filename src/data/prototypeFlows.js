@@ -8,4 +8,11 @@ export const PROTOTYPE_FLOWS = [
       { id: 'resend-and-change-email',  label: '3 resend attempts + change email' },
     ],
   },
+  {
+    id: 'mobile-verification',
+    label: 'Mobile Verification',
+    scenarios: [
+      { id: 'call-and-viber', label: 'Call, Viber fallback + blocked' },
+    ],
+  },
 ]

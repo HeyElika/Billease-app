@@ -6,96 +6,13 @@ import Link from '../../components/ds/Link'
 import NavHeader from '../../components/ds/NavHeader'
 import BilleaseIcon from '../../assets/icons/BilleaseIcon'
 import { ScreenBanner } from '../../components/ds/Toast'
-import { StatusBar, AndroidNavBar, AndroidKeyboard, PhoneMock, TOOLBAR_H, FRAME_W, FRAME_H } from './PhoneMockShared'
+import { StatusBar, AndroidKeyboard, AndroidQWERTY, PhoneMock, TOOLBAR_H, FRAME_W, FRAME_H } from './PhoneMockShared'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const SCALE      = 0.7
 const INSPECT_W  = 264
 const MAX_RESENDS = 3
 const BANNER_TTL  = 3000  // ms banner stays visible after resend
-
-// ── GBoard-style QWERTY keyboard (email entry) ────────────────────────────────
-const QWERTY_ROWS = [
-  ['Q','W','E','R','T','Y','U','I','O','P'],
-  ['A','S','D','F','G','H','J','K','L'],
-  ['Z','X','C','V','B','N','M'],
-]
-
-// GBoard palette
-const GB_BG   = '#d1d3d9'
-const GB_KEY  = '#ffffff'
-const GB_SPEC = '#adb5bd'
-const GB_SHAD = '0 1px 0 rgba(0,0,0,0.35)'
-
-function AndroidQWERTY({ onChar, onBackspace }) {
-  const lk = {
-    height: 43, background: GB_KEY, border: 'none',
-    borderRadius: 5, boxShadow: GB_SHAD,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', flex: 1, padding: 0,
-  }
-  const sk = { ...lk, background: GB_SPEC, cursor: 'pointer', flex: 'none' }
-  const txt = (t, size = 16) => (
-    <span style={{ fontSize: size, fontWeight: 400, color: '#1D2D40', fontFamily: 'var(--font-family)', userSelect: 'none' }}>{t}</span>
-  )
-  // Prevent button clicks from stealing focus from the input
-  const nd = (e) => e.preventDefault()
-
-  return (
-    <div style={{ flexShrink: 0 }}>
-      <div style={{
-        backgroundColor: GB_BG,
-        display: 'flex', flexDirection: 'column', gap: 8,
-        padding: '10px 4px 4px',
-      }}>
-        {/* Row 1: Q-P */}
-        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
-          {QWERTY_ROWS[0].map(k => (
-            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
-          ))}
-        </div>
-        {/* Row 2: A-L (inset) */}
-        <div style={{ display: 'flex', gap: 6, paddingLeft: 18, paddingRight: 18 }}>
-          {QWERTY_ROWS[1].map(k => (
-            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
-          ))}
-        </div>
-        {/* Row 3: shift + Z-M + backspace */}
-        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
-          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3.5L1.5 14H8v6.5h8V14h6.5L12 3.5z" fill="#1D2D40"/>
-            </svg>
-          </button>
-          {QWERTY_ROWS[2].map(k => (
-            <button key={k} onMouseDown={nd} onClick={() => onChar(k.toLowerCase())} style={lk}>{txt(k)}</button>
-          ))}
-          <button onMouseDown={nd} onClick={onBackspace} style={{ ...sk, width: 42 }}>
-            <svg width="22" height="17" viewBox="0 0 28 20" fill="none">
-              <path d="M10.5 2L2 10l8.5 8H26V2H10.5z" stroke="#1D2D40" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M15 7l6 6M21 7l-6 6" stroke="#1D2D40" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </div>
-        {/* Row 4 (email): ?123 | @ | space | . | done */}
-        <div style={{ display: 'flex', gap: 6, paddingLeft: 2, paddingRight: 2 }}>
-          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>{txt('?123', 13)}</button>
-          <button onMouseDown={nd} onClick={() => onChar('@')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('@', 18)}</button>
-          <button onMouseDown={nd} onClick={() => onChar(' ')} style={{ ...lk }}>
-            {txt('space', 13)}
-          </button>
-          <button onMouseDown={nd} onClick={() => onChar('.')} style={{ ...lk, flex: 'none', width: 42 }}>{txt('.', 20)}</button>
-          <button onMouseDown={nd} style={{ ...sk, width: 42 }}>
-            <svg width="20" height="16" viewBox="0 0 22 18" fill="none">
-              <path d="M2 9l6 7L20 2" stroke="#1D2D40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <AndroidNavBar />
-    </div>
-  )
-}
 
 // ── Verify email screen ───────────────────────────────────────────────────────
 function VerifyScreen({
