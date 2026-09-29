@@ -1,0 +1,1055 @@
+<title>Deals Checkout Prototype</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap">
+<style>
+/* Layout: portal shell (Inter) with a scenario rail on the left and the phone on a white stage.
+   Tokens are copied from Billease-app src/index.css. Figma: GKACzqiOLp4fWq2RXawt5I node 22952:12822.
+   Light mode only. */
+:root {
+  color-scheme: light;
+  --font-family: 'Inter', system-ui, sans-serif;
+  --ds-font-family: 'Source Sans Pro', 'Source Sans 3', 'Segoe UI', sans-serif;
+  --text-xxs: 11px; --text-xs: 11px; --text-sm: 13px; --text-md: 14px; --text-lg: 16px;
+  --text-xl: 20px; --text-2xl: 24px; --text-3xl: 32px;
+
+  --canvas-default: #F5F5F5; --canvas-alt: #FFFFFF;
+  --bg-base: #FFFFFF; --bg-subtle: #F5F5F5; --bg-sunken: #E0E0E0; --bg-strong: #919191;
+  --bg-primary: #E7161A; --bg-secondary: #265CE5; --bg-selected: #BFD1FF;
+  --bg-success-bold: #DAEEE6; --bg-error-subtle: #FFF5F6; --bg-info-subtle: #EDF7FF;
+  --bg-warning-subtle: #FFF6DB;
+  --text-base: #1A1A1A; --text-subtle: #545454; --text-disabled: #B0B0B0; --text-on-dark: #FFFFFF;
+  --text-brand-primary: #E7161A; --text-success: #037F4D; --text-error: #CD3642; --text-active: #265CE5;
+  --border-subtle: #E0E0E0; --border-default: #D4D4D4; --border-bold: #919191;
+  --border-brand-primary: #E7161A; --border-error-bold: #EB5C69;
+  --icon-base: #1A1A1A; --icon-subtle: #545454; --icon-on-dark: #FFFFFF; --icon-error: #CD3642;
+  --icon-warning: #E6B217; --icon-active: #265CE5;
+  --space-050: 2px; --space-100: 4px; --space-200: 8px; --space-300: 12px; --space-400: 16px;
+  --space-500: 20px; --space-600: 24px; --space-800: 32px; --space-900: 40px;
+  --border-width-100: 1px; --border-width-200: 2px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-full: 9999px;
+
+  /* Legacy loan-flow styles, read from the Figma frames (deprecated library styles) */
+  --legacy-bg: #F6F7FA; --legacy-ink: #1D2D40; --legacy-navy: #294567; --legacy-muted: rgba(29,45,64,0.7);
+  --legacy-blue-50: #EDF1FF; --legacy-blue-200: #9BA8E0; --legacy-line: #D4D7EC; --legacy-link: #203AA9;
+  --legacy-red: #F84040; --legacy-thumb: #EF203D; --legacy-track: #BFC6EF;
+
+  /* Phone shell (PhoneMockShared spec) */
+  --phone-frame: #1A1A1A; --phone-button: #303030; --phone-nav: #000000;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg-base); color: var(--text-base);
+  font-family: var(--font-family); -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--bg-secondary); outline-offset: 2px; }
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+.shell { height: 100%; display: grid; grid-template-columns: 300px 1fr; }
+.rail {
+  border-right: 1px solid var(--border-subtle); overflow-y: auto;
+  padding-block: 24px; padding-inline: 20px; display: flex; flex-direction: column; gap: 24px;
+  min-width: 0;
+}
+.rail h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.rail .lede { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-subtle); }
+.rail-label {
+  font-size: 11px; font-weight: 700; color: var(--text-subtle); text-transform: uppercase;
+  letter-spacing: 0.06em; margin: 0 0 8px;
+}
+.scenarios { display: flex; flex-direction: column; gap: 2px; }
+.scenario {
+  display: flex; flex-direction: column; gap: 2px; text-align: left; width: 100%;
+  padding: 9px 12px; border: none; border-radius: 8px; background: none; cursor: pointer;
+}
+.scenario:hover { background: var(--bg-subtle); }
+.scenario[aria-pressed="true"] { background: var(--legacy-blue-50); }
+.scenario b { font-size: 13px; font-weight: 600; }
+.scenario span { font-size: 12px; color: var(--text-subtle); line-height: 1.4; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; padding: 4px 12px; }
+.switch { width: 36px; height: 20px; border-radius: 10px; border: none; background: var(--bg-sunken); position: relative; cursor: pointer; flex-shrink: 0; transition: background-color .2s; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-base); box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .2s; }
+.switch[aria-checked="true"] { background: var(--bg-secondary); }
+.switch[aria-checked="true"]::after { left: 18px; }
+
+.route { display: flex; flex-direction: column; gap: 0; font-size: 13px; }
+.route .step { display: flex; align-items: center; gap: 10px; padding: 5px 12px; color: var(--text-disabled); }
+.route .step i { width: 8px; height: 8px; border-radius: 50%; background: var(--border-default); flex-shrink: 0; }
+.route .step.done { color: var(--text-subtle); }
+.route .step.done i { background: var(--text-subtle); }
+.route .step.now { color: var(--text-base); font-weight: 600; }
+.route .step.now i { background: var(--bg-primary); box-shadow: 0 0 0 3px var(--bg-error-subtle); }
+.route .branch { padding: 6px 12px 2px; font-size: 11px; color: var(--text-subtle); letter-spacing: 0.02em; }
+
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12px; padding: 0 12px; }
+.facts dt { color: var(--text-subtle); }
+.facts dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.changes { margin: 0; padding: 0 12px 0 28px; font-size: 12px; line-height: 1.55; color: var(--text-subtle); display: flex; flex-direction: column; gap: 6px; }
+.restart { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-subtle); background: var(--bg-base); border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--text-subtle); }
+.restart:hover { color: var(--text-base); }
+
+.stage { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; min-width: 0; }
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; }
+  .rail { border-right: none; border-bottom: 1px solid var(--border-subtle); padding-inline: 16px; }
+  .stage { padding-block: 16px; }
+}
+
+/* ── Phone (PhoneMockShared: 10px bezel, radius 40/30, punch-hole, right buttons) ── */
+.phone-wrap { position: relative; flex-shrink: 0; }
+.phone {
+  position: absolute; top: 0; left: 0; transform-origin: top left;
+  width: 380px; height: 864px; border-radius: 40px; background: var(--phone-frame);
+  box-shadow: 0 0 0 1px #2a2a2a, 0 24px 60px rgba(26,26,26,.18);
+}
+.phone .cam { position: absolute; top: 23px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; border-radius: 50%; background: #0a0a0a; z-index: 10; }
+.phone .btns { position: absolute; right: -3px; top: 170px; display: flex; flex-direction: column; }
+.phone .btns span { width: 3px; background: var(--phone-button); border-radius: 0 2px 2px 0; }
+.screen {
+  position: absolute; top: 10px; left: 10px; width: 360px; height: 844px;
+  border-radius: 30px; overflow: hidden; background: var(--bg-base);
+  display: flex; flex-direction: column;
+}
+.viewport { position: relative; flex: 1; overflow: hidden; }
+.layer { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.dim { position: absolute; inset: 0; background: #000; z-index: 1; opacity: 0; pointer-events: none; }
+.android-nav { height: 44px; flex-shrink: 0; background: var(--phone-nav); display: flex; align-items: center; justify-content: space-evenly; color: #fff; }
+
+@keyframes slideInFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes slideOutToRight  { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes pushLeft         { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+@keyframes dimIn            { from { opacity: 0; } to { opacity: 0.3; } }
+@keyframes dimOut           { from { opacity: 0.3; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .layer, .dim { animation-duration: 1ms !important; } }
+
+/* ── Inside the phone: every string uses the DS font ───────────────────── */
+.scr { position: relative; flex: 1; display: flex; flex-direction: column; font-family: var(--ds-font-family); color: var(--text-base); min-height: 0; }
+.scr p { margin: 0; }
+.statusbar { height: 42px; flex-shrink: 0; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 20px; }
+.statusbar .time { font: 600 13px/1 var(--font-family); color: #1D2D40; }
+.statusbar .ico { display: flex; align-items: center; gap: 5px; }
+
+.browser { flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: var(--canvas-alt); border-bottom: 1px solid var(--border-subtle); font-family: 'Roboto', sans-serif; }
+.browser .addr { flex: 1; min-width: 0; background: rgba(0,0,0,.05); border-radius: var(--radius-full); padding: 8px 16px; font-size: 14px; line-height: 20px; letter-spacing: .16px; color: rgba(0,0,0,.87); white-space: nowrap; }
+.browser .addr span { color: rgba(0,0,0,.54); }
+.browser .tabs { width: 24px; height: 24px; border: 2px solid rgba(0,0,0,.87); border-radius: 5px; display: flex; align-items: center; justify-content: center; font: 500 13px/1 'Roboto', sans-serif; color: rgba(0,0,0,.87); }
+.ico24 { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.watermark { display: flex; gap: 2px; justify-content: flex-end; }
+.watermark i { width: 4px; height: 4px; border-radius: 50%; display: block; }
+
+/* webview page-header (Deals) */
+.page-header { flex-shrink: 0; background: var(--bg-base); display: flex; flex-direction: column; }
+.page-header .wm { padding: 4px 20px 0; min-height: 8px; }
+.page-header .row { height: 36px; display: flex; align-items: center; gap: var(--space-200); padding: 0 var(--space-500); }
+.page-header .title { flex: 1; text-align: center; font-size: var(--text-xl); font-weight: 600; line-height: 1.25; }
+.page-header .spacer { height: 8px; }
+.icon-btn { width: 24px; height: 24px; padding: 2px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* DS NavHeader (44px, 20px side, 24px icon slots, 256px title) */
+.navheader { position: sticky; top: 0; z-index: 10; height: 44px; flex-shrink: 0; background: var(--bg-base); }
+.navheader.border { border-bottom: 1px solid var(--border-subtle); }
+.navheader .wmk { position: absolute; top: 0; left: 20px; width: 320px; height: 4px; }
+.navheader .row { position: absolute; top: 50%; transform: translateY(-50%); left: 20px; right: 20px; height: 40px; display: flex; align-items: center; gap: 8px; }
+.navheader .title { flex: 1; min-width: 0; text-align: center; font-size: var(--text-xl); font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.scroll { flex: 1; overflow-y: auto; min-height: 0; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+/* DS Button (lg 48px, radius-full, 16/600/1.5) */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 20px; width: 100%; border: none; border-radius: var(--radius-full); font-family: var(--ds-font-family); font-size: var(--text-lg); font-weight: 600; line-height: 1.5; cursor: pointer; white-space: nowrap; user-select: none; transition: background .15s; }
+.btn.primary { background: var(--bg-primary); color: var(--text-on-dark); }
+.btn.primary:active { background: linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), var(--bg-primary); }
+.btn.loading { pointer-events: none; }
+.spinner { width: 20px; height: 20px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* DS ActionBar (pt 12, px 20, pb 20, gap 12, optional top border) */
+.actionbar { flex-shrink: 0; position: relative; background: var(--bg-base); padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.actionbar.border::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--border-subtle); }
+.actionbar .txt { font-size: 13px; line-height: 19.5px; color: var(--text-subtle); text-align: center; }
+
+/* DS Alert */
+.alert { display: flex; align-items: flex-start; gap: 8px; padding: 16px; border-radius: var(--radius-lg); }
+.alert .ic { width: 20px; height: 20px; padding: 2px; flex-shrink: 0; display: flex; }
+.alert p { flex: 1; font-size: 14px; line-height: 1.5; color: var(--text-base); }
+.alert.warning { background: var(--bg-warning-subtle); }
+.alert.critical { background: var(--bg-error-subtle); }
+
+/* DS RadioButton md */
+.radio { width: 24px; height: 24px; border-radius: var(--radius-full); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: var(--border-width-200) solid var(--border-bold); }
+.radio.on { border: none; background: var(--bg-primary); }
+.radio.on::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--bg-base); }
+
+/* radio-button/selection/payment-source */
+.sources { display: flex; flex-direction: column; gap: var(--space-400); }
+.source { display: flex; align-items: center; gap: var(--space-200); width: 100%; padding: var(--space-300) var(--space-400); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-base); cursor: pointer; text-align: left; font-family: var(--ds-font-family); }
+.source.on { border-color: var(--border-brand-primary); }
+.source.off { opacity: .45; cursor: not-allowed; }
+.source .lbl { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.5; }
+.source .lbl b { font-weight: 400; font-size: var(--text-lg); }
+.source .lbl span { font-size: var(--text-sm); color: var(--text-subtle); }
+.source .amt { font-size: var(--text-lg); font-weight: 600; line-height: 1.5; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* DS Checkbox paragraph */
+.cbx { display: flex; flex-direction: column; gap: var(--space-200); cursor: pointer; }
+.cbx .row { display: flex; gap: var(--space-200); align-items: flex-start; }
+.cbx .box { width: 24px; height: 24px; border-radius: var(--radius-md); flex-shrink: 0; border: var(--border-width-200) solid var(--border-bold); display: flex; align-items: center; justify-content: center; }
+.cbx.error .box { border-color: var(--border-error-bold); }
+.cbx.checked .box { border: none; background: var(--bg-primary); }
+.cbx p { font-size: 14px; line-height: 1.5; }
+.cbx p u { font-weight: 600; text-underline-position: from-font; }
+.cbx .err { font-size: 14px; line-height: 1.5; color: var(--text-error); padding-left: 32px; }
+
+/* Deals cards */
+.card { background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-400); display: flex; flex-direction: column; }
+.divider { height: 1px; background: var(--border-subtle); }
+.di { width: 16px; height: 16px; flex-shrink: 0; object-fit: cover; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-full); background: var(--bg-success-bold); color: var(--text-success); font-size: var(--text-sm); font-weight: 600; line-height: 1.5; white-space: nowrap; }
+.kv { display: flex; justify-content: space-between; gap: 8px; font-size: var(--text-lg); line-height: 1.5; }
+.kv > :first-child { color: var(--text-subtle); }
+.link { font-size: var(--text-md); font-weight: 600; line-height: 1.5; text-decoration: underline; text-underline-position: from-font; color: var(--text-base); background: none; border: none; padding: 0; cursor: pointer; font-family: var(--ds-font-family); }
+.phone-img { position: relative; overflow: hidden; }
+.phone-img img { position: absolute; max-width: none; height: 415.53%; width: 241.6%; left: -70.49%; top: -73.91%; }
+
+/* order summary (deprecated card style used across checkout) */
+.order { display: flex; align-items: center; gap: 24px; padding: 12px 16px; border: 1px solid var(--legacy-blue-200); background: var(--legacy-blue-50); border-radius: 12px; font-size: 16px; }
+.order .l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.order .r { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; line-height: 16px; white-space: nowrap; }
+.order b { color: var(--legacy-navy); font-weight: 600; }
+.order span { color: var(--legacy-muted); line-height: 16px; }
+
+/* ── Legacy loan flow ─────────────────────────────────────────────────── */
+.legacy { background: var(--legacy-bg); }
+.lhead { flex-shrink: 0; height: 48px; display: flex; flex-direction: column; }
+.lhead .wm { padding: 0 16px; }
+.lhead .row { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+.lhead button { background: none; border: none; padding: 0; cursor: pointer; font-family: var(--ds-font-family); }
+.lhead .cancel { font-size: 16px; line-height: 20px; color: var(--legacy-link); }
+.lbody { padding: 16px; display: flex; flex-direction: column; gap: 24px; }
+.lh2 { font-size: 20px; font-weight: 600; line-height: 24px; letter-spacing: .4px; color: var(--legacy-ink); }
+.lh1 { padding: 8px 16px 0; font-size: 24px; font-weight: 600; line-height: 32px; letter-spacing: .48px; color: var(--legacy-ink); }
+.plan { position: relative; background: #fff; border: 1px solid var(--legacy-blue-200); border-radius: 12px; padding: 24px 16px 16px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+.plan.sel { border-color: var(--legacy-link); }
+.calc { display: flex; align-items: flex-end; gap: 4px; }
+.calc b { font-size: 28px; line-height: 28px; font-weight: 700; color: var(--legacy-navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.calc span { font-size: 16px; line-height: 18px; color: var(--legacy-muted); white-space: nowrap; }
+.slider { position: relative; height: 16px; touch-action: none; cursor: pointer; }
+.slider .empty, .slider .fill { position: absolute; top: 6px; height: 4px; border-radius: 2px; left: 0; }
+.slider .empty { right: 0; background: var(--legacy-track); }
+.slider .fill { background: var(--legacy-red); }
+.slider .thumb { position: absolute; top: 0; width: 36px; height: 16px; border-radius: 8px; background: #fff; border: 2px solid var(--legacy-thumb); }
+.slabels { display: flex; justify-content: space-between; font-size: 16px; color: var(--legacy-muted); font-variant-numeric: tabular-nums; margin-top: 8px; }
+.emi { display: flex; align-items: flex-end; gap: 4px; }
+.emi b { font-size: 32px; line-height: 32px; letter-spacing: .32px; font-weight: 700; color: var(--legacy-navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.emi span { font-size: 18px; line-height: 20px; font-weight: 700; color: var(--legacy-navy); }
+.tagline { background: var(--legacy-blue-50); border: 1px solid var(--legacy-line); border-radius: 12px; padding: 8px; text-align: center; font-size: 14px; line-height: 20px; color: var(--legacy-muted); }
+.howto { text-align: center; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--legacy-link); text-decoration: underline; text-underline-position: from-font; padding-top: 4px; }
+.ptag { position: absolute; top: 0; right: 0; width: 96px; height: 25px; }
+.ptag span { position: absolute; right: 12px; top: 4px; font-size: 14px; font-weight: 600; color: #fff; }
+.rcard { background: #fff; border: 1px solid var(--legacy-line); border-radius: 12px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 16px; overflow: hidden; }
+.rcard .hd { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--legacy-blue-50); border-bottom: 1px solid var(--legacy-line); }
+.rcard .hd b { flex: 1; font-size: 16px; font-weight: 600; line-height: 24px; color: var(--legacy-navy); }
+.rcard .hd strong { font-size: 20px; line-height: 26px; font-weight: 700; color: var(--legacy-navy); font-variant-numeric: tabular-nums; }
+.rcard .list { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+.rcard .line { height: 1px; background: var(--legacy-line); }
+.rrow { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; font-size: 16px; }
+.rrow > :first-child { color: var(--legacy-muted); line-height: 24px; }
+.rrow > :last-child { color: var(--legacy-navy); font-weight: 600; line-height: 20px; text-align: right; font-variant-numeric: tabular-nums; }
+.rrow.top { align-items: flex-start; }
+.rrow.id > :last-child { color: var(--legacy-muted); font-weight: 400; line-height: normal; word-break: break-all; }
+.rrow small { display: block; font-size: 14px; line-height: normal; opacity: .68; }
+.details { display: flex; flex-direction: column; gap: 12px; }
+.agree { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 16px; color: var(--legacy-ink); padding: 0 16px; }
+.agree .b { width: 20px; height: 20px; border-radius: 5px; border: 1.25px solid var(--legacy-blue-200); background: #fff; flex-shrink: 0; }
+.agree b { font-weight: 600; color: var(--legacy-link); }
+.cta { flex-shrink: 0; background: var(--legacy-bg); padding: 8px 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.lbtn { width: 100%; height: 40px; border-radius: 20px; border: none; background: var(--legacy-red); color: #fff; font-family: var(--ds-font-family); font-size: 16px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; text-shadow: 0 6px 21px rgba(22,11,44,.5); cursor: pointer; }
+.lbtn.sec { background: #fff; border: 1px solid var(--legacy-red); color: var(--legacy-red); text-shadow: none; }
+.lbtn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.skip { background: none; border: none; font-family: var(--ds-font-family); font-size: 16px; font-weight: 600; color: #595959; cursor: pointer; padding: 4px 12px; }
+</style>
+
+<div class="shell">
+  <aside class="rail" aria-label="Prototype controls">
+    <div>
+      <h1>Deals checkout</h1>
+      <p class="lede">Summary, then the source of fund. Loans go on to down payment and payment plan. Credit line skips both and goes straight to review.</p>
+    </div>
+    <div>
+      <p class="rail-label">Scenario</p>
+      <div class="scenarios" id="scenarios"></div>
+      <div class="toggle-row" style="margin-top:8px">
+        <label for="dp-toggle">Down payment offered</label>
+        <button class="switch" id="dp-toggle" role="switch" aria-checked="true"></button>
+      </div>
+    </div>
+    <div>
+      <p class="rail-label">Route</p>
+      <div class="route" id="route"></div>
+    </div>
+    <div>
+      <p class="rail-label">Account</p>
+      <dl class="facts" id="facts"></dl>
+    </div>
+    <div>
+      <p class="rail-label">UX changes vs. old flow</p>
+      <ul class="changes">
+        <li>Summary no longer says "Select payment plan" when a credit line can pay. The next step is choosing the source of fund.</li>
+        <li>With no default set, nothing is preselected. Continuing without a choice shows an error, so the default is always picked on purpose.</li>
+        <li>The pick is saved as the default and preselected on the next checkout.</li>
+        <li>Credit line goes straight to review. Down payment and payment plan only appear for loans.</li>
+      </ul>
+    </div>
+    <button class="restart" id="restart">
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a8 8 0 0 1 7.4 5H17v2h6V5h-2v2.3A10 10 0 1 0 22 12h-2a8 8 0 1 1-8-8z"/></svg>
+      Restart flow
+    </button>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="phone-wrap" id="phone-wrap">
+      <div class="phone" id="phone">
+        <div class="cam"></div>
+        <div class="btns"><span style="height:68px;margin-bottom:14px"></span><span style="height:54px;margin-bottom:6px"></span><span style="height:54px"></span></div>
+        <div class="screen">
+          <div class="viewport" id="viewport"></div>
+          <div class="android-nav" aria-hidden="true">
+            <span style="font-size:14px">◄</span><span style="font-size:18px">⬤</span><span style="font-size:12px">■</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Assets (inlined at build time) ───────────────────────────────────────────
+const A = {
+  iphone: '{{iphone.png}}', truck: '{{deals-truck.png}}', shield: '{{deals-shield.png}}',
+  pkg: '{{deals-package.png}}', fire: '{{deals-fire.png}}', trolley: '{{deals-trolley.png}}',
+  trust: '{{trustmark.png}}', home: '{{browser-home.svg}}', more: '{{browser-more.svg}}',
+  back: '{{legacy-back.svg}}', info: '{{legacy-info.svg}}', ptag: '{{legacy-flexible-tag.svg}}',
+  checked: '{{legacy-checkbox-checked.svg}}', hooray: '{{hooray.svg}}', dot: '{{hooray-dot.svg}}',
+  billy: '{{billy-lowest-rate.svg}}',
+  clCal: '{{cl-calendar.svg}}', clCart: '{{cl-cart.svg}}', clPct: '{{cl-percentage.svg}}',
+  clRenew: '{{cl-auto-renew.svg}}', clTag: '{{cl-tag.svg}}',
+}
+
+// ── BilleaseIcon paths (src/assets/icons/index.js) ───────────────────────────
+const ICONS = {
+  'arrow-left': ['M8.1572 3.28224C8.53344 2.90599 9.15593 2.90602 9.5322 3.28224C9.90846 3.6585 9.90846 4.28098 9.5322 4.65724L3.31735 10.8721H23.0263C23.5581 10.8722 23.9988 11.313 23.999 11.8447C23.999 12.3766 23.5582 12.8182 23.0263 12.8184H3.31833L9.5322 19.0332C9.90846 19.4095 9.90846 20.032 9.5322 20.4082C9.35056 20.6027 9.09114 20.6934 8.8447 20.6934C8.59827 20.6933 8.35174 20.6028 8.1572 20.4082L0.282196 12.5332C-0.0940654 12.157 -0.0940654 11.5335 0.282196 11.1572L8.1572 3.28224Z'],
+  'close-mini': ['M17.9501 4.34866C18.4148 3.88402 19.1856 3.88395 19.6503 4.34866C20.1146 4.81338 20.1147 5.58419 19.6503 6.04885L13.6991 12L19.6503 17.9512C20.1146 18.416 20.1148 19.1868 19.6503 19.6514C19.1857 20.116 18.4148 20.1158 17.9501 19.6514L11.9989 13.7002L6.04873 19.6514C5.5841 20.1161 4.81328 20.1159 4.34854 19.6514C3.88384 19.1867 3.88388 18.4159 4.34854 17.9512L10.2987 12L4.34854 6.04885C3.88382 5.58411 3.88382 4.81341 4.34854 4.34866C4.81326 3.88396 5.58403 3.88393 6.04873 4.34866L11.9989 10.2989L17.9501 4.34866Z'],
+  'info-outline': ['M12.4258 8.56348C12.158 8.67507 11.845 8.67499 11.5771 8.56348C11.4434 8.50773 11.3205 8.4294 11.209 8.3291C11.1085 8.21748 11.0304 8.09391 10.9746 7.95996C10.9188 7.82607 10.8848 7.68117 10.8848 7.53613C10.8848 7.39108 10.9188 7.24621 10.9746 7.1123C11.0304 6.96719 11.1085 6.85479 11.209 6.74316C11.3205 6.64289 11.4434 6.56453 11.5771 6.50879C11.711 6.45307 11.856 6.41995 12.001 6.41992C12.1461 6.41992 12.2918 6.45298 12.4258 6.50879C12.5596 6.56458 12.6824 6.6428 12.7939 6.74316C12.8944 6.85479 12.9725 6.96719 13.0283 7.1123C13.084 7.24615 13.1172 7.39115 13.1172 7.53613C13.1172 7.6811 13.084 7.82613 13.0283 7.95996C12.9725 8.09391 12.8944 8.21748 12.7939 8.3291C12.6824 8.42948 12.5596 8.50768 12.4258 8.56348Z', 'M12 17.3037C11.5424 17.3036 11.1631 16.9234 11.1631 16.4658V10.8848C11.1631 10.4272 11.5425 10.048 12 10.0479C12.4576 10.0479 12.8378 10.4271 12.8379 10.8848V16.4658C12.8379 16.9235 12.4577 17.3037 12 17.3037Z', 'M12 24C5.3807 23.9999 -5.7868e-07 18.6193 0 12C0.000128731 5.38078 5.38078 0.000126156 12 0C18.6193 5.7868e-07 23.9999 5.3807 24 12C24 18.6194 18.6194 24 12 24ZM12 22.3252C17.6929 22.3252 22.3252 17.6929 22.3252 12C22.3251 6.3072 17.6928 1.67481 12 1.6748C6.30727 1.67493 1.67493 6.30727 1.6748 12C1.6748 17.6928 6.30719 22.3251 12 22.3252Z'],
+  'chevron-right': ['M7.04333 24C6.77813 24 6.51294 23.9031 6.30358 23.6955C5.89881 23.294 5.89881 22.6296 6.30358 22.2281L15.4039 13.2026C16.0739 12.5381 16.0739 11.4584 15.4039 10.7939L6.30358 1.76842C5.89881 1.36698 5.89881 0.702523 6.30358 0.301081C6.70835 -0.10036 7.37831 -0.10036 7.78308 0.301081L16.8834 9.3266C17.5952 10.0326 18 10.9877 18 11.9983C18 13.0088 17.6092 13.964 16.8834 14.6699L7.78308 23.6955C7.57371 23.8893 7.30852 24 7.04333 24Z'],
+  'status-warning': ['M23.2185 17.3097L15.8621 3.81202C14.8736 1.99592 13.5058 1 12 1C10.4942 1 9.12642 1.99592 8.1379 3.81202L0.781522 17.3097C-0.14952 19.0321 -0.252969 20.6842 0.494164 21.9847C1.2413 23.2853 2.71257 24 4.64362 24H19.3564C21.2874 24 22.7587 23.2853 23.5058 21.9847C24.253 20.6842 24.1495 19.0204 23.2185 17.3097ZM11.1379 9.20173C11.1379 8.72134 11.5287 8.32298 12 8.32298C12.4713 8.32298 12.8621 8.72134 12.8621 9.20173V15.0601C12.8621 15.5405 12.4713 15.9389 12 15.9389C11.5287 15.9389 11.1379 15.5405 11.1379 15.0601V9.20173ZM12.8161 19.407C12.7586 19.4539 12.7012 19.5008 12.6437 19.5476C12.5747 19.5945 12.5058 19.6296 12.4368 19.6531C12.3678 19.6882 12.2989 19.7117 12.2184 19.7234C12.1494 19.7351 12.069 19.7468 12 19.7468C11.931 19.7468 11.8506 19.7351 11.7701 19.7234C11.7011 19.7117 11.6322 19.6882 11.5632 19.6531C11.4942 19.6296 11.4253 19.5945 11.3563 19.5476C11.2988 19.5008 11.2414 19.4539 11.1839 19.407C10.977 19.1844 10.8506 18.8798 10.8506 18.5751C10.8506 18.2705 10.977 17.9659 11.1839 17.7433C11.2414 17.6964 11.2988 17.6495 11.3563 17.6026C11.4253 17.5558 11.4942 17.5206 11.5632 17.4972C11.6322 17.462 11.7011 17.4386 11.7701 17.4269C11.9195 17.3917 12.0805 17.3917 12.2184 17.4269C12.2989 17.4386 12.3678 17.462 12.4368 17.4972C12.5058 17.5206 12.5747 17.5558 12.6437 17.6026C12.7012 17.6495 12.7586 17.6964 12.8161 17.7433C13.023 17.9659 13.1494 18.2705 13.1494 18.5751C13.1494 18.8798 13.023 19.1844 12.8161 19.407Z'],
+  'status-error': ['M12 0C5.388 0 0 5.388 0 12C0 18.612 5.388 24 12 24C18.612 24 24 18.612 24 12C24 5.388 18.612 0 12 0ZM16.032 14.76C16.38 15.108 16.38 15.684 16.032 16.032C15.852 16.212 15.624 16.296 15.396 16.296C15.168 16.296 14.94 16.212 14.76 16.032L12 13.272L9.24 16.032C9.06 16.212 8.832 16.296 8.604 16.296C8.376 16.296 8.148 16.212 7.968 16.032C7.62 15.684 7.62 15.108 7.968 14.76L10.728 12L7.968 9.24C7.62 8.892 7.62 8.316 7.968 7.968C8.316 7.62 8.892 7.62 9.24 7.968L12 10.728L14.76 7.968C15.108 7.62 15.684 7.62 16.032 7.968C16.38 8.316 16.38 8.892 16.032 9.24L13.272 12L16.032 14.76Z'],
+  'tick': ['M19.8889 5.35754C20.3725 4.87999 21.1561 4.88099 21.6388 5.35953C22.1212 5.83817 22.1202 6.61375 21.6368 7.09145L9.94566 18.6429C9.46237 19.1201 8.67856 19.1187 8.19582 18.6409L2.36236 12.8652C1.87921 12.387 1.87921 11.6115 2.36236 11.1333C2.84527 10.6563 3.62727 10.6563 4.11018 11.1333L9.07175 16.044L19.8889 5.35754Z'],
+}
+const SIZES = { xs: 16, sm: 20, md: 24 }
+function icon(name, size = 'sm', color = 'var(--icon-base)') {
+  const px = SIZES[size]
+  return `<svg width="${px}" height="${px}" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;flex-shrink:0">${ICONS[name].map(d => `<path d="${d}" fill="${color}" fill-rule="evenodd" clip-rule="evenodd"/>`).join('')}</svg>`
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
+const TOTAL = 20000
+const RATE  = 0.0445          // monthly add-on rate that reproduces Figma's ₱5,890 x 4 on ₱20,000
+const TERMS = [2, 3, 4]
+const peso  = (n, dec = true) => '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: dec ? 2 : 0, maximumFractionDigits: dec ? 2 : 0 })
+const monthly = (financed, t) => Math.round(financed * (1 + RATE * t) / t / 10) * 10
+
+const SCENARIOS = [
+  { id: 'no-default',  name: 'No default yet',                 hint: 'First checkout. Nothing preselected.',
+    cfg: { sof: null,    clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
+  { id: 'default-loans', name: 'Default: Loans',               hint: 'Loans preselected, user can switch.',
+    cfg: { sof: 'loans', clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
+  { id: 'default-cl',  name: 'Default: Credit line',           hint: 'Credit line preselected, straight to review.',
+    cfg: { sof: 'cl',    clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
+  { id: 'cl-inactive', name: 'Credit line not activated',      hint: 'Choosing it adds the activation step.',
+    cfg: { sof: null,    clOffered: true,  clActive: false, clLimit: 30000, loanLimit: 25000 } },
+  { id: 'cl-low',      name: 'Credit line limit too low',      hint: 'Default is credit line, limit ₱15,000.',
+    cfg: { sof: 'cl',    clOffered: true,  clActive: true,  clLimit: 15000, loanLimit: 25000 } },
+  { id: 'loan-low',    name: 'Loan limit below order',         hint: 'Loans stays selectable, down payment required.',
+    cfg: { sof: 'loans', clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 9100 } },
+  { id: 'no-cl',       name: 'No credit line',                 hint: 'Not offered, locked or overdue. Old loan flow.',
+    cfg: { sof: null,    clOffered: false, clActive: false, clLimit: 0,     loanLimit: 25000 } },
+]
+
+const S = {
+  scenario: SCENARIOS[0].id, cfg: null, dpOffered: true,
+  history: ['item'], busy: false,
+  sel: null, sofError: false, route: null,  // 'loans' | 'cl'
+  dp: 0, termIdx: 2, reviewAgreed: false, clAgreed: false, clAgreeError: false,
+  saving: false,
+}
+
+function resetFlow(keepCfg) {
+  if (!keepCfg) S.cfg = { ...SCENARIOS.find(s => s.id === S.scenario).cfg }
+  Object.assign(S, { history: ['item'], sel: null, sofError: false, route: null, dp: 0, termIdx: 2,
+    reviewAgreed: false, clAgreed: false, clAgreeError: false, saving: false })
+}
+
+// Derived source-of-fund state
+function sof() {
+  const c = S.cfg
+  const clCovers = c.clLimit >= TOTAL
+  const clUsable = c.clOffered && clCovers
+  const loanDpRequired = c.loanLimit < TOTAL
+  let preselect = null
+  if (c.sof === 'cl') preselect = clUsable ? 'cl' : 'loans'
+  if (c.sof === 'loans') preselect = 'loans'
+  return { clCovers, clUsable, loanDpRequired, preselect }
+}
+const showSofScreen = () => S.cfg.clOffered   // shown whenever a credit line exists, even if it can't cover the order
+
+// ── Shared pieces ────────────────────────────────────────────────────────────
+const statusBar = () => `
+  <div class="statusbar">
+    <span class="time">5:13</span>
+    <div class="ico" aria-hidden="true">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="#1D2D40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+      <svg width="9" height="13" viewBox="0 0 14 20" fill="#1D2D40"><path d="M7 0L1 6l4 4-4 4 6 6v-7l3 3 1-1-4-4 4-4-1-1-3 3V0z"/></svg>
+      <svg width="15" height="12" viewBox="0 0 24 20" fill="#1D2D40"><path d="M12 14.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/><path d="M12 10c2.2 0 4.2.9 5.6 2.3l1.7-1.7C17.5 9 14.9 7.5 12 7.5s-5.5 1.5-7.3 3.1l1.7 1.7C7.8 10.9 9.8 10 12 10z"/><path d="M12 5.5c3.3 0 6.3 1.3 8.4 3.5l1.7-1.7C19.6 4.8 16 3 12 3S4.4 4.8 1.9 7.3l1.7 1.7C5.7 6.8 8.7 5.5 12 5.5z"/></svg>
+      <svg width="16" height="12" viewBox="0 0 24 18" fill="#1D2D40"><rect x="0" y="13" width="4" height="5"/><rect x="6" y="9" width="4" height="9"/><rect x="12" y="5" width="4" height="13"/><rect x="18" y="1" width="4" height="17"/></svg>
+      <span style="display:flex;align-items:center"><span style="width:20px;height:10px;border:1.5px solid #1D2D40;border-radius:2px;padding:1px;display:flex"><span style="width:78%;background:#1D2D40;border-radius:1px"></span></span><span style="width:2px;height:5px;background:#1D2D40;margin-left:-.5px"></span></span>
+    </div>
+  </div>`
+
+const browser = () => `
+  <div class="browser">
+    <div class="ico24"><img src="${A.home}" width="21.5" height="20.31" alt=""></div>
+    <div class="addr">billease.ph<span>/account/</span></div>
+    <div class="ico24"><img src="${A.more}" width="24" height="24" alt=""></div>
+    <div class="tabs">1</div>
+  </div>`
+
+const WM = ['yellow','pink','green','black','#f0f','#8b4513','purple','orange','red','#0ff']
+const watermark = () => `<div class="watermark">${WM.map(c => `<i style="background:${c}"></i>`).join('')}</div>`
+
+// webview page-header (Deals)
+const pageHeader = (title, withWm) => `
+  <div class="page-header">
+    <div class="wm">${withWm ? watermark() : ''}</div>
+    <div class="row">
+      <button class="icon-btn" data-act="back" aria-label="Back">${icon('arrow-left')}</button>
+      <div class="title">${title}</div>
+      <div class="ico24"></div>
+    </div>
+    <div class="spacer"></div>
+  </div>`
+
+// DS NavHeader
+function navHeader(title, { left, right, border }) {
+  const slot = kind => {
+    if (kind === 'back')  return `<button class="icon-btn" data-act="back" aria-label="Back">${icon('arrow-left', 'sm', 'var(--text-base)')}</button>`
+    if (kind === 'close') return `<button class="icon-btn" data-act="back" aria-label="Close">${icon('close-mini', 'sm', 'var(--text-base)')}</button>`
+    if (kind === 'info')  return `<div class="ico24">${icon('info-outline', 'sm', 'var(--text-base)')}</div>`
+    return `<div class="ico24"></div>`
+  }
+  return `<div class="navheader${border ? ' border' : ''}" data-nav>
+    <div class="wmk">${watermark()}</div>
+    <div class="row">${slot(left)}<div class="title">${title}</div>${slot(right)}</div>
+  </div>`
+}
+
+const dsButton = (label, act) => S.saving && act === 'sof-continue'
+  ? `<button class="btn primary loading" aria-label="Saving"><span class="spinner"></span></button>`
+  : `<button class="btn primary" data-act="${act}">${label}</button>`
+const actionBar = (inner, { border, textBottom } = {}) =>
+  `<div class="actionbar${border ? ' border' : ''}">${inner}${textBottom ? `<span class="txt">${textBottom}</span>` : ''}</div>`
+const alertBox = (type, msg) => `
+  <div class="alert ${type}" role="${type === 'critical' ? 'alert' : 'status'}">
+    <span class="ic">${icon(type === 'critical' ? 'status-error' : 'status-warning', 'xs', type === 'critical' ? 'var(--icon-error)' : 'var(--icon-warning)')}</span>
+    <p>${msg}</p>
+  </div>`
+
+const orderCard = () => `
+  <div class="order">
+    <div class="l"><b style="line-height:24px">Billease Deals</b><span>GH606FA1</span></div>
+    <div class="r"><span>Total</span><b>${peso(TOTAL)}</b></div>
+  </div>`
+
+const legacyHeader = () => `
+  <div class="lhead">
+    <div class="wm">${watermark()}</div>
+    <div class="row">
+      <button data-act="back" aria-label="Back"><img src="${A.back}" width="29" height="16" alt=""></button>
+      <button class="cancel" data-act="cancel">Cancel</button>
+    </div>
+  </div>`
+
+const legacyCta = (label, act, disabled) =>
+  `<div class="cta"><button class="lbtn" data-act="${act}"${disabled ? ' aria-disabled="true"' : ''}>${label}</button></div>`
+
+function slider(id, value, min, max) {
+  const pct = max === min ? 0 : (value - min) / (max - min)
+  // thumb is 36px wide and travels inside the track; fill ends under the thumb centre
+  return `<div class="slider" data-slider="${id}" data-min="${min}" data-max="${max}" role="slider" tabindex="0"
+      aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${value}">
+    <div class="empty"></div>
+    <div class="fill" style="width:calc(${pct} * (100% - 36px) + 18px)"></div>
+    <div class="thumb" style="left:calc(${pct} * (100% - 36px))"></div>
+  </div>`
+}
+
+// ── Screens ──────────────────────────────────────────────────────────────────
+const SCREENS = {}
+
+SCREENS.item = () => `
+  <div class="scr" style="background:var(--canvas-default)">
+    ${statusBar()}${browser()}${pageHeader('Item details', false)}
+    <div class="scroll">
+      <div style="display:flex;flex-direction:column;gap:var(--space-300);padding:0 var(--space-500) var(--space-500)">
+        <div style="display:flex;flex-direction:column;gap:var(--space-400);padding-top:var(--space-600)">
+          <div style="position:relative;display:flex;justify-content:center">
+            <div style="width:220px;height:220px;position:relative">
+              <div class="phone-img" style="position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);aspect-ratio:76.1538/100"><img src="${A.iphone}" alt="Apple iPhone 14 in space grey"></div>
+            </div>
+            <span style="position:absolute;right:0;bottom:0;background:var(--bg-strong);color:var(--text-on-dark);border-radius:40px;padding:2px 8px;font-size:var(--text-sm);line-height:1.5">1/4</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-300)">
+            <div style="display:flex;gap:var(--space-100);flex-wrap:wrap">
+              <span class="tag">In stock</span>
+              <span class="tag"><img class="di" src="${A.truck}" alt="">Free delivery</span>
+              <span class="tag"><img class="di" src="${A.shield}" alt="">Free device care</span>
+            </div>
+            <p style="font-size:24px;font-weight:600;line-height:1.25">Apple iPhone 14, 128GB, Space grey</p>
+            <div style="background:var(--bg-info-subtle);border-radius:var(--radius-md);padding:var(--space-200)"><p style="font-size:var(--text-md);font-weight:600;line-height:1.5">Installment: ₱900 monthly</p></div>
+            <div style="display:flex;align-items:center;gap:var(--space-200)">
+              <span style="font-size:var(--text-xl);font-weight:600;line-height:1.25;color:var(--text-brand-primary)">₱20,000</span>
+              <span style="font-size:16px;line-height:1.5;color:var(--text-subtle);text-decoration:line-through">₱34,000</span>
+              <span style="background:var(--bg-error-subtle);border-radius:var(--radius-sm);padding:2px 8px;font-size:var(--text-md);font-weight:600;line-height:1.5;color:var(--text-brand-primary)">-₱14,000</span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="gap:var(--space-300)">
+          ${[['fire','Promo',''],['shield','1 Year Device Care','Included, no extra cost'],['pkg','Returns and replacements policy','']].map(([ic, t, sub]) => `
+            <div style="display:flex;align-items:center;gap:var(--space-200)">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:var(--space-100)"><img class="di" src="${A[ic]}" alt=""><p style="font-size:var(--text-lg);line-height:1.5">${t}</p></div>
+                ${sub ? `<p style="padding-left:var(--space-500);font-size:var(--text-sm);line-height:1.5;color:var(--text-success)">${sub}</p>` : ''}
+              </div>
+              <span style="width:20px;height:20px;padding:2px;display:flex">${icon('chevron-right', 'xs')}</span>
+            </div>`).join('')}
+        </div>
+        <div class="card" style="gap:var(--space-200)">
+          <p style="font-size:var(--text-md);font-weight:600;line-height:1.5">Specifications</p>
+          <div style="display:flex;flex-direction:column;gap:var(--space-200)">
+            ${[['Color','Space grey'],['Display','6.1 inches'],['Processor','A15 Bionic chip. 6‑core CPU with 2 performance and 4 efficiency cores'],['RAM','12 GB'],['Storage','128 GB'],['Camera','Main camera 200MP + Ultra-wide camera 8MP + Macro camera 2MP'],['Operating system','iOS']].map(([k, v]) => `
+              <div style="display:flex;gap:var(--space-100);font-size:16px;line-height:1.5"><span style="width:120px;flex-shrink:0;color:var(--text-subtle)">${k}</span><span style="flex:1;text-align:right">${v}</span></div>`).join('')}
+          </div>
+        </div>
+        <div class="card" style="gap:var(--space-200)">
+          <p style="font-size:var(--text-md);font-weight:600;line-height:1.5">Details</p>
+          <p style="font-size:var(--text-lg);line-height:1.5">This product is Apple certified, and has been professionally inspected, tested and cleaned by qualified suppliers.</p>
+          <div style="display:flex;justify-content:center"><button class="link">Read more</button></div>
+        </div>
+        <div class="card" style="flex-direction:row;gap:var(--space-400)">
+          <div style="width:86.571px;height:80px;border-radius:3.129px;overflow:hidden;position:relative;flex-shrink:0"><img src="${A.trust}" alt="Trustmark" style="position:absolute;max-width:none;height:117.34%;left:-9.16%;top:-13.04%;width:120.48%"></div>
+          <p style="flex:1;font-size:var(--text-lg);line-height:1.5">Billease's Deals fully complies with Republic Act No. 11967 (RA 11967), also known as the Internet Transactions Act of 2023, and is dedicated to upholding trust, ensuring safety, and promoting fair e-commerce practices.</p>
+        </div>
+      </div>
+    </div>
+    ${actionBar(dsButton('Proceed to summary', 'to-summary'), { border: true, textBottom: 'Review your order and address in the next step' })}
+  </div>`
+
+SCREENS.summary = () => {
+  // UX fix: with a credit line in play the next step is the source of fund, not the payment plan
+  const next = showSofScreen()
+  const cta  = next ? 'Continue' : 'Select payment plan'
+  const help = next ? 'You can choose how to pay in the next step' : 'You can choose a payment plan in the next step'
+  return `
+  <div class="scr" style="background:var(--canvas-default)">
+    ${statusBar()}${browser()}${pageHeader('Summary', true)}
+    <div class="scroll">
+      <div style="display:flex;flex-direction:column;gap:var(--space-300);padding:var(--space-600) var(--space-500) var(--space-500)">
+        <div class="card" style="gap:var(--space-200)">
+          <div style="display:flex;align-items:center;gap:var(--space-100)"><img class="di" src="${A.trolley}" alt=""><p style="font-size:var(--text-md);font-weight:600;line-height:1.5">Order details</p></div>
+          <div style="display:flex;gap:var(--space-300);align-items:center">
+            <div class="phone-img" style="width:34.364px;height:42px;border-radius:3.38px;flex-shrink:0"><img src="${A.iphone}" alt=""></div>
+            <p style="font-size:14px;font-weight:600;line-height:1.5">Apple iPhone 14, 128GB, Space grey</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-300)">
+            <div class="divider"></div>
+            <div class="kv"><span>Billease discount</span><span style="color:var(--text-brand-primary)">-₱14,000</span></div>
+            <div class="kv"><span>Device care fee</span><span style="color:var(--text-success)">Free</span></div>
+            <div class="kv"><span>Shipping fee</span><span style="color:var(--text-success)">Free</span></div>
+            <div class="divider"></div>
+            <div class="kv" style="font-weight:600"><span style="color:var(--text-base)">Total</span><span>₱20,000</span></div>
+          </div>
+        </div>
+        <div class="card" style="gap:var(--space-300)">
+          <div style="display:flex;flex-direction:column;gap:var(--space-200)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div style="display:flex;align-items:center;gap:var(--space-100)"><img class="di" src="${A.truck}" alt=""><p style="font-size:var(--text-md);font-weight:600;line-height:1.5">Delivering to Kateryna Leaver</p></div>
+              <button class="link">Edit</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-050);font-size:var(--text-md);line-height:1.5">
+              <p>+63 456 678 8900</p>
+              <div style="display:flex;gap:4px;align-items:flex-start"><span style="background:var(--bg-info-subtle);color:var(--text-active);border-radius:var(--radius-sm);padding:4px;font-size:11px;font-weight:600;line-height:1.25">Office</span><p style="flex:1">Unit 425, Floor 12, First digital finance,</p></div>
+              <p>Manila, Makati, 10009</p>
+              <p style="color:var(--text-subtle);margin-top:4px">7/11 entrance on the right side</p>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <p style="font-size:var(--text-sm);line-height:1.5;color:var(--text-subtle)">This product is sold and fulfilled by Billease Deals. Shipping times vary by your location: 3–5 business days in Metro Manila, 5–7 days in Luzon, and 7–10 days in Visayas and Mindanao.</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:var(--space-200)">
+            <div style="flex:1;display:flex;align-items:center;gap:var(--space-100)"><img class="di" src="${A.pkg}" alt=""><p style="font-size:var(--text-lg);line-height:1.5">Returns and replacements policy</p></div>
+            <span style="width:20px;height:20px;padding:2px;display:flex">${icon('chevron-right', 'xs')}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${actionBar(dsButton(cta, 'from-summary'), { border: true, textBottom: help })}
+  </div>`
+}
+
+SCREENS.sof = () => {
+  const c = S.cfg, d = sof()
+  const isDefault = k => c.sof === k
+  const withDefault = (k, text) => isDefault(k) ? `Your default · ${text.charAt(0).toLowerCase()}${text.slice(1)}` : text
+  const loanSub = d.loanDpRequired ? 'Down payment required for this order' : 'Pay off each purchase on its own'
+  let clSub = 'All purchases in one monthly statement'
+  if (!c.clActive) clSub = 'Activation required'
+  if (!d.clCovers) clSub = 'Insufficient credit line limit'
+  const opt = (k, title, sub, amt, off) => `
+    <button class="source${S.sel === k ? ' on' : ''}${off ? ' off' : ''}" data-act="${off ? '' : 'pick-' + k}" ${off ? 'aria-disabled="true"' : ''} role="radio" aria-checked="${S.sel === k}">
+      <span class="radio${S.sel === k ? ' on' : ''}"></span>
+      <span class="lbl"><b>${title}</b><span>${withDefault(k, sub)}</span></span>
+      <span class="amt">${peso(amt)}</span>
+    </button>`
+  const cta = S.sel === 'cl' && !c.clActive ? 'Activate and use' : 'Save and continue'
+  return `
+  <div class="scr">
+    ${statusBar()}
+    ${navHeader('Choose source of fund', { left: 'back', right: 'info', border: false })}
+    <div class="scroll" data-scroll>
+      <div style="display:flex;flex-direction:column;gap:var(--space-600);padding:var(--space-600) var(--space-500)">
+        ${orderCard()}
+        <p style="font-size:var(--text-lg);line-height:1.5">Set the default for your everyday payments. Nothing is charged and nothing is borrowed until you pay for something.</p>
+        ${!d.clCovers ? alertBox('warning', `Your credit line has ${peso(c.clLimit)} available, which doesn't cover this order. You can pay with a loan instead.`) : ''}
+        ${S.sofError ? alertBox('critical', 'Choose Loans or Credit line to continue.') : ''}
+        <div class="sources" role="radiogroup" aria-label="Source of fund">
+          ${opt('loans', 'Loans', loanSub, c.loanLimit, false)}
+          ${opt('cl', 'Credit line', clSub, c.clLimit, !d.clCovers)}
+        </div>
+        <p style="font-size:var(--text-lg);line-height:1.5;color:var(--text-subtle)">You can change this any time, or pick a different one for each payment.</p>
+      </div>
+    </div>
+    ${actionBar(dsButton(cta, 'sof-continue'), { border: false })}
+  </div>`
+}
+
+SCREENS.clActivate = () => {
+  const pts = [
+    ['clCal',   'Up to 62 days interest-free', 'Pay your full statement balance by the due date and you pay no interest. If you don’t, interest of 0.137% per day applies.'],
+    ['clCart',  'No annual or hidden fees', 'You pay only for what you spent.'],
+    ['clPct',   'Affordable minimum payment', 'Your minimum due is 5% of your statement balance, plus any interest.'],
+    ['clRenew', 'Your limit frees up as you pay your balance', 'As your balance goes down, your available limit goes back up, ready to spend again.'],
+    ['clTag',   'Activation is free', 'No fee to open your Credit Line.'],
+  ]
+  const state = S.clAgreed ? 'checked' : S.clAgreeError ? 'error' : ''
+  return `
+  <div class="scr">
+    ${statusBar()}
+    ${navHeader('Activate credit line', { left: null, right: 'close', border: false })}
+    <div class="scroll" data-scroll>
+      <div style="display:flex;flex-direction:column;gap:var(--space-600);padding:var(--space-600) var(--space-500)">
+        ${pts.map(([ic, t, d]) => `
+          <div style="display:flex;gap:var(--space-400);align-items:flex-start">
+            <div style="width:40px;height:40px;border-radius:var(--radius-lg);background:var(--bg-info-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0"><img src="${A[ic]}" width="20" height="20" alt=""></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:var(--space-050);line-height:1.5">
+              <p style="font-size:var(--text-lg);font-weight:600">${t}</p>
+              <p style="font-size:var(--text-md);color:var(--text-subtle)">${d}</p>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="padding:var(--space-300) var(--space-500) var(--space-400)">
+        <div class="cbx ${state}" data-act="toggle-cl-agree" role="checkbox" aria-checked="${S.clAgreed}" tabindex="0">
+          <div class="row">
+            <span class="box">${S.clAgreed ? icon('tick', 'sm', 'var(--icon-on-dark)') : ''}</span>
+            <p>I have read and agree to the <u>Credit Line Agreement</u> and <u>Privacy Policy</u> governing Credit Line transactions.</p>
+          </div>
+          ${S.clAgreeError ? `<span class="err">Agree to the terms to activate your credit line.</span>` : ''}
+        </div>
+      </div>
+    </div>
+    ${actionBar(dsButton('Confirm activation', 'cl-activate'), { border: true })}
+  </div>`
+}
+
+const agreeRow = () => `
+  <div class="agree" data-act="toggle-review-agree" role="checkbox" aria-checked="${S.reviewAgreed}" tabindex="0">
+    ${S.reviewAgreed ? `<img src="${A.checked}" width="20" height="20" alt="">` : `<span class="b"></span>`}
+    <p style="width:296px">I have read and agree to the <b>Disclosure statement</b> and <b>Promissory note.</b></p>
+  </div>`
+
+SCREENS.reviewCl = () => `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}
+    <div class="scroll">
+      <div style="display:flex;flex-direction:column;gap:16px;padding-bottom:16px">
+        <p class="lh1">Review your order</p>
+        <div style="padding:0 16px"><div class="rcard">
+          <div class="hd"><b>Billease Deals</b><strong>${peso(TOTAL)}</strong></div>
+          <div class="list">
+            <div class="rrow id top"><span>Order ID</span><span>billease_8ht1VHSdrX1zMuf9TdWDks4W</span></div>
+            <div class="line"></div>
+            <div class="details">
+              <div class="rrow"><span>Paid with</span><span>Credit line</span></div>
+              <div class="rrow"><span>Due on</span><span>Jun 12, 2026</span></div>
+              <div class="rrow"><span>Fulfilled by</span><span>Billease Deals</span></div>
+            </div>
+          </div>
+        </div></div>
+        ${agreeRow()}
+      </div>
+    </div>
+    ${legacyCta('continue', 'review-continue', !S.reviewAgreed)}
+  </div>`
+
+function dpScreen(required) {
+  const c = S.cfg
+  const min = required ? TOTAL - c.loanLimit : 0
+  const max = required ? 16000 : TOTAL - 100
+  if (S.dp < min) S.dp = min
+  return `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}${legacyHeader()}
+    <div class="scroll">
+      <div class="lbody">
+        ${orderCard()}
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <p class="lh2">${required ? 'Select down payment' : 'Select down payment (optional)'}</p>
+          <div class="plan" style="gap:8px">
+            <div class="calc"><b>${peso(S.dp, required)}</b><span style="display:flex;align-items:center;gap:4px;line-height:16px">Down payment <img src="${A.info}" width="24" height="24" alt=""></span></div>
+            <div>${slider('dp', S.dp, min, max)}
+              <div class="slabels"><span>${peso(min, false)}</span><span>${peso(max, false)}</span></div>
+            </div>
+          </div>
+          ${required ? `<p style="font-size:14px;line-height:20px;color:var(--legacy-muted)">Your loan limit is ${peso(c.loanLimit)}, so at least ${peso(min)} is paid upfront.</p>` : ''}
+        </div>
+      </div>
+    </div>
+    ${required ? '' : `<div style="display:flex;justify-content:center;padding-bottom:8px;background:var(--legacy-bg)"><button class="skip" data-act="dp-skip">Skip</button></div>`}
+    ${legacyCta('continue', 'dp-continue')}
+  </div>`
+}
+SCREENS.dpOptional = () => dpScreen(false)
+SCREENS.dpRequired = () => dpScreen(true)
+
+SCREENS.plan = () => {
+  const t = TERMS[S.termIdx], financed = TOTAL - S.dp
+  return `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}${legacyHeader()}
+    <div class="scroll">
+      <div class="lbody">
+        ${orderCard()}
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <p class="lh2">Choose payment plan</p>
+          ${S.dp > 0 ? `<p style="font-size:14px;line-height:20px;color:var(--legacy-muted);margin-top:-8px">Offers for ${peso(financed)} after a ${peso(S.dp)} down payment</p>` : ''}
+          <div class="plan sel">
+            <div class="emi"><b>${peso(monthly(financed, t))}</b><span>monthly for ${t} months</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="calc"><b>${t} months</b><span>Installment term</span></div>
+              <div>${slider('term', S.termIdx, 0, TERMS.length - 1)}
+                <div class="slabels"><span>${TERMS[0]} months</span><span>${TERMS[TERMS.length - 1]} months</span></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div class="tagline">Pay faster, save on interest</div>
+              <div class="howto">How to use this plan</div>
+            </div>
+            <div class="ptag"><img src="${A.ptag}" width="96" height="25" alt=""><span>Flexible</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${legacyCta('continue', 'plan-continue')}
+  </div>`
+}
+
+SCREENS.reviewLoan = () => {
+  const t = TERMS[S.termIdx], financed = TOTAL - S.dp
+  return `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}
+    <div class="scroll">
+      <div style="display:flex;flex-direction:column;gap:16px;padding-bottom:16px">
+        <p class="lh1">Review your order</p>
+        <div style="padding:0 16px"><div class="rcard">
+          <div class="hd"><b>Billease Deals</b><strong>${peso(TOTAL)}</strong></div>
+          <div class="list">
+            <div class="rrow id"><span>Order ID</span><span>GH606FA1</span></div>
+            <div class="line"></div>
+            <div class="details">
+              <div class="rrow"><span>Financed amount</span><span>${peso(financed)}</span></div>
+              ${S.dp > 0 ? `<div class="rrow top"><span><span style="display:flex;align-items:center;gap:2px">Down payment <img src="${A.info}" width="20" height="20" alt=""></span><small>You will need to pay this upfront</small></span><span>${peso(S.dp)}</span></div>` : ''}
+              <div class="rrow"><span>Installment term</span><span>${t} months</span></div>
+              <div class="rrow"><span>Repayment frequency</span><span>Monthly</span></div>
+              <div class="rrow"><span>Installment amount</span><span>${peso(monthly(financed, t))}</span></div>
+              <div class="rrow"><span>First payment due</span><span>Jun 12, 2026</span></div>
+              <div class="rrow"><span>Flexible payment</span><span>Yes</span></div>
+              <div class="rrow"><span>Fulfilled by</span><span>Billease Deals</span></div>
+              <div class="tagline">Pay faster, save on interest</div>
+            </div>
+          </div>
+        </div></div>
+        ${agreeRow()}
+      </div>
+    </div>
+    ${legacyCta('confirm', 'review-continue', !S.reviewAgreed)}
+  </div>`
+}
+
+SCREENS.success = () => `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}
+    <img src="${A.dot}" width="10" height="9" alt="" style="position:absolute;left:274.78px;top:304px">
+    <div style="position:absolute;left:18.61%;right:11.94%;top:121px;height:289px">
+      <div style="position:absolute;top:1.38%;right:1.6%;bottom:15.11%;left:1.51%"><img src="${A.hooray}" alt="" style="display:block;width:100%;height:100%;max-width:none"></div>
+    </div>
+    <div style="position:absolute;left:24px;top:392px;width:312px;display:flex;flex-direction:column;gap:24px;text-align:center">
+      <p style="font-size:24px;font-weight:600;line-height:32px;letter-spacing:.48px;color:var(--legacy-navy)">Your order is placed</p>
+      <div style="font-size:20px;line-height:28px;color:var(--legacy-ink)">
+        <p style="margin-bottom:18px">Your order has been received and is being processed.</p>
+        <p>Await further communication from partner.</p>
+      </div>
+    </div>
+    <div style="margin-top:auto">${legacyCta('got it', 'done')}</div>
+  </div>`
+
+SCREENS.oneLastStep = () => `
+  <div class="scr legacy">
+    ${statusBar()}${browser()}
+    <img src="${A.billy}" width="250" height="289" alt="" style="position:absolute;left:55px;top:94px">
+    <p style="position:absolute;left:24px;top:383px;width:312px;text-align:center;font-size:32px;font-weight:700;color:var(--legacy-navy)">One last step</p>
+    <div style="position:absolute;left:24px;top:455px;width:312px;height:107px;background:#fff;border-radius:12px;box-shadow:0 5px 13px -2px rgba(56,83,150,.21);padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div class="rrow top"><span style="line-height:normal">Down payment<small style="margin-top:2px">You will need to pay this upfront</small></span><span>${peso(S.dp)}</span></div>
+      <div class="rrow"><span style="line-height:normal">Due</span><span>Today</span></div>
+    </div>
+    <p style="position:absolute;left:24px;top:586px;width:312px;text-align:center;font-size:16px;line-height:24px;color:var(--legacy-ink)">Pay via QRPh, e-wallet, over the counter, online banking, or bank transfer.</p>
+    <div style="position:absolute;left:50px;top:658px;width:260px;display:flex;flex-direction:column;gap:16px">
+      <button class="lbtn" data-act="pay-dp">make down payment</button>
+      <button class="lbtn sec" data-act="cancel-order">cancel order</button>
+    </div>
+  </div>`
+
+// ── Navigation (StepForwardBack push, 320ms) ─────────────────────────────────
+const vp = document.getElementById('viewport')
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
+const current = () => S.history[S.history.length - 1]
+
+function paint() {
+  vp.innerHTML = `<div class="layer" data-layer>${SCREENS[current()]()}</div>`
+  wireScroll(vp.querySelector('[data-layer]'))
+  renderRail()
+}
+
+function go(next, dir = 'forward', nextHistory) {
+  if (S.busy) return
+  const prev = current()
+  if (dir === 'forward') {
+    S.history = nextHistory ?? [...S.history, next]
+    const base = vp.querySelector('[data-layer]')
+    const dim = document.createElement('div'); dim.className = 'dim'
+    const over = document.createElement('div'); over.className = 'layer'; over.style.zIndex = 2
+    over.innerHTML = SCREENS[next]()
+    vp.append(dim, over)
+    base.style.animation = `pushLeft 320ms ${EASE} forwards`
+    dim.style.animation = `dimIn 320ms ease forwards`
+    over.style.animation = `slideInFromRight 320ms ${EASE} forwards`
+    S.busy = true
+    setTimeout(() => { S.busy = false; paint() }, 320)
+  } else {
+    const leaving = vp.querySelector('[data-layer]')
+    S.history = nextHistory ?? S.history.slice(0, -1)
+    const base = document.createElement('div'); base.className = 'layer'
+    base.innerHTML = SCREENS[current()]()
+    const dim = document.createElement('div'); dim.className = 'dim'
+    vp.prepend(base); base.after(dim)
+    leaving.style.zIndex = 2; leaving.style.pointerEvents = 'none'
+    dim.style.animation = `dimOut 320ms ease forwards`
+    leaving.style.animation = `slideOutToRight 320ms ${EASE} forwards`
+    S.busy = true
+    setTimeout(() => { S.busy = false; paint() }, 320)
+  }
+  renderRail(prev)
+}
+const back = () => { if (S.history.length > 1) go(null, 'back') }
+const refresh = () => {
+  const layer = vp.querySelector('[data-layer]')
+  const sc = layer.querySelector('.scroll'); const top = sc ? sc.scrollTop : 0
+  layer.innerHTML = SCREENS[current()]()
+  const sc2 = layer.querySelector('.scroll'); if (sc2) sc2.scrollTop = top
+  wireScroll(layer); renderRail()
+}
+
+// NavHeader border only once the content under it scrolls
+function wireScroll(layer) {
+  const sc = layer.querySelector('[data-scroll]'), nav = layer.querySelector('[data-nav]')
+  if (!sc || !nav) return
+  const set = () => nav.classList.toggle('border', sc.scrollTop > 0)
+  sc.addEventListener('scroll', set); set()
+}
+
+function startLoanRoute() {
+  S.route = 'loans'
+  if (S.cfg.loanLimit < TOTAL) return go('dpRequired')
+  if (S.dpOffered) return go('dpOptional')
+  S.dp = 0; go('plan')
+}
+
+const ACTIONS = {
+  back,
+  cancel: () => go(null, 'back', ['item', 'summary']),
+  'to-summary': () => go('summary'),
+  'from-summary': () => {
+    if (!showSofScreen()) { S.route = 'loans'; return startLoanRoute() }
+    S.sel = sof().preselect; S.sofError = false
+    go('sof')
+  },
+  'pick-loans': () => { S.sel = 'loans'; S.sofError = false; refresh() },
+  'pick-cl':    () => { S.sel = 'cl';    S.sofError = false; refresh() },
+  'sof-continue': () => {
+    if (S.saving) return
+    if (!S.sel) { S.sofError = true; refresh(); return }
+    const choice = S.sel
+    S.saving = true; refresh()
+    setTimeout(() => {
+      S.saving = false
+      if (choice === 'cl' && !S.cfg.clActive) { S.route = 'cl'; S.clAgreed = false; S.clAgreeError = false; return go('clActivate') }
+      S.cfg.sof = choice                     // saved as the default for next time
+      S.reviewAgreed = false
+      if (choice === 'cl') { S.route = 'cl'; return go('reviewCl') }
+      startLoanRoute()
+    }, 600)
+  },
+  'toggle-cl-agree': () => { S.clAgreed = !S.clAgreed; if (S.clAgreed) S.clAgreeError = false; refresh() },
+  'cl-activate': () => {
+    if (!S.clAgreed) { S.clAgreeError = true; refresh(); return }
+    S.cfg.clActive = true; S.cfg.sof = 'cl'; S.reviewAgreed = false
+    go('reviewCl')
+  },
+  'toggle-review-agree': () => { S.reviewAgreed = !S.reviewAgreed; refresh() },
+  'review-continue': () => {
+    if (!S.reviewAgreed) return
+    go(S.route === 'loans' && S.dp > 0 ? 'oneLastStep' : 'success')
+  },
+  'dp-skip': () => { S.dp = 0; go('plan') },
+  'dp-continue': () => go('plan'),
+  'plan-continue': () => { S.reviewAgreed = false; go('reviewLoan') },
+  'pay-dp': () => go('success'),
+  'cancel-order': () => restart(true),
+  done: () => restart(true),
+}
+
+function restart(keepCfg) {
+  resetFlow(keepCfg)
+  paint()
+}
+
+vp.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]')
+  if (!el || !el.dataset.act || S.busy) return
+  ACTIONS[el.dataset.act]?.()
+})
+vp.addEventListener('keydown', e => {
+  const el = e.target.closest('[role="checkbox"][data-act]')
+  if (el && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); ACTIONS[el.dataset.act]?.() }
+  const sl = e.target.closest('[data-slider]')
+  if (sl && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault()
+    const id = sl.dataset.slider, dir = e.key === 'ArrowRight' ? 1 : -1
+    if (id === 'term') setSlider(id, S.termIdx + dir)
+    else setSlider(id, S.dp + dir * 100)
+    vp.querySelector(`[data-slider="${id}"]`)?.focus()
+  }
+})
+
+// Sliders: drag anywhere on the track
+function setSlider(id, raw) {
+  const sl = vp.querySelector(`[data-slider="${id}"]`); if (!sl) return
+  const min = +sl.dataset.min, max = +sl.dataset.max
+  if (id === 'term') S.termIdx = Math.max(min, Math.min(max, Math.round(raw)))
+  else S.dp = Math.max(min, Math.min(max, Math.round(raw / 100) * 100))
+  refresh()
+}
+let drag = null
+vp.addEventListener('pointerdown', e => {
+  const sl = e.target.closest('[data-slider]'); if (!sl || S.busy) return
+  drag = sl.dataset.slider; move(e); e.preventDefault()
+})
+window.addEventListener('pointermove', e => { if (drag) move(e) })
+window.addEventListener('pointerup', () => { drag = null })
+function move(e) {
+  const sl = vp.querySelector(`[data-slider="${drag}"]`); if (!sl) return
+  const r = sl.getBoundingClientRect()
+  const pct = Math.max(0, Math.min(1, (e.clientX - r.left - 18 * (r.width / sl.offsetWidth)) / (r.width - 36 * (r.width / sl.offsetWidth))))
+  const min = +sl.dataset.min, max = +sl.dataset.max
+  setSlider(drag, min + pct * (max - min))
+}
+
+// ── Rail ─────────────────────────────────────────────────────────────────────
+const LABEL = { item: 'Item details', summary: 'Summary', sof: 'Choose source of fund', clActivate: 'Activate credit line',
+  reviewCl: 'Review order', dpOptional: 'Down payment (optional)', dpRequired: 'Down payment (required)',
+  plan: 'Choose payment plan', reviewLoan: 'Review order', oneLastStep: 'One last step', success: 'Order placed' }
+
+function renderRail() {
+  document.getElementById('scenarios').innerHTML = SCENARIOS.map(s => `
+    <button class="scenario" data-scn="${s.id}" aria-pressed="${s.id === S.scenario}"><b>${s.name}</b><span>${s.hint}</span></button>`).join('')
+
+  const now = current(), seen = new Set(S.history)
+  const step = id => `<div class="step ${id === now ? 'now' : seen.has(id) ? 'done' : ''}"><i></i>${LABEL[id]}</div>`
+  const loan = [S.cfg.loanLimit < TOTAL ? 'dpRequired' : (S.dpOffered ? 'dpOptional' : null), 'plan', 'reviewLoan'].filter(Boolean)
+  const done = branch => S.route === branch ? step('success') : `<div class="step"><i></i>${LABEL.success}</div>`
+  const tailLoan = (S.dp > 0 ? step('oneLastStep') : '') + done('loans')
+  let html = step('item') + step('summary')
+  if (showSofScreen()) {
+    html += step('sof')
+    html += `<div class="branch">If Loans</div>` + loan.map(step).join('') + tailLoan
+    html += `<div class="branch">If Credit line</div>` + (S.cfg.clActive && !seen.has('clActivate') ? '' : step('clActivate')) + step('reviewCl') + done('cl')
+  } else {
+    html += loan.map(step).join('') + tailLoan
+  }
+  document.getElementById('route').innerHTML = html
+
+  const c = S.cfg
+  document.getElementById('facts').innerHTML = `
+    <dt>Order total</dt><dd>${peso(TOTAL)}</dd>
+    <dt>Saved default</dt><dd>${c.sof === 'cl' ? 'Credit line' : c.sof === 'loans' ? 'Loans' : 'Not set'}</dd>
+    <dt>Loan limit</dt><dd>${peso(c.loanLimit)}</dd>
+    <dt>Credit line</dt><dd>${!c.clOffered ? 'Not available' : c.clActive ? peso(c.clLimit) : 'Not activated'}</dd>`
+  const t = document.getElementById('dp-toggle'); t.setAttribute('aria-checked', S.dpOffered)
+}
+
+document.getElementById('scenarios').addEventListener('click', e => {
+  const b = e.target.closest('[data-scn]'); if (!b || S.busy) return
+  S.scenario = b.dataset.scn; restart(false)
+})
+document.getElementById('dp-toggle').addEventListener('click', () => { S.dpOffered = !S.dpOffered; renderRail() })
+document.getElementById('restart').addEventListener('click', () => { if (!S.busy) restart(false) })
+
+// ── Scale the phone to the stage ─────────────────────────────────────────────
+const stage = document.getElementById('stage'), wrap = document.getElementById('phone-wrap'), phone = document.getElementById('phone')
+function fit() {
+  const narrow = window.innerWidth <= 760
+  const availH = narrow ? 864 * 0.9 : stage.clientHeight - 32
+  const availW = stage.clientWidth - 32
+  const s = Math.max(0.4, Math.min(availH / 864, availW / 380, 1))
+  phone.style.transform = `scale(${s})`
+  wrap.style.width = 380 * s + 'px'; wrap.style.height = 864 * s + 'px'
+}
+new ResizeObserver(fit).observe(stage); window.addEventListener('resize', fit)
+
+resetFlow(false); paint(); fit()
+</script>
