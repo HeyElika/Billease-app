@@ -280,6 +280,13 @@ button { font: inherit; color: inherit; }
 .toast .ic { width: 24px; height: 24px; padding: 2px; display: flex; flex-shrink: 0; }
 .toast p { flex: 1; min-width: 0; font-family: var(--ds-font-family); font-size: 16px; line-height: 1.5; color: var(--text-base); }
 .toast button { width: 16px; height: 16px; padding: 0; border: none; background: none; cursor: pointer; display: flex; flex-shrink: 0; }
+/* card/payment-method (Figma sMW3MOYkTVNijuFMZ0XVBm 55512:51312) */
+.paymethod { display: flex; align-items: center; gap: var(--space-300); padding: var(--space-200) var(--space-300); border-radius: var(--radius-lg); background: var(--bg-subtle); }
+.paymethod .bal { flex: 1; min-width: 0; font-size: var(--text-md); line-height: 1.5; display: flex; flex-direction: column; }
+.paymethod .bal span { color: var(--text-subtle); }
+.paymethod .bal b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.btn-sm-secondary { height: 32px; padding: 0 12px; border: none; border-radius: var(--radius-full); background: var(--bg-sunken); color: var(--text-base); font-family: var(--ds-font-family); font-size: var(--text-md); font-weight: 600; line-height: 1.5; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.btn-sm-secondary:active { background: linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), var(--bg-sunken); }
 .skip { background: none; border: none; font-family: var(--ds-font-family); font-size: 16px; font-weight: 600; color: #595959; cursor: pointer; padding: 4px 12px; }
 </style>
 
@@ -287,7 +294,7 @@ button { font: inherit; color: inherit; }
   <aside class="rail" aria-label="Prototype controls">
     <div>
       <h1>Deals checkout</h1>
-      <p class="lede">Summary, then the source of fund. Loans go on to down payment and payment plan. Credit line skips both and goes straight to review.</p>
+      <p class="lede">The default source of fund is set once, on the first checkout. After that, Summary pays with it and Change switches for one order.</p>
     </div>
     <div>
       <p class="rail-label">Scenario</p>
@@ -308,10 +315,11 @@ button { font: inherit; color: inherit; }
     <div>
       <p class="rail-label">UX changes vs. old flow</p>
       <ul class="changes">
-        <li>Summary no longer says "Select payment plan" when a credit line can pay. The next step is choosing the source of fund.</li>
-        <li>With no default set, nothing is preselected. Continuing without a choice shows an error, so the default is always picked on purpose.</li>
-        <li>The pick is saved as the default and preselected on the next checkout.</li>
+        <li>First checkout only: a one-time setup screen. Nothing is preselected, and continuing without a choice shows an error.</li>
+        <li>With a default set, Summary shows "Pay with…" and continues with it. No extra screen.</li>
+        <li>Change on Summary switches this order only. "Save as my default" makes it stick.</li>
         <li>Credit line goes straight to review. Down payment and payment plan only appear for loans.</li>
+        <li>A toast confirms when a source of fund is activated or saved as the default.</li>
       </ul>
     </div>
     <button class="restart" id="restart">
@@ -374,15 +382,15 @@ const peso  = (n, dec = true) => '₱' + n.toLocaleString('en-PH', { minimumFrac
 const monthly = (financed, t) => Math.round(financed * (1 + RATE * t) / t / 10) * 10
 
 const SCENARIOS = [
-  { id: 'no-default',  name: 'No default yet',                 hint: 'First checkout. Nothing preselected.',
+  { id: 'no-default',  name: 'No default yet',                 hint: 'First checkout. One-time setup of the default.',
     cfg: { sof: null,    clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
-  { id: 'default-loans', name: 'Default: Loans',               hint: 'Loans preselected, user can switch.',
+  { id: 'default-loans', name: 'Default: Loans',               hint: 'Summary pays with Loans. Change to switch.',
     cfg: { sof: 'loans', clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
-  { id: 'default-cl',  name: 'Default: Credit line',           hint: 'Credit line preselected, straight to review.',
+  { id: 'default-cl',  name: 'Default: Credit line',           hint: 'Summary pays with credit line, straight to review.',
     cfg: { sof: 'cl',    clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 25000 } },
-  { id: 'cl-inactive', name: 'Credit line not activated',      hint: 'Choosing it adds the activation step.',
+  { id: 'cl-inactive', name: 'Credit line not activated',      hint: 'First checkout. Choosing it adds activation.',
     cfg: { sof: null,    clOffered: true,  clActive: false, clLimit: 30000, loanLimit: 25000 } },
-  { id: 'cl-low',      name: 'Credit line limit too low',      hint: 'Default is credit line, limit ₱15,000.',
+  { id: 'cl-low',      name: 'Credit line limit too low',      hint: 'Default can’t cover ₱20,000. This order uses Loans.',
     cfg: { sof: 'cl',    clOffered: true,  clActive: true,  clLimit: 15000, loanLimit: 25000 } },
   { id: 'loan-low',    name: 'Loan limit below order',         hint: 'Loans stays selectable, down payment required.',
     cfg: { sof: 'loans', clOffered: true,  clActive: true,  clLimit: 30000, loanLimit: 9100 } },
@@ -396,12 +404,15 @@ const S = {
   sel: null, sofError: false, route: null,  // 'loans' | 'cl'
   dp: 0, termIdx: 2, reviewAgreed: false, clAgreed: false, clAgreeError: false,
   saving: false, toast: null,   // { screen, message }
+  pay: null,                     // source of fund for this order
+  sofMode: 'setup',              // 'setup' (first time, sets the default) | 'switch' (this order only)
+  saveDefault: false,
 }
 
 function resetFlow(keepCfg) {
   if (!keepCfg) S.cfg = { ...SCENARIOS.find(s => s.id === S.scenario).cfg }
   Object.assign(S, { history: ['item'], sel: null, sofError: false, route: null, dp: 0, termIdx: 2,
-    reviewAgreed: false, clAgreed: false, clAgreeError: false, saving: false, toast: null })
+    reviewAgreed: false, clAgreed: false, clAgreeError: false, saving: false, toast: null, pay: null, sofMode: 'setup', saveDefault: false })
 }
 
 // Derived source-of-fund state
@@ -415,7 +426,8 @@ function sof() {
   if (c.sof === 'loans') preselect = 'loans'
   return { clCovers, clUsable, loanDpRequired, preselect }
 }
-const showSofScreen = () => S.cfg.clOffered   // shown whenever a credit line exists, even if it can't cover the order
+const showSofScreen = () => S.cfg.clOffered   // a credit line exists, even if it can't cover the order
+const needsSetup = () => S.cfg.clOffered && !S.cfg.sof   // one-time setup of the default source of fund
 
 // ── Shared pieces ────────────────────────────────────────────────────────────
 const statusBar = () => `
@@ -569,10 +581,21 @@ SCREENS.item = () => `
   </div>`
 
 SCREENS.summary = () => {
-  // UX fix: with a credit line in play the next step is the source of fund, not the payment plan
-  const next = showSofScreen()
-  const cta  = next ? 'Continue' : 'Select payment plan'
-  const help = next ? 'You can choose how to pay in the next step' : 'You can choose a payment plan in the next step'
+  // First checkout: the next step is the one-time source of fund setup.
+  // Once a default exists: pay with it from here, Change switches for this order only.
+  const setup = needsSetup(), c = S.cfg, d = sof()
+  let cta = 'Select payment plan', help = 'You can choose a payment plan in the next step'
+  if (setup) { cta = 'Continue'; help = 'You can choose how to pay in the next step' }
+  else if (S.pay === 'cl') { cta = 'Review order'; help = 'Charged to your credit line after you confirm' }
+  const payRow = setup || !c.clOffered ? '' : `
+        ${c.sof === 'cl' && !d.clCovers && S.pay === 'loans' ? alertBox('warning', `Your credit line has ${peso(c.clLimit)} available, which doesn't cover this order. This order will be paid with a loan.`) : ''}
+        <div class="paymethod">
+          <div class="bal">
+            <span>${S.pay === 'cl' ? 'Pay with credit line' : 'Pay with loans'}</span>
+            <b>${S.pay === 'cl' ? peso(c.clLimit) : peso(c.loanLimit)}${S.pay === 'loans' && d.loanDpRequired ? ' · Down payment required' : ''}</b>
+          </div>
+          <button class="btn-sm-secondary" data-act="change-pay">Change</button>
+        </div>`
   return `
   <div class="scr" style="background:var(--canvas-default)">
     ${statusBar()}${browser()}${pageHeader('Summary', true)}
@@ -592,7 +615,7 @@ SCREENS.summary = () => {
             <div class="divider"></div>
             <div class="kv" style="font-weight:600"><span style="color:var(--text-base)">Total</span><span>₱20,000</span></div>
           </div>
-        </div>
+        </div>${payRow}
         <div class="card" style="gap:var(--space-300)">
           <div style="display:flex;flex-direction:column;gap:var(--space-200)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -635,7 +658,15 @@ SCREENS.sof = () => {
       <span class="lbl"><b>${title}</b><span>${withDefault(k, sub)}</span></span>
       <span class="amt">${peso(amt)}</span>
     </button>`
-  const cta = S.sel === 'cl' && !c.clActive ? 'Activate and use' : 'Save and continue'
+  const setup = S.sofMode === 'setup'
+  const cta = S.sel === 'cl' && !c.clActive ? 'Activate and use' : setup ? 'Save and continue' : 'Use for this order'
+  const saveBox = setup ? '' : `
+        <div class="cbx${S.saveDefault ? ' checked' : ''}" data-act="toggle-save-default" role="checkbox" aria-checked="${S.saveDefault}" tabindex="0">
+          <div class="row" style="align-items:center">
+            <span class="box">${S.saveDefault ? icon('tick', 'sm', 'var(--icon-on-dark)') : ''}</span>
+            <p style="font-size:var(--text-lg)">Save as my default</p>
+          </div>
+        </div>`
   return `
   <div class="scr">
     ${statusBar()}
@@ -643,14 +674,14 @@ SCREENS.sof = () => {
     <div class="scroll" data-scroll>
       <div style="display:flex;flex-direction:column;gap:var(--space-600);padding:var(--space-600) var(--space-500)">
         ${orderCard()}
-        <p style="font-size:var(--text-lg);line-height:1.5">Set the default for your everyday payments. Nothing is charged and nothing is borrowed until you pay for something.</p>
+        ${setup ? `<p style="font-size:var(--text-lg);line-height:1.5">Set the default for your everyday payments. Nothing is charged and nothing is borrowed until you pay for something.</p>` : ''}
         ${!d.clCovers ? alertBox('warning', `Your credit line has ${peso(c.clLimit)} available, which doesn't cover this order. You can pay with a loan instead.`) : ''}
         ${S.sofError ? alertBox('critical', 'Choose Loans or Credit line to continue.') : ''}
         <div class="sources" role="radiogroup" aria-label="Source of fund">
           ${opt('loans', 'Loans', loanSub, c.loanLimit, false)}
           ${opt('cl', 'Credit line', clSub, c.clLimit, !d.clCovers)}
         </div>
-        <p style="font-size:var(--text-lg);line-height:1.5;color:var(--text-subtle)">You can change this any time, or pick a different one for each payment.</p>
+        ${setup ? `<p style="font-size:var(--text-lg);line-height:1.5;color:var(--text-subtle)">You can change this any time, or pick a different one for each payment.</p>` : saveBox}
       </div>
     </div>
     ${actionBar(dsButton(cta, 'sof-continue'), { border: false })}
@@ -883,7 +914,8 @@ function paint() {
 
 function go(next, dir = 'forward', nextHistory) {
   if (S.busy) return
-  if (S.toast && S.toast.screen !== next) S.toast = null
+  const dest = dir === 'forward' ? next : (nextHistory ?? S.history.slice(0, -1)).at(-1)
+  if (S.toast && S.toast.screen !== dest) S.toast = null
   const prev = current()
   if (dir === 'forward') {
     S.history = nextHistory ?? [...S.history, next]
@@ -940,12 +972,15 @@ function startLoanRoute() {
 const ACTIONS = {
   back,
   cancel: () => go(null, 'back', ['item', 'summary']),
-  'to-summary': () => go('summary'),
+  'to-summary': () => { S.pay = S.cfg.clOffered ? sof().preselect : 'loans'; go('summary') },
   'from-summary': () => {
-    if (!showSofScreen()) { S.route = 'loans'; return startLoanRoute() }
-    S.sel = sof().preselect; S.sofError = false
-    go('sof')
+    if (needsSetup()) { S.sofMode = 'setup'; S.sel = null; S.sofError = false; return go('sof') }
+    S.reviewAgreed = false
+    if (S.pay === 'cl') { S.route = 'cl'; return go('reviewCl') }
+    startLoanRoute()
   },
+  'change-pay': () => { S.sofMode = 'switch'; S.sel = S.pay; S.saveDefault = false; S.sofError = false; go('sof') },
+  'toggle-save-default': () => { S.saveDefault = !S.saveDefault; refresh() },
   'pick-loans': () => { S.sel = 'loans'; S.sofError = false; refresh() },
   'pick-cl':    () => { S.sel = 'cl';    S.sofError = false; refresh() },
   'sof-continue': () => {
@@ -956,6 +991,15 @@ const ACTIONS = {
     setTimeout(() => {
       S.saving = false
       if (choice === 'cl' && !S.cfg.clActive) { S.route = 'cl'; S.clAgreed = false; S.clAgreeError = false; return go('clActivate') }
+      if (S.sofMode === 'switch') {
+        S.pay = choice
+        if (S.saveDefault && S.cfg.sof !== choice) {
+          S.cfg.sof = choice
+          showToast('summary', `${choice === 'cl' ? 'Credit line' : 'Loans'} set as your default`)
+        }
+        return go(null, 'back')
+      }
+      S.pay = choice
       const changed = S.cfg.sof !== choice
       S.cfg.sof = choice                     // saved as the default for next time
       S.reviewAgreed = false
@@ -971,8 +1015,10 @@ const ACTIONS = {
   'toggle-cl-agree': () => { S.clAgreed = !S.clAgreed; if (S.clAgreed) S.clAgreeError = false; refresh() },
   'cl-activate': () => {
     if (!S.clAgreed) { S.clAgreeError = true; refresh(); return }
-    S.cfg.clActive = true; S.cfg.sof = 'cl'; S.reviewAgreed = false
-    showToast('reviewCl', 'Credit line activated and set as your default')
+    S.cfg.clActive = true; S.pay = 'cl'; S.reviewAgreed = false
+    const saved = S.sofMode === 'setup' || S.saveDefault
+    if (saved) S.cfg.sof = 'cl'
+    showToast('reviewCl', saved ? 'Credit line activated and set as your default' : 'Credit line activated and selected')
     go('reviewCl')
   },
   'toast-close': () => { S.toast = null; refresh() },
@@ -1036,7 +1082,7 @@ function move(e) {
 }
 
 // ── Rail ─────────────────────────────────────────────────────────────────────
-const LABEL = { item: 'Item details', summary: 'Summary', sof: 'Choose source of fund', clActivate: 'Activate credit line',
+const LABEL = { item: 'Item details', summary: 'Summary', sof: S => S.sofMode === 'setup' ? 'Set up source of fund' : 'Change source of fund', clActivate: 'Activate credit line',
   reviewCl: 'Review order', dpOptional: 'Down payment (optional)', dpRequired: 'Down payment (required)',
   plan: 'Choose payment plan', reviewLoan: 'Review order', oneLastStep: 'One last step', success: 'Order placed' }
 
@@ -1045,13 +1091,13 @@ function renderRail() {
     <button class="scenario" data-scn="${s.id}" aria-pressed="${s.id === S.scenario}"><b>${s.name}</b><span>${s.hint}</span></button>`).join('')
 
   const now = current(), seen = new Set(S.history)
-  const step = id => `<div class="step ${id === now ? 'now' : seen.has(id) ? 'done' : ''}"><i></i>${LABEL[id]}</div>`
+  const step = id => `<div class="step ${id === now ? 'now' : seen.has(id) ? 'done' : ''}"><i></i>${typeof LABEL[id] === 'function' ? LABEL[id](S) : LABEL[id]}</div>`
   const loan = [S.cfg.loanLimit < TOTAL ? 'dpRequired' : (S.dpOffered ? 'dpOptional' : null), 'plan', 'reviewLoan'].filter(Boolean)
   const done = branch => S.route === branch ? step('success') : `<div class="step"><i></i>${LABEL.success}</div>`
   const tailLoan = (S.dp > 0 ? step('oneLastStep') : '') + done('loans')
   let html = step('item') + step('summary')
   if (showSofScreen()) {
-    html += step('sof')
+    if (needsSetup() || seen.has('sof')) html += step('sof')
     html += `<div class="branch">If Loans</div>` + loan.map(step).join('') + tailLoan
     html += `<div class="branch">If Credit line</div>` + (S.cfg.clActive && !seen.has('clActivate') ? '' : step('clActivate')) + step('reviewCl') + done('cl')
   } else {
