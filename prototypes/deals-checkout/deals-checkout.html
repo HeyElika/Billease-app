@@ -10,6 +10,7 @@
    Light mode only. */
 :root {
   color-scheme: light;
+  --bg-success-subtle: #EEF8F4; --border-success: #037F4D;
   --font-family: 'Inter', system-ui, sans-serif;
   --ds-font-family: 'Source Sans Pro', 'Source Sans 3', 'Segoe UI', sans-serif;
   --text-xxs: 11px; --text-xs: 11px; --text-sm: 13px; --text-md: 14px; --text-lg: 16px;
@@ -272,6 +273,13 @@ button { font: inherit; color: inherit; }
 .lbtn { width: 100%; height: 40px; border-radius: 20px; border: none; background: var(--legacy-red); color: #fff; font-family: var(--ds-font-family); font-size: 16px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; text-shadow: 0 6px 21px rgba(22,11,44,.5); cursor: pointer; }
 .lbtn.sec { background: #fff; border: 1px solid var(--legacy-red); color: var(--legacy-red); text-shadow: none; }
 .lbtn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+/* DS Toast inside ScreenBanner (Figma 10063:175: pt 54, px 20, pb 8) */
+.banner { position: absolute; top: 0; left: 0; right: 0; padding: 54px 20px 8px; z-index: 20; animation: bannerIn 240ms cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes bannerIn { from { transform: translateY(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
+.toast { display: flex; align-items: center; gap: 8px; padding: 16px 12px 16px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-success); background: var(--bg-success-subtle); }
+.toast .ic { width: 24px; height: 24px; padding: 2px; display: flex; flex-shrink: 0; }
+.toast p { flex: 1; min-width: 0; font-family: var(--ds-font-family); font-size: 16px; line-height: 1.5; color: var(--text-base); }
+.toast button { width: 16px; height: 16px; padding: 0; border: none; background: none; cursor: pointer; display: flex; flex-shrink: 0; }
 .skip { background: none; border: none; font-family: var(--ds-font-family); font-size: 16px; font-weight: 600; color: #595959; cursor: pointer; padding: 4px 12px; }
 </style>
 
@@ -349,6 +357,7 @@ const ICONS = {
   'chevron-right': ['M7.04333 24C6.77813 24 6.51294 23.9031 6.30358 23.6955C5.89881 23.294 5.89881 22.6296 6.30358 22.2281L15.4039 13.2026C16.0739 12.5381 16.0739 11.4584 15.4039 10.7939L6.30358 1.76842C5.89881 1.36698 5.89881 0.702523 6.30358 0.301081C6.70835 -0.10036 7.37831 -0.10036 7.78308 0.301081L16.8834 9.3266C17.5952 10.0326 18 10.9877 18 11.9983C18 13.0088 17.6092 13.964 16.8834 14.6699L7.78308 23.6955C7.57371 23.8893 7.30852 24 7.04333 24Z'],
   'status-warning': ['M23.2185 17.3097L15.8621 3.81202C14.8736 1.99592 13.5058 1 12 1C10.4942 1 9.12642 1.99592 8.1379 3.81202L0.781522 17.3097C-0.14952 19.0321 -0.252969 20.6842 0.494164 21.9847C1.2413 23.2853 2.71257 24 4.64362 24H19.3564C21.2874 24 22.7587 23.2853 23.5058 21.9847C24.253 20.6842 24.1495 19.0204 23.2185 17.3097ZM11.1379 9.20173C11.1379 8.72134 11.5287 8.32298 12 8.32298C12.4713 8.32298 12.8621 8.72134 12.8621 9.20173V15.0601C12.8621 15.5405 12.4713 15.9389 12 15.9389C11.5287 15.9389 11.1379 15.5405 11.1379 15.0601V9.20173ZM12.8161 19.407C12.7586 19.4539 12.7012 19.5008 12.6437 19.5476C12.5747 19.5945 12.5058 19.6296 12.4368 19.6531C12.3678 19.6882 12.2989 19.7117 12.2184 19.7234C12.1494 19.7351 12.069 19.7468 12 19.7468C11.931 19.7468 11.8506 19.7351 11.7701 19.7234C11.7011 19.7117 11.6322 19.6882 11.5632 19.6531C11.4942 19.6296 11.4253 19.5945 11.3563 19.5476C11.2988 19.5008 11.2414 19.4539 11.1839 19.407C10.977 19.1844 10.8506 18.8798 10.8506 18.5751C10.8506 18.2705 10.977 17.9659 11.1839 17.7433C11.2414 17.6964 11.2988 17.6495 11.3563 17.6026C11.4253 17.5558 11.4942 17.5206 11.5632 17.4972C11.6322 17.462 11.7011 17.4386 11.7701 17.4269C11.9195 17.3917 12.0805 17.3917 12.2184 17.4269C12.2989 17.4386 12.3678 17.462 12.4368 17.4972C12.5058 17.5206 12.5747 17.5558 12.6437 17.6026C12.7012 17.6495 12.7586 17.6964 12.8161 17.7433C13.023 17.9659 13.1494 18.2705 13.1494 18.5751C13.1494 18.8798 13.023 19.1844 12.8161 19.407Z'],
   'status-error': ['M12 0C5.388 0 0 5.388 0 12C0 18.612 5.388 24 12 24C18.612 24 24 18.612 24 12C24 5.388 18.612 0 12 0ZM16.032 14.76C16.38 15.108 16.38 15.684 16.032 16.032C15.852 16.212 15.624 16.296 15.396 16.296C15.168 16.296 14.94 16.212 14.76 16.032L12 13.272L9.24 16.032C9.06 16.212 8.832 16.296 8.604 16.296C8.376 16.296 8.148 16.212 7.968 16.032C7.62 15.684 7.62 15.108 7.968 14.76L10.728 12L7.968 9.24C7.62 8.892 7.62 8.316 7.968 7.968C8.316 7.62 8.892 7.62 9.24 7.968L12 10.728L14.76 7.968C15.108 7.62 15.684 7.62 16.032 7.968C16.38 8.316 16.38 8.892 16.032 9.24L13.272 12L16.032 14.76Z'],
+  'status-success': ['M12 0C5.388 0 0 5.388 0 12C0 18.612 5.388 24 12 24C18.612 24 24 18.612 24 12C24 5.388 18.612 0 12 0ZM17.736 9.24L10.932 16.044C10.764 16.212 10.536 16.308 10.296 16.308C10.056 16.308 9.828 16.212 9.66 16.044L6.264 12.648C5.916 12.3 5.916 11.724 6.264 11.376C6.612 11.028 7.188 11.028 7.536 11.376L10.296 14.136L16.464 7.968C16.812 7.62 17.388 7.62 17.736 7.968C18.084 8.316 18.084 8.88 17.736 9.24Z'],
   'tick': ['M19.8889 5.35754C20.3725 4.87999 21.1561 4.88099 21.6388 5.35953C22.1212 5.83817 22.1202 6.61375 21.6368 7.09145L9.94566 18.6429C9.46237 19.1201 8.67856 19.1187 8.19582 18.6409L2.36236 12.8652C1.87921 12.387 1.87921 11.6115 2.36236 11.1333C2.84527 10.6563 3.62727 10.6563 4.11018 11.1333L9.07175 16.044L19.8889 5.35754Z'],
 }
 const SIZES = { xs: 16, sm: 20, md: 24 }
@@ -386,13 +395,13 @@ const S = {
   history: ['item'], busy: false,
   sel: null, sofError: false, route: null,  // 'loans' | 'cl'
   dp: 0, termIdx: 2, reviewAgreed: false, clAgreed: false, clAgreeError: false,
-  saving: false,
+  saving: false, toast: null,   // { screen, message }
 }
 
 function resetFlow(keepCfg) {
   if (!keepCfg) S.cfg = { ...SCENARIOS.find(s => s.id === S.scenario).cfg }
   Object.assign(S, { history: ['item'], sel: null, sofError: false, route: null, dp: 0, termIdx: 2,
-    reviewAgreed: false, clAgreed: false, clAgreeError: false, saving: false })
+    reviewAgreed: false, clAgreed: false, clAgreeError: false, saving: false, toast: null })
 }
 
 // Derived source-of-fund state
@@ -844,26 +853,44 @@ SCREENS.oneLastStep = () => `
     </div>
   </div>`
 
+// Confirmation that the source of fund is active and saved as the default
+function toastHtml(name) {
+  if (!S.toast || S.toast.screen !== name) return ''
+  return `<div class="banner" role="status"><div class="toast">
+    <span class="ic">${icon('status-success', 'sm', '#13BD85') /* fill baked into the status-success icon path */}</span>
+    <p>${S.toast.message}</p>
+    <button data-act="toast-close" aria-label="Dismiss">${icon('close-mini', 'xs', 'var(--icon-subtle)')}</button>
+  </div></div>`
+}
+const render = name => SCREENS[name]().replace(/<\/div>\s*$/, toastHtml(name) + '</div>')
+let toastTimer = null
+function showToast(screen, message) {
+  S.toast = { screen, message }
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { if (S.toast?.screen === screen) { S.toast = null; if (current() === screen && !S.busy) refresh() } }, 4000)
+}
+
 // ── Navigation (StepForwardBack push, 320ms) ─────────────────────────────────
 const vp = document.getElementById('viewport')
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const current = () => S.history[S.history.length - 1]
 
 function paint() {
-  vp.innerHTML = `<div class="layer" data-layer>${SCREENS[current()]()}</div>`
+  vp.innerHTML = `<div class="layer" data-layer>${render(current())}</div>`
   wireScroll(vp.querySelector('[data-layer]'))
   renderRail()
 }
 
 function go(next, dir = 'forward', nextHistory) {
   if (S.busy) return
+  if (S.toast && S.toast.screen !== next) S.toast = null
   const prev = current()
   if (dir === 'forward') {
     S.history = nextHistory ?? [...S.history, next]
     const base = vp.querySelector('[data-layer]')
     const dim = document.createElement('div'); dim.className = 'dim'
     const over = document.createElement('div'); over.className = 'layer'; over.style.zIndex = 2
-    over.innerHTML = SCREENS[next]()
+    over.innerHTML = render(next)
     vp.append(dim, over)
     base.style.animation = `pushLeft 320ms ${EASE} forwards`
     dim.style.animation = `dimIn 320ms ease forwards`
@@ -874,7 +901,7 @@ function go(next, dir = 'forward', nextHistory) {
     const leaving = vp.querySelector('[data-layer]')
     S.history = nextHistory ?? S.history.slice(0, -1)
     const base = document.createElement('div'); base.className = 'layer'
-    base.innerHTML = SCREENS[current()]()
+    base.innerHTML = render(current())
     const dim = document.createElement('div'); dim.className = 'dim'
     vp.prepend(base); base.after(dim)
     leaving.style.zIndex = 2; leaving.style.pointerEvents = 'none'
@@ -889,7 +916,7 @@ const back = () => { if (S.history.length > 1) go(null, 'back') }
 const refresh = () => {
   const layer = vp.querySelector('[data-layer]')
   const sc = layer.querySelector('.scroll'); const top = sc ? sc.scrollTop : 0
-  layer.innerHTML = SCREENS[current()]()
+  layer.innerHTML = render(current())
   const sc2 = layer.querySelector('.scroll'); if (sc2) sc2.scrollTop = top
   wireScroll(layer); renderRail()
 }
@@ -902,6 +929,7 @@ function wireScroll(layer) {
   sc.addEventListener('scroll', set); set()
 }
 
+const loanFirstScreen = () => S.cfg.loanLimit < TOTAL ? 'dpRequired' : S.dpOffered ? 'dpOptional' : 'plan'
 function startLoanRoute() {
   S.route = 'loans'
   if (S.cfg.loanLimit < TOTAL) return go('dpRequired')
@@ -928,9 +956,15 @@ const ACTIONS = {
     setTimeout(() => {
       S.saving = false
       if (choice === 'cl' && !S.cfg.clActive) { S.route = 'cl'; S.clAgreed = false; S.clAgreeError = false; return go('clActivate') }
+      const changed = S.cfg.sof !== choice
       S.cfg.sof = choice                     // saved as the default for next time
       S.reviewAgreed = false
-      if (choice === 'cl') { S.route = 'cl'; return go('reviewCl') }
+      if (choice === 'cl') {
+        S.route = 'cl'
+        if (changed) showToast('reviewCl', 'Credit line set as your default')
+        return go('reviewCl')
+      }
+      if (changed) showToast(loanFirstScreen(), 'Loans set as your default')
       startLoanRoute()
     }, 600)
   },
@@ -938,8 +972,10 @@ const ACTIONS = {
   'cl-activate': () => {
     if (!S.clAgreed) { S.clAgreeError = true; refresh(); return }
     S.cfg.clActive = true; S.cfg.sof = 'cl'; S.reviewAgreed = false
+    showToast('reviewCl', 'Credit line activated and set as your default')
     go('reviewCl')
   },
+  'toast-close': () => { S.toast = null; refresh() },
   'toggle-review-agree': () => { S.reviewAgreed = !S.reviewAgreed; refresh() },
   'review-continue': () => {
     if (!S.reviewAgreed) return
